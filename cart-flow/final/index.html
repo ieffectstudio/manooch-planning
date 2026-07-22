@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Manooch - Cart / PDP / Seller Dashboard (Variant &amp; Unit Aware)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    /* ============================================================
+       MANOOCH DESIGN SYSTEM TOKENS (mirrored from packages/ui/src/tokens.css)
+       ============================================================ */
+    @font-face {
+        font-family: 'Vazirmatn';
+        src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-Variable.woff2') format('woff2');
+        font-weight: 100 900;
+        font-display: swap;
+    }
+    :root {
+        --color-primary: #0068ff;
+        --color-menu-accent: #4b45e6;
+        --color-success: #22c55e;
+        --color-danger: #ff3b3b;
+
+        --color-primary-500: #202a37;
+        --color-primary-600: #1d2632;
+        --color-primary-700: #171e27;
+
+        --color-secondary-0: #e0e8ff;
+        --color-secondary-100: #c7d3fe;
+        --color-secondary-400: #6267f2;
+        --color-secondary-500: #4b45e6;
+        --color-secondary-600: #3f37cb;
+
+        --color-success-0: #edfff2;
+        --color-success-100: #d5ffe2;
+        --color-success-500: #00e043;
+        --color-success-600: #00c035;
+        --color-success-700: #00962d;
+        --color-success-800: #067528;
+
+        --color-warning-0: #fff8ec;
+        --color-warning-500: #ff7b06;
+        --color-warning-600: #f95e00;
+        --color-warning-800: #a33609;
+
+        --color-error-0: #ffd5d5;
+        --color-error-100: #ff9898;
+        --color-error-500: #eb0000;
+        --color-error-600: #c20000;
+
+        --color-gray-0: #f0f1f3;
+        --color-gray-100: #e0e2e7;
+        --color-gray-200: #c2c6ce;
+        --color-gray-300: #a3a9b6;
+        --color-gray-400: #858d9d;
+
+        --color-black-500: #16161d;
+        --color-black-300: #737377;
+        --color-black-200: #a2a2a5;
+
+        --color-white-0: #ffffff;
+        --color-white-100: #fefefe;
+        --color-white-500: #fafafa;
+
+        --color-bg-default-primary: #202a37;
+        --color-bg-frame-main: #fefefe;
+        --color-bg-frame-base: #fafafa;
+        --color-bg-frame-alternative: #f0f1f3;
+        --color-border-frame-main: #e0e2e7;
+        --color-border-frame-base: #c2c6ce;
+        --color-text-default-strong: #16161d;
+        --color-text-default-moderate: #737377;
+        --color-text-default-weak: #a2a2a5;
+
+        --color-header-from: #1a2340;
+        --color-header-to: #0d1529;
+
+        --radius-md: 8px;
+        --radius-xl: 12px;
+        --radius-2xl: 16px;
+        --radius-3xl: 20px;
+        --radius-full: 9999px;
+
+        --spacing-xs: 4px;
+        --spacing-sm: 6px;
+        --spacing-md: 8px;
+        --spacing-lg: 12px;
+        --spacing-xl: 16px;
+        --spacing-2xl: 20px;
+        --spacing-3xl: 24px;
+
+        --font-size-small: 11px;
+        --font-size-text: 13px;
+        --font-size-p: 16px;
+    }
+    * { font-family: 'Vazirmatn', sans-serif; box-sizing: border-box; }
+    html, body { direction: rtl; margin: 0; padding: 0; background: var(--color-bg-frame-alternative); }
+
+    .screen { display: none; }
+    .screen.active { display: flex; flex-direction: column; }
+
+    .app-shell { display: flex; gap: 32px; align-items: flex-start; justify-content: center; padding: 32px 16px; min-height: 100vh; }
+
+    .mobile-frame {
+        width: 430px; max-width: 100%;
+        min-height: 852px;
+        background: var(--color-bg-frame-main);
+        border-radius: 28px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 0 40px rgba(22,22,29,0.12);
+        display: flex; flex-direction: column;
+    }
+    .app-header { background: linear-gradient(135deg, var(--color-header-from), var(--color-header-to)); }
+    .card { background: var(--color-bg-frame-main); border: 1px solid var(--color-border-frame-main); border-radius: var(--radius-2xl); }
+    .divider-dashed { border-top: 1px dashed var(--color-gray-200); }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .badge {
+        position: absolute; top: -4px; left: -6px;
+        min-width: 16px; height: 16px;
+        background: var(--color-error-500);
+        border-radius: var(--radius-full);
+        font-size: 9px; color: #fff;
+        display: flex; align-items: center; justify-content: center;
+        padding: 0 3px; font-weight: 700;
+    }
+    .badge.hidden-badge { display: none; }
+
+    .variant-chip {
+        border: 1.5px solid var(--color-border-frame-main);
+        border-radius: var(--radius-full);
+        transition: all .15s;
+    }
+    .variant-chip.active {
+        border-color: var(--color-secondary-500);
+        background: var(--color-secondary-0);
+    }
+    .variant-swatch { border-radius: 999px; display:inline-block; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+
+    .toast {
+        position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+        z-index: 9999; padding: 12px 24px; border-radius: var(--radius-xl);
+        font-size: var(--font-size-text); font-weight: 500; color: #fff;
+        box-shadow: 0 8px 32px rgba(22,22,29,0.15);
+        animation: toastIn .3s ease-out, toastOut .3s ease-in 2.7s forwards;
+        max-width: 380px; text-align: center;
+    }
+    @keyframes toastIn { from{opacity:0; transform:translateX(-50%) translateY(-16px);} to{opacity:1; transform:translateX(-50%) translateY(0);} }
+    @keyframes toastOut { to{opacity:0; transform:translateX(-50%) translateY(-16px);} }
+    .fade-in { animation: fadeIn .25s ease-in; }
+    @keyframes fadeIn { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+    /* bottom sheet */
+    .sheet-overlay {
+        position: absolute; inset: 0; background: rgba(22,22,29,0.45);
+        display: none; align-items: flex-end; z-index: 60;
+    }
+    .sheet-overlay.open { display: flex; }
+    .sheet-panel {
+        background: var(--color-bg-frame-main);
+        width: 100%; max-height: 82%;
+        border-radius: 20px 20px 0 0;
+        padding: 16px 20px 20px;
+        overflow-y: auto;
+        animation: sheetUp .25s ease-out;
+    }
+    @keyframes sheetUp { from{transform:translateY(24px); opacity:.6;} to{transform:translateY(0); opacity:1;} }
+
+    .stepper-btn { width: 32px; height: 32px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; }
+
+    .toggle-track { width: 40px; height: 22px; border-radius: 999px; background: var(--color-gray-200); position: relative; transition: background .15s; flex-shrink:0; }
+    .toggle-track.on { background: var(--color-secondary-500); }
+    .toggle-thumb { position:absolute; top:2px; right:2px; width:18px; height:18px; border-radius:999px; background:#fff; transition: right .15s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+    .toggle-track.on .toggle-thumb { right: 20px; }
+
+    .demo-panel { width: 300px; }
+</style>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    'ds-primary': { 500: '#202a37', 600: '#1d2632' },
+                    'ds-secondary': { 0: '#e0e8ff', 100: '#c7d3fe', 500: '#4b45e6', 600: '#3f37cb' },
+                    'ds-success': { 0: '#edfff2', 500: '#00e043', 600: '#00c035', 700: '#00962d' },
+                    'ds-warning': { 0: '#fff8ec', 500: '#ff7b06', 600: '#f95e00' },
+                    'ds-error': { 0: '#ffd5d5', 500: '#eb0000', 600: '#c20000' },
+                    'ds-gray': { 0: '#f0f1f3', 100: '#e0e2e7', 200: '#c2c6ce', 300: '#a3a9b6', 400: '#858d9d' },
+                    'ds-black': { 200: '#a2a2a5', 300: '#737377', 500: '#16161d' },
+                    'ds-white': { 0: '#ffffff', 100: '#fefefe', 500: '#fafafa' },
+                },
+                fontFamily: { ravi: ['Vazirmatn', 'sans-serif'] },
+                fontSize: {
+                    'ds-small': ['11px', '20px'],
+                    'ds-text': ['13px', '24px'],
+                    'ds-p': ['16px', '32px'],
+                },
+                borderRadius: {
+                    'ds-md': '8px', 'ds-xl': '12px', 'ds-2xl': '16px', 'ds-3xl': '20px',
+                },
+                spacing: {
+                    'ds-xs': '4px', 'ds-sm': '6px', 'ds-md': '8px', 'ds-lg': '12px',
+                    'ds-xl': '16px', 'ds-2xl': '20px', 'ds-3xl': '24px', 'ds-4xl': '32px',
+                }
+            }
+        }
+    }
+</script>
+</head>
+<body class="font-ravi">
+
+<div class="app-shell">
+
+<!-- ================= PHONE FRAME ================= -->
+<div class="mobile-frame" id="app">
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 1: PRODUCT LIST (storefront) — NO CTA on cards -->
+    <!-- ============================================================ -->
+    <div class="screen active" id="screen-list">
+        <div class="app-header text-white px-ds-xl py-ds-lg flex items-center justify-between sticky top-0 z-40">
+            <span class="text-ds-text font-semibold">فروشگاه تاج محل</span>
+            <button class="relative p-ds-xs" onclick="navigateTo('screen-cart')">
+                <svg class="w-5 h-5 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                <span class="badge cart-badge hidden-badge">۰</span>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto no-scrollbar p-ds-lg" style="background:var(--color-bg-frame-base)">
+            <p class="text-ds-small mb-ds-lg" style="color:var(--color-text-default-weak)">
+                کارت محصول دیگر دکمه افزودن ندارد — با لمس کارت وارد صفحه محصول شوید.
+            </p>
+            <div id="product-list-root" class="grid grid-cols-2 gap-ds-lg"></div>
+        </div>
+
+        <!-- Bottom nav (minimal, just for context) -->
+        <div class="border-t bg-white px-ds-xl py-ds-md flex items-center justify-between text-ds-small" style="border-color:var(--color-border-frame-main); color:var(--color-text-default-weak)">
+            <span>خانه</span>
+            <button class="font-medium" style="color:var(--color-secondary-500)" onclick="navigateTo('screen-add-product')">پنل فروشنده ›</button>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 2: PDP -->
+    <!-- ============================================================ -->
+    <div class="screen" id="screen-pdp">
+        <div class="app-header text-white px-ds-xl py-ds-lg flex items-center justify-between sticky top-0 z-40">
+            <button onclick="navigateTo('screen-list')" class="p-ds-xs opacity-90">
+                <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <span class="text-ds-text font-semibold" id="pdp-title-header">محصول</span>
+            <button class="relative p-ds-xs" onclick="navigateTo('screen-cart')">
+                <svg class="w-5 h-5 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                <span class="badge cart-badge hidden-badge">۰</span>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto no-scrollbar pb-32" style="background:var(--color-bg-frame-base)">
+            <div id="pdp-root" class="p-ds-xl"></div>
+        </div>
+
+        <!-- Sticky CTA -->
+        <div class="sticky bottom-0 bg-white px-ds-xl py-ds-lg z-30" style="border-top:1px solid var(--color-border-frame-main)">
+            <div id="pdp-sticky-cta"></div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 3: CART -->
+    <!-- ============================================================ -->
+    <div class="screen" id="screen-cart">
+        <div class="app-header text-white px-ds-xl py-ds-lg flex items-center justify-between sticky top-0 z-40">
+            <button onclick="navigateTo('screen-list')" class="p-ds-xs opacity-90">
+                <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <span class="text-ds-text font-semibold">سبد خرید</span>
+            <div class="relative w-5 h-5">
+                <svg class="w-5 h-5 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                <span class="badge cart-badge hidden-badge">۰</span>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto no-scrollbar pb-4" style="background:var(--color-bg-frame-base)">
+            <div class="px-ds-xl py-ds-md">
+                <span class="text-ds-small font-medium px-ds-md py-1 rounded-full inline-block" style="background:var(--color-secondary-0); color:var(--color-secondary-600)">
+                    نشان سبد = تعداد <b>رکوردهای</b> متمایز، نه مجموع تعداد کالاها
+                </span>
+            </div>
+            <div id="cart-items-root" class="px-ds-lg flex flex-col gap-ds-md"></div>
+
+            <div id="cart-empty-state" class="hidden flex flex-col items-center justify-center py-ds-4xl text-center px-ds-3xl">
+                <p class="text-ds-p font-semibold mb-ds-sm" style="color:var(--color-text-default-strong)">سبد خرید شما خالی است</p>
+                <p class="text-ds-small" style="color:var(--color-text-default-weak)">از صفحه محصول، رنگ یا واحد را انتخاب و اضافه کنید</p>
+            </div>
+
+            <!-- Price Summary -->
+            <div class="card mx-ds-lg mt-ds-lg p-ds-xl" id="cart-summary-card">
+                <div class="flex items-center justify-between mb-ds-lg">
+                    <span class="text-ds-text" style="color:var(--color-text-default-moderate)">تعداد رکورد سبد</span>
+                    <span class="text-ds-text font-medium" id="cart-summary-records" style="color:var(--color-text-default-strong)">۰</span>
+                </div>
+                <div class="flex items-center justify-between mb-ds-lg">
+                    <span class="text-ds-text" style="color:var(--color-text-default-moderate)">مجموع تعداد کالا</span>
+                    <span class="text-ds-text font-medium" id="cart-summary-qty" style="color:var(--color-text-default-strong)">۰</span>
+                </div>
+                <div class="divider-dashed my-ds-lg"></div>
+                <div class="flex items-center justify-between">
+                    <span class="text-ds-text font-bold" style="color:var(--color-text-default-strong)">مبلغ قابل پرداخت</span>
+                    <span class="text-ds-p font-extrabold" style="color:var(--color-success-700)"><span id="cart-summary-total">۰</span> <span class="text-ds-small font-medium" style="color:var(--color-text-default-moderate)">تومان</span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sticky bottom-0 bg-white px-ds-xl py-ds-lg z-30" style="border-top:1px solid var(--color-border-frame-main)">
+            <button class="w-full py-ds-lg rounded-ds-xl text-ds-text font-bold text-white" style="background:var(--color-bg-default-primary)">
+                تایید و تکمیل سفارش
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 4: SELLER DASHBOARD — ADD PRODUCT FORM -->
+    <!-- ============================================================ -->
+    <div class="screen" id="screen-add-product">
+        <div class="app-header text-white px-ds-xl py-ds-lg flex items-center justify-between sticky top-0 z-40">
+            <button onclick="navigateTo('screen-list')" class="p-ds-xs opacity-90">
+                <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <span class="text-ds-text font-semibold">افزودن محصول (پنل فروشنده)</span>
+            <div class="w-5"></div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto no-scrollbar p-ds-xl" style="background:var(--color-bg-frame-base)">
+
+            <!-- Pricing section -->
+            <div class="card p-ds-xl mb-ds-lg">
+                <p class="text-ds-text font-bold mb-ds-lg" style="color:var(--color-text-default-strong)">قیمت‌گذاری</p>
+
+                <label class="block text-ds-small mb-ds-xs" style="color:var(--color-text-default-moderate)">قیمت اصلی (تومان)</label>
+                <input id="form-price" type="text" inputmode="numeric" value="۳۰۰,۰۰۰"
+                    class="w-full px-ds-lg py-ds-md rounded-ds-xl mb-ds-lg text-ds-text"
+                    style="border:1px solid var(--color-border-frame-main); color:var(--color-text-default-strong)"
+                    oninput="onFormPriceInput(this)">
+
+                <div class="flex items-center justify-between mb-ds-md">
+                    <div>
+                        <p class="text-ds-text font-medium" style="color:var(--color-text-default-strong)">تخفیف دارد؟</p>
+                        <p class="text-ds-small" style="color:var(--color-text-default-weak)">اکنون تخفیف بر اساس <b>درصد</b> است، نه قیمت ثابت</p>
+                    </div>
+                    <button class="toggle-track" id="toggle-discount" onclick="toggleSwitch('toggle-discount', onDiscountToggle)"><span class="toggle-thumb"></span></button>
+                </div>
+
+                <div id="discount-percent-wrap" class="hidden">
+                    <label class="block text-ds-small mb-ds-xs" style="color:var(--color-text-default-moderate)">درصد تخفیف (٪)</label>
+                    <div class="relative mb-ds-sm">
+                        <input id="form-discount-percent" type="range" min="0" max="90" value="15" class="w-full" oninput="onDiscountPercentInput(this)">
+                    </div>
+                    <div class="flex items-center justify-between text-ds-text mb-ds-lg">
+                        <span style="color:var(--color-text-default-moderate)">درصد انتخابی</span>
+                        <span class="font-bold" id="discount-percent-display" style="color:var(--color-error-600)">۱۵٪</span>
+                    </div>
+                    <div class="rounded-ds-xl p-ds-lg" style="background:var(--color-success-0)">
+                        <div class="flex items-center justify-between text-ds-small mb-ds-xs" style="color:var(--color-text-default-moderate)">
+                            <span>قیمت نهایی پس از تخفیف</span>
+                        </div>
+                        <div class="flex items-center gap-ds-xs">
+                            <span class="text-ds-p font-extrabold" id="final-price-preview" style="color:var(--color-success-700)">۲۵۵,۰۰۰</span>
+                            <span class="text-ds-small line-through" style="color:var(--color-text-default-weak)" id="final-price-original">۳۰۰,۰۰۰</span>
+                            <span class="text-ds-small" style="color:var(--color-text-default-weak)">تومان</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between mt-ds-lg mb-ds-md">
+                    <p class="text-ds-text font-medium" style="color:var(--color-text-default-strong)">استعلام قیمت</p>
+                    <button class="toggle-track" id="toggle-inquiry" onclick="toggleSwitch('toggle-inquiry')"><span class="toggle-thumb"></span></button>
+                </div>
+                <p class="text-ds-small" style="color:var(--color-text-default-weak)">فعال بودنِ این گزینه، دکمهٔ سبد را در PDP به «تماس بگیرید» تبدیل می‌کند.</p>
+            </div>
+
+            <!-- Units + min-order section -->
+            <div class="card p-ds-xl mb-ds-lg">
+                <div class="flex items-center justify-between mb-ds-md">
+                    <p class="text-ds-text font-bold" style="color:var(--color-text-default-strong)">واحد فروش پیشرفته (کارتن/جعبه)</p>
+                    <button class="toggle-track" id="toggle-units" onclick="toggleSwitch('toggle-units', onUnitsToggle)"><span class="toggle-thumb"></span></button>
+                </div>
+
+                <!-- Product-level min order (shown when units OFF) -->
+                <div id="global-min-order-wrap">
+                    <label class="block text-ds-small mb-ds-xs" style="color:var(--color-text-default-moderate)">حداقل تعداد سفارش (کل محصول)</label>
+                    <input id="form-min-order" type="number" min="1" value="1"
+                        class="w-full px-ds-lg py-ds-md rounded-ds-xl text-ds-text"
+                        style="border:1px solid var(--color-border-frame-main); color:var(--color-text-default-strong)">
+                    <p class="text-ds-small mt-ds-xs" style="color:var(--color-text-default-weak)">مشتری هنگام افزودن به سبد، شمارنده از این عدد شروع می‌شود (پیش‌فرض ۱).</p>
+                </div>
+
+                <!-- Per-unit min order rows (shown when units ON) -->
+                <div id="unit-rows-wrap" class="hidden flex flex-col gap-ds-md">
+                    <p class="text-ds-small" style="color:var(--color-text-default-weak)">وقتی «واحد» فعال است، حداقل سفارش به‌صورت جداگانه برای هر واحد تنظیم می‌شود.</p>
+                    <div class="rounded-ds-xl p-ds-lg" style="border:1px solid var(--color-border-frame-main)">
+                        <div class="flex items-center justify-between mb-ds-sm">
+                            <span class="text-ds-text font-medium" style="color:var(--color-text-default-strong)">کارتن ۹۶ عددی</span>
+                            <span class="text-ds-small" style="color:var(--color-text-default-weak)">۳۰۰,۰۰۰ تومان</span>
+                        </div>
+                        <label class="block text-ds-small mb-ds-xs" style="color:var(--color-text-default-moderate)">حداقل سفارش (این واحد)</label>
+                        <input type="number" min="1" value="2" class="w-full px-ds-md py-ds-sm rounded-ds-md text-ds-text" style="border:1px solid var(--color-border-frame-main)">
+                    </div>
+                    <div class="rounded-ds-xl p-ds-lg" style="border:1px solid var(--color-border-frame-main)">
+                        <div class="flex items-center justify-between mb-ds-sm">
+                            <span class="text-ds-text font-medium" style="color:var(--color-text-default-strong)">کارتن ۱۲ عددی</span>
+                            <span class="text-ds-small" style="color:var(--color-text-default-weak)">۵۰,۰۰۰ تومان</span>
+                        </div>
+                        <label class="block text-ds-small mb-ds-xs" style="color:var(--color-text-default-moderate)">حداقل سفارش (این واحد)</label>
+                        <input type="number" min="1" value="5" class="w-full px-ds-md py-ds-sm rounded-ds-md text-ds-text" style="border:1px solid var(--color-border-frame-main)">
+                    </div>
+                </div>
+            </div>
+
+            <button class="w-full py-ds-lg rounded-ds-xl text-ds-text font-bold text-white" style="background:var(--color-bg-default-primary)" onclick="showToast('پیش‌نمایش ذخیره شد (نمونهٔ اولیه)', 'success')">
+                ذخیره محصول
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- UNIT SELECTION BOTTOM SHEET — sibling of all screens so it can -->
+    <!-- be opened from PDP or Cart regardless of which screen is active -->
+    <!-- ============================================================ -->
+    <div class="sheet-overlay" id="unit-sheet-overlay">
+        <div class="sheet-panel">
+            <div class="flex items-center justify-between mb-ds-lg">
+                <span class="text-ds-text font-bold" style="color:var(--color-text-default-strong)">انتخاب واحد</span>
+                <button onclick="closeUnitSheet()" class="p-1" style="color:var(--color-text-default-weak)">✕</button>
+            </div>
+            <div id="unit-sheet-rows" class="flex flex-col gap-ds-md"></div>
+            <div class="divider-dashed my-ds-lg"></div>
+            <div class="flex gap-ds-md">
+                <button onclick="deleteUnitLine()" class="flex-1 py-ds-md rounded-ds-xl text-ds-text font-bold" style="background:var(--color-error-0); color:var(--color-error-600)">حذف کامل از سبد</button>
+                <button onclick="confirmUnitSheet()" class="flex-1 py-ds-md rounded-ds-xl text-ds-text font-bold text-white" style="background:var(--color-secondary-500)">ثبت</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+<!-- ================= /PHONE FRAME ================= -->
+
+<!-- ================= DEMO CONTROL PANEL (outside phone, not part of real UI) ================= -->
+<div class="demo-panel card p-ds-xl">
+    <p class="text-ds-text font-bold mb-ds-md" style="color:var(--color-text-default-strong)">کنترل دمو (خارج از رابط واقعی)</p>
+    <p class="text-ds-small mb-ds-lg" style="color:var(--color-text-default-weak)">برای اثبات ماتریس CTA، حالت فروشگاه را عوض کنید.</p>
+
+    <label class="block text-ds-small mb-ds-xs" style="color:var(--color-text-default-moderate)">نوع فروش فروشگاه (Personalize &gt; Shop)</label>
+    <select id="shop-selling-type" onchange="onShopConfigChange()" class="w-full px-ds-lg py-ds-md rounded-ds-xl mb-ds-lg text-ds-text" style="border:1px solid var(--color-border-frame-main)">
+        <option value="cart">افزودن به سبد (cart)</option>
+        <option value="call">تماس تلفنی (call)</option>
+        <option value="telegram">تلگرام (telegram)</option>
+    </select>
+
+    <div class="divider-dashed my-ds-lg"></div>
+
+    <p class="text-ds-small font-medium mb-ds-md" style="color:var(--color-text-default-strong)">محصولات نمایشی</p>
+    <div id="demo-product-jump" class="flex flex-col gap-ds-sm"></div>
+
+    <div class="divider-dashed my-ds-lg"></div>
+    <p class="text-ds-small" style="color:var(--color-text-default-weak)">
+        قانون: <b>سبد</b> فقط زمانی «افزودن» نشان می‌دهد که فروشگاه در حالت cart باشد و محصول
+        استعلام قیمت نداشته باشد؛ در غیر این‌صورت به «تماس بگیرید» تبدیل می‌شود.
+    </p>
+</div>
+
+</div>
+
+<script>
+/* ============================================================
+   DATA MODEL
+   ============================================================ */
+const FA_DIGITS = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+function toFa(num) { return String(num).replace(/[0-9]/g, d => FA_DIGITS[d]); }
+function faToInt(str) {
+    const normalized = String(str).replace(/[۰-۹]/g, d => FA_DIGITS.indexOf(d)).replace(/[^0-9]/g, '');
+    return normalized ? parseInt(normalized, 10) : 0;
+}
+function formatPrice(num) { return toFa(Math.round(num).toLocaleString('en-US')); }
+
+const shopConfig = {
+    sellingType: 'cart', // 'cart' | 'call' | 'telegram'
+    contact: { phone: '02112345678', supportId: 'manoochsupport' },
+};
+
+const PRODUCTS = {
+    p1: {
+        id: 'p1', title: 'دستبند النگویی', store: 'فروشگاه تاج محل',
+        price: 300000, discountPercent: 15, priceInquiry: false,
+        hasUnits: false, minOrder: 3,
+        gradient: 'linear-gradient(135deg,#fef3c7,#fde68a)', emoji: '⭐',
+        variants: [
+            { id: 'red', label: 'قرمز', hex: '#eb0000' },
+            { id: 'green', label: 'سبز', hex: '#00c035' },
+        ],
+    },
+    p2: {
+        id: 'p2', title: 'دستبند کارتنی (عمده)', store: 'فروشگاه تاج محل',
+        price: null, discountPercent: 0, priceInquiry: false,
+        hasUnits: true, minOrder: null,
+        gradient: 'linear-gradient(135deg,#dbeafe,#bfdbfe)', emoji: '📦',
+        variants: [],
+        units: [
+            { id: 'u96', name: 'کارتن ۹۶ عددی', price: 300000, minOrder: 2 },
+            { id: 'u12', name: 'کارتن ۱۲ عددی', price: 50000, minOrder: 5 },
+        ],
+    },
+    p3: {
+        id: 'p3', title: 'ساعت مچی مردانه (استعلامی)', store: 'فروشگاه تاج محل',
+        price: 1850000, discountPercent: 0, priceInquiry: true,
+        hasUnits: false, minOrder: 1,
+        gradient: 'linear-gradient(135deg,#fce7f3,#fbcfe8)', emoji: '⌚',
+        variants: [],
+    },
+};
+
+// cart: [{ productId, variantKey, variantLabel, colorHex, qty, minOrder, unitBreakdown? }]
+let cart = [];
+
+let pdpState = { productId: null, activeVariantId: null };
+
+/* ============================================================
+   PURE HELPERS
+   ============================================================ */
+function effectivePrice(product) {
+    if (product.price == null) return null;
+    if (!product.discountPercent) return product.price;
+    return Math.round(product.price * (1 - product.discountPercent / 100));
+}
+
+function variantKeyFor(product, variantId) {
+    if (product.hasUnits) return 'units';
+    return variantId || '__base__';
+}
+
+function findCartLine(productId, variantKey) {
+    return cart.find(l => l.productId === productId && l.variantKey === variantKey);
+}
+
+/**
+ * Pure Sticky-CTA resolver. Precedence:
+ *  1. shop sellingType === 'call'      -> call
+ *  2. shop sellingType === 'telegram'  -> telegram
+ *  3. product.priceInquiry === true    -> call (price-inquiry overrides add-to-cart)
+ *  4. else (cart mode): variant-aware add-vs-counter
+ */
+function resolveStickyCta(product, shop, activeVariantId) {
+    if (shop.sellingType === 'call') {
+        return { kind: 'call', phone: shop.contact.phone };
+    }
+    if (shop.sellingType === 'telegram') {
+        return { kind: 'telegram', supportId: shop.contact.supportId };
+    }
+    if (product.priceInquiry) {
+        return { kind: 'call', phone: shop.contact.phone };
+    }
+    const variantKey = variantKeyFor(product, activeVariantId);
+    const line = findCartLine(product.id, variantKey);
+    if (line && line.qty > 0) {
+        return { kind: 'counter', variantKey, qty: line.qty };
+    }
+    return { kind: 'add', variantKey };
+}
+
+/* ============================================================
+   CART MUTATIONS
+   ============================================================ */
+function addToCart(product, variantId) {
+    const variantKey = variantKeyFor(product, variantId);
+    const variant = product.variants.find(v => v.id === variantId);
+    const minOrder = product.minOrder || 1;
+
+    if (product.hasUnits) {
+        // opens the unit sheet instead of a flat add — handled by caller
+        return;
+    }
+
+    cart.push({
+        productId: product.id,
+        variantKey,
+        variantLabel: variant ? `رنگ: ${variant.label}` : null,
+        colorHex: variant ? variant.hex : null,
+        qty: minOrder,
+        minOrder,
+        title: product.title,
+        unitPrice: effectivePrice(product),
+    });
+    showToast(`${minOrder > 1 ? `به دلیل حداقل سفارش، ${toFa(minOrder)} عدد ` : ''}به سبد اضافه شد`, 'success');
+    renderAll();
+}
+
+function changeLineQty(productId, variantKey, delta) {
+    const line = findCartLine(productId, variantKey);
+    if (!line) return;
+    const floor = line.minOrder || 1;
+    const next = line.qty + delta;
+    if (next < floor) {
+        removeLine(productId, variantKey);
+        return;
+    }
+    line.qty = next;
+    renderAll();
+}
+
+function removeLine(productId, variantKey) {
+    cart = cart.filter(l => !(l.productId === productId && l.variantKey === variantKey));
+    renderAll();
+}
+
+function upsertUnitsLine(product, unitSelections) {
+    const variantKey = 'units';
+    const totalQty = unitSelections.reduce((s, u) => s + u.qty, 0);
+    if (totalQty <= 0) {
+        removeLine(product.id, variantKey);
+        return;
+    }
+    const breakdown = unitSelections.filter(u => u.qty > 0);
+    const unitPriceAvg = breakdown.reduce((s, u) => s + u.qty * u.price, 0) / totalQty;
+    const existing = findCartLine(product.id, variantKey);
+    const line = {
+        productId: product.id,
+        variantKey,
+        variantLabel: null,
+        colorHex: null,
+        qty: totalQty,
+        minOrder: 1,
+        title: product.title,
+        unitPrice: unitPriceAvg,
+        unitBreakdown: breakdown,
+    };
+    if (existing) {
+        Object.assign(existing, line);
+    } else {
+        cart.push(line);
+    }
+    renderAll();
+}
+
+/* ============================================================
+   RENDER: PRODUCT LIST (no CTA — whole card routes to PDP)
+   ============================================================ */
+function renderProductList() {
+    const root = document.getElementById('product-list-root');
+    root.innerHTML = Object.values(PRODUCTS).map(p => {
+        const price = effectivePrice(p);
+        const priceHtml = p.priceInquiry
+            ? `<span class="text-ds-small font-medium" style="color:var(--color-secondary-600)">استعلام قیمت</span>`
+            : p.hasUnits
+                ? `<span class="text-ds-small" style="color:var(--color-text-default-weak)">از ${formatPrice(Math.min(...p.units.map(u=>u.price)))} تومان</span>`
+                : `<div class="flex items-center gap-ds-xs flex-wrap">
+                       <span class="text-ds-text font-bold" style="color:var(--color-text-default-strong)">${formatPrice(price)}</span>
+                       ${p.discountPercent ? `<span class="text-ds-small line-through" style="color:var(--color-text-default-weak)">${formatPrice(p.price)}</span>` : ''}
+                   </div>`;
+        return `
+        <button onclick="openPdp('${p.id}')" class="card overflow-hidden text-right flex flex-col">
+            <div class="h-24 flex items-center justify-center text-3xl" style="background:${p.gradient}">${p.emoji}</div>
+            <div class="p-ds-md flex flex-col gap-ds-xs">
+                <p class="text-ds-small font-medium truncate" style="color:var(--color-text-default-strong)">${p.title}</p>
+                ${p.discountPercent ? `<span class="text-ds-small font-medium px-ds-sm py-0.5 rounded-full self-start" style="background:var(--color-error-0);color:var(--color-error-600)">${toFa(p.discountPercent)}٪ تخفیف</span>` : ''}
+                ${priceHtml}
+            </div>
+        </button>`;
+    }).join('');
+}
+
+/* ============================================================
+   RENDER: PDP
+   ============================================================ */
+function openPdp(productId) {
+    const product = PRODUCTS[productId];
+    pdpState.productId = productId;
+    pdpState.activeVariantId = product.variants[0] ? product.variants[0].id : null;
+    navigateTo('screen-pdp');
+    renderPdp();
+}
+
+function selectVariant(variantId) {
+    pdpState.activeVariantId = variantId;
+    renderPdp();
+}
+
+function renderPdp() {
+    const product = PRODUCTS[pdpState.productId];
+    if (!product) return;
+    document.getElementById('pdp-title-header').textContent = product.title;
+
+    const price = effectivePrice(product);
+    const activeVariant = product.variants.find(v => v.id === pdpState.activeVariantId);
+
+    let variantsHtml = '';
+    if (product.variants.length) {
+        variantsHtml = `
+        <p class="text-ds-text font-bold mb-ds-md" style="color:var(--color-text-default-strong)">رنگ</p>
+        <div class="flex gap-ds-md mb-ds-xl">
+            ${product.variants.map(v => `
+                <button onclick="selectVariant('${v.id}')"
+                    class="variant-chip ${v.id === pdpState.activeVariantId ? 'active' : ''} px-ds-lg py-ds-sm flex items-center gap-ds-xs">
+                    <span class="variant-swatch" style="width:14px;height:14px;background:${v.hex}"></span>
+                    <span class="text-ds-small" style="color:var(--color-text-default-strong)">${v.label}</span>
+                </button>
+            `).join('')}
+        </div>`;
+    }
+
+    let priceHtml;
+    if (product.priceInquiry) {
+        priceHtml = `<p class="text-ds-p font-bold" style="color:var(--color-secondary-600)">استعلام قیمت</p>`;
+    } else if (product.hasUnits) {
+        priceHtml = `<p class="text-ds-small" style="color:var(--color-text-default-weak)">قیمت بر اساس واحد انتخابی محاسبه می‌شود</p>`;
+    } else {
+        priceHtml = `<div class="flex items-center gap-ds-md">
+            <span class="text-ds-p font-extrabold" style="color:var(--color-text-default-strong)">${formatPrice(price)}</span>
+            ${product.discountPercent ? `<span class="text-ds-small line-through" style="color:var(--color-text-default-weak)">${formatPrice(product.price)}</span>
+            <span class="text-ds-small font-medium px-ds-sm py-0.5 rounded-full" style="background:var(--color-error-0);color:var(--color-error-600)">${toFa(product.discountPercent)}٪</span>` : ''}
+        </div>`;
+    }
+
+    let unitsHtml = '';
+    if (product.hasUnits) {
+        unitsHtml = `
+        <p class="text-ds-text font-bold mb-ds-md mt-ds-lg" style="color:var(--color-text-default-strong)">واحدهای فروش</p>
+        <div class="flex flex-col gap-ds-sm">
+            ${product.units.map(u => `
+                <div class="card p-ds-lg flex items-center justify-between">
+                    <span class="text-ds-small" style="color:var(--color-text-default-strong)">${u.name}</span>
+                    <div class="text-left">
+                        <div class="text-ds-small font-bold" style="color:var(--color-text-default-strong)">${formatPrice(u.price)} تومان</div>
+                        <div class="text-ds-small" style="color:var(--color-text-default-weak)">حداقل سفارش: ${toFa(u.minOrder)}</div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>`;
+    }
+
+    document.getElementById('pdp-root').innerHTML = `
+        <div class="h-40 rounded-ds-2xl flex items-center justify-center text-5xl mb-ds-xl" style="background:${product.gradient}">${product.emoji}</div>
+        <p class="text-ds-p font-bold mb-ds-xs" style="color:var(--color-text-default-strong)">${product.title}</p>
+        <p class="text-ds-small mb-ds-lg" style="color:var(--color-text-default-weak)">${product.store}</p>
+        <div class="mb-ds-xl">${priceHtml}</div>
+        ${variantsHtml}
+        ${unitsHtml}
+        ${!product.hasUnits && !product.priceInquiry && product.minOrder > 1 ? `
+        <div class="rounded-ds-xl p-ds-lg mt-ds-lg" style="background:var(--color-warning-0)">
+            <p class="text-ds-small" style="color:var(--color-warning-800)">حداقل تعداد سفارش این کالا: <b>${toFa(product.minOrder)}</b> عدد</p>
+        </div>` : ''}
+    `;
+
+    renderPdpStickyCta();
+}
+
+function renderPdpStickyCta() {
+    const product = PRODUCTS[pdpState.productId];
+    const action = resolveStickyCta(product, shopConfig, pdpState.activeVariantId);
+    const el = document.getElementById('pdp-sticky-cta');
+
+    if (action.kind === 'call') {
+        el.innerHTML = `
+        <a href="tel:${action.phone}" class="w-full py-ds-lg rounded-ds-xl text-ds-text font-bold text-white flex items-center justify-center gap-ds-xs" style="background:var(--color-warning-600)">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+            تماس بگیرید (استعلام قیمت)
+        </a>`;
+        return;
+    }
+    if (action.kind === 'telegram') {
+        el.innerHTML = `
+        <a href="https://t.me/${shopConfig.contact.supportId}" class="w-full py-ds-lg rounded-ds-xl text-ds-text font-bold text-white flex items-center justify-center gap-ds-xs" style="background:var(--color-secondary-500)">
+            سفارش در تلگرام
+        </a>`;
+        return;
+    }
+
+    if (product.hasUnits) {
+        if (action.kind === 'counter') {
+            el.innerHTML = `
+            <button onclick="openUnitSheet('${product.id}')" class="w-full py-ds-lg rounded-ds-xl text-ds-text font-bold text-white flex items-center justify-center gap-ds-xs" style="background:var(--color-success-700)">
+                ویرایش واحدها در سبد (${toFa(action.qty)} عدد)
+            </button>`;
+        } else {
+            el.innerHTML = `
+            <button onclick="openUnitSheet('${product.id}')" class="w-full py-ds-lg rounded-ds-xl text-ds-text font-bold text-white" style="background:var(--color-bg-default-primary)">
+                انتخاب واحد و افزودن به سبد
+            </button>`;
+        }
+        return;
+    }
+
+    if (action.kind === 'counter') {
+        const line = findCartLine(product.id, action.variantKey);
+        el.innerHTML = `
+        <div class="flex items-center justify-between rounded-ds-xl px-ds-lg py-ds-sm" style="background:var(--color-bg-frame-alternative)">
+            <button class="stepper-btn" style="color:var(--color-secondary-500)" onclick="changeLineQty('${product.id}','${action.variantKey}',1)">+</button>
+            <span class="text-ds-text font-bold" style="color:var(--color-text-default-strong)">${toFa(line.qty)}</span>
+            <button class="stepper-btn" style="color:var(--color-error-500)" onclick="changeLineQty('${product.id}','${action.variantKey}',-1)">−</button>
+        </div>`;
+    } else {
+        el.innerHTML = `
+        <button onclick="addToCart(PRODUCTS['${product.id}'], '${pdpState.activeVariantId || ''}')" class="w-full py-ds-lg rounded-ds-xl text-ds-text font-bold text-white" style="background:var(--color-bg-default-primary)">
+            افزودن به سبد
+        </button>`;
+    }
+}
+
+/* ============================================================
+   RENDER: CART LIST
+   ============================================================ */
+function renderCart() {
+    const root = document.getElementById('cart-items-root');
+    const empty = document.getElementById('cart-empty-state');
+    const summaryCard = document.getElementById('cart-summary-card');
+
+    if (!cart.length) {
+        root.innerHTML = '';
+        empty.classList.remove('hidden');
+        summaryCard.classList.add('hidden');
+    } else {
+        empty.classList.add('hidden');
+        summaryCard.classList.remove('hidden');
+        root.innerHTML = cart.map(line => {
+            const swatch = line.colorHex
+                ? `<span class="variant-swatch" style="width:14px;height:14px;background:${line.colorHex};margin-inline-start:6px"></span>`
+                : '';
+            const label = line.variantLabel ? `<span class="text-ds-small" style="color:var(--color-text-default-moderate)">${line.variantLabel}</span>${swatch}` : '';
+
+            const breakdownHtml = line.unitBreakdown ? `
+                <div class="flex gap-ds-sm mt-ds-sm flex-wrap">
+                    ${line.unitBreakdown.map(u => `
+                        <div class="rounded-ds-md px-ds-md py-ds-xs" style="background:var(--color-bg-frame-alternative)">
+                            <span class="text-ds-small font-bold" style="color:var(--color-text-default-strong)">${toFa(u.qty)}</span>
+                            <span class="text-ds-small" style="color:var(--color-text-default-weak)"> × ${u.name}</span>
+                        </div>
+                    `).join('')}
+                </div>` : '';
+
+            const controlsHtml = line.unitBreakdown ? `
+                <button onclick="openUnitSheet('${line.productId}')" class="text-ds-small font-medium px-ds-md py-1 rounded-full" style="background:var(--color-secondary-0);color:var(--color-secondary-600)">افزودن/ویرایش</button>
+            ` : `
+                <div class="flex items-center rounded-ds-md" style="background:var(--color-bg-frame-alternative)">
+                    <button class="stepper-btn" style="color:var(--color-secondary-500)" onclick="changeLineQty('${line.productId}','${line.variantKey}',1)">+</button>
+                    <span class="w-6 text-center text-ds-text font-bold" style="color:var(--color-text-default-strong)">${toFa(line.qty)}</span>
+                    <button class="stepper-btn" style="color:var(--color-error-500)" onclick="changeLineQty('${line.productId}','${line.variantKey}',-1)">−</button>
+                </div>
+            `;
+
+            return `
+            <div class="card p-ds-lg">
+                <div class="flex items-start justify-between gap-ds-md">
+                    <button onclick="removeLine('${line.productId}','${line.variantKey}')" class="p-1" style="color:var(--color-error-600)">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M4 7h16M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg>
+                    </button>
+                    <div class="flex-1 text-right">
+                        <p class="text-ds-text font-medium mb-ds-xs" style="color:var(--color-text-default-strong)">${line.title}</p>
+                        <div class="flex items-center gap-ds-xs mb-ds-sm">${label}</div>
+                        <div class="text-ds-text font-bold" style="color:var(--color-text-default-strong)">${formatPrice(line.unitPrice)} تومان</div>
+                        ${breakdownHtml}
+                    </div>
+                    ${controlsHtml}
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    document.getElementById('cart-summary-records').textContent = toFa(cart.length);
+    const totalQty = cart.reduce((s, l) => s + l.qty, 0);
+    document.getElementById('cart-summary-qty').textContent = toFa(totalQty);
+    const total = cart.reduce((s, l) => s + l.qty * l.unitPrice, 0);
+    document.getElementById('cart-summary-total').textContent = formatPrice(total);
+}
+
+/* ============================================================
+   HEADER BADGE — counts DISTINCT RECORDS, not summed quantity
+   ============================================================ */
+function renderCartBadges() {
+    const count = cart.length; // <-- the fix: record count, not qty sum
+    document.querySelectorAll('.cart-badge').forEach(el => {
+        el.textContent = toFa(count);
+        el.classList.toggle('hidden-badge', count === 0);
+    });
+}
+
+function renderAll() {
+    renderProductList();
+    if (pdpState.productId) renderPdp();
+    renderCart();
+    renderCartBadges();
+}
+
+/* ============================================================
+   UNIT BOTTOM SHEET
+   ============================================================ */
+let unitSheetState = { productId: null, draft: {} };
+
+function openUnitSheet(productId) {
+    const product = PRODUCTS[productId];
+    const existing = findCartLine(productId, 'units');
+    unitSheetState.productId = productId;
+    unitSheetState.draft = {};
+    product.units.forEach(u => {
+        const existingQty = existing && existing.unitBreakdown
+            ? (existing.unitBreakdown.find(b => b.id === u.id)?.qty || 0)
+            : 0;
+        unitSheetState.draft[u.id] = existingQty;
+    });
+    renderUnitSheetRows();
+    document.getElementById('unit-sheet-overlay').classList.add('open');
+}
+
+function closeUnitSheet() {
+    document.getElementById('unit-sheet-overlay').classList.remove('open');
+}
+
+function renderUnitSheetRows() {
+    const product = PRODUCTS[unitSheetState.productId];
+    const root = document.getElementById('unit-sheet-rows');
+    root.innerHTML = product.units.map(u => {
+        const qty = unitSheetState.draft[u.id];
+        return `
+        <div class="rounded-ds-xl p-ds-lg" style="border:1px solid var(--color-border-frame-main)">
+            <div class="flex items-center justify-between mb-ds-sm">
+                <span class="text-ds-text font-medium" style="color:var(--color-text-default-strong)">${u.name}</span>
+                <span class="text-ds-small" style="color:var(--color-text-default-weak)">${formatPrice(u.price)} تومان</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-ds-small" style="color:var(--color-text-default-weak)">حداقل سفارش: ${toFa(u.minOrder)}</span>
+                <div class="flex items-center rounded-ds-md" style="background:var(--color-bg-frame-alternative)">
+                    <button class="stepper-btn" style="color:var(--color-secondary-500)" onclick="bumpUnitDraft('${u.id}', ${u.minOrder}, 1)">+</button>
+                    <span class="w-8 text-center text-ds-text font-bold" style="color:var(--color-text-default-strong)">${toFa(qty)}</span>
+                    <button class="stepper-btn" style="color:var(--color-error-500)" onclick="bumpUnitDraft('${u.id}', ${u.minOrder}, -1)">−</button>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function bumpUnitDraft(unitId, minOrder, delta) {
+    const cur = unitSheetState.draft[unitId];
+    let next = cur + delta;
+    if (next > 0 && next < minOrder) next = delta > 0 ? minOrder : 0;
+    unitSheetState.draft[unitId] = Math.max(0, next);
+    renderUnitSheetRows();
+}
+
+function confirmUnitSheet() {
+    const product = PRODUCTS[unitSheetState.productId];
+    const selections = product.units.map(u => ({ id: u.id, name: u.name, price: u.price, qty: unitSheetState.draft[u.id] }));
+    upsertUnitsLine(product, selections);
+    closeUnitSheet();
+    showToast('سبد به‌روزرسانی شد', 'success');
+}
+
+function deleteUnitLine() {
+    removeLine(unitSheetState.productId, 'units');
+    closeUnitSheet();
+    showToast('کالا از سبد حذف شد', 'error');
+}
+
+/* ============================================================
+   SELLER FORM (discount % + conditional min-order)
+   ============================================================ */
+function toggleSwitch(id, cb) {
+    const el = document.getElementById(id);
+    el.classList.toggle('on');
+    if (cb) cb(el.classList.contains('on'));
+}
+
+function onDiscountToggle(isOn) {
+    document.getElementById('discount-percent-wrap').classList.toggle('hidden', !isOn);
+}
+
+function onUnitsToggle(isOn) {
+    document.getElementById('global-min-order-wrap').classList.toggle('hidden', isOn);
+    document.getElementById('unit-rows-wrap').classList.toggle('hidden', !isOn);
+}
+
+function onFormPriceInput() { updateFinalPricePreview(); }
+function onDiscountPercentInput(range) {
+    document.getElementById('discount-percent-display').textContent = toFa(range.value) + '٪';
+    updateFinalPricePreview();
+}
+function updateFinalPricePreview() {
+    const price = faToInt(document.getElementById('form-price').value);
+    const pct = parseInt(document.getElementById('form-discount-percent').value, 10) || 0;
+    const final = Math.round(price * (1 - pct / 100));
+    document.getElementById('final-price-preview').textContent = formatPrice(final);
+    document.getElementById('final-price-original').textContent = formatPrice(price);
+}
+
+/* ============================================================
+   DEMO PANEL WIRING
+   ============================================================ */
+function onShopConfigChange() {
+    shopConfig.sellingType = document.getElementById('shop-selling-type').value;
+    if (pdpState.productId) renderPdpStickyCta();
+}
+
+function renderDemoJumpLinks() {
+    const root = document.getElementById('demo-product-jump');
+    root.innerHTML = Object.values(PRODUCTS).map(p => `
+        <button onclick="openPdp('${p.id}')" class="text-ds-small text-right px-ds-md py-ds-sm rounded-ds-md" style="border:1px solid var(--color-border-frame-main); color:var(--color-text-default-strong)">
+            ${p.emoji} ${p.title}
+        </button>
+    `).join('');
+}
+
+/* ============================================================
+   NAVIGATION / TOAST
+   ============================================================ */
+let currentScreen = 'screen-list';
+function navigateTo(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const target = document.getElementById(screenId);
+    if (target) {
+        target.classList.add('active');
+        target.classList.add('fade-in');
+        setTimeout(() => target.classList.remove('fade-in'), 250);
+        currentScreen = screenId;
+    }
+    if (screenId === 'screen-cart') renderCart();
+}
+
+function showToast(message, type) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.style.background = type === 'success' ? 'var(--color-success-600)' : 'var(--color-error-500)';
+    t.textContent = message;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+renderDemoJumpLinks();
+updateFinalPricePreview();
+renderAll();
+</script>
+
+</body>
+</html>
