@@ -1,0 +1,12 @@
+Claude, we have a race condition bug in the Seller Authentication flow (Sign in / Sign up).
+
+The Bug: > When a seller successfully logs in, they are redirected to the dashboard, but the Auth Guard instantly bounces them back to the login page. However, if they do a hard refresh on the login page, they are correctly routed to the dashboard because the cookie is now recognized.
+
+The Fix Requirements:
+Locate the login/signup form submission handlers (the mutation where the API call is made and the redirect happens).
+
+State Invalidation: Ensure that immediately after a successful API login response, the global user/auth state (e.g., TanStack Query queryClient.invalidateQueries for the user profile/me endpoint) is explicitly invalidated or updated before the redirect occurs.
+
+Hard Redirect Fallback: If the frontend is still failing to sync the state fast enough, change the Next.js router.push('/admin') to a native window.location.href = '/admin' to force a fresh document request and ensure the HTTP-only cookie is sent cleanly to the server-side guard.
+
+Auth Guard Check: Briefly review the Auth Guard protecting the /admin layout. Ensure it is waiting for the initial auth fetch to complete (e.g., checking isLoading from React Query) rather than immediately bouncing the user if the user object is momentarily undefined during the initial mount.
