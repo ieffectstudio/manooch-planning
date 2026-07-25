@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Manooch - Advanced Checkout & Order Flow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @font-face {
+            font-family: 'Vazirmatn';
+            src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-Variable.woff2') format('woff2');
+            font-weight: 100 900;
+            font-display: swap;
+        }
+
+        :root {
+            --color-primary-500: #202a37;
+            --color-primary-600: #1d2632;
+            --color-primary-700: #171e27;
+            --color-secondary-0: #e0e8ff;
+            --color-secondary-100: #c7d3fe;
+            --color-secondary-500: #4b45e6;
+            --color-secondary-600: #3f37cb;
+            --color-secondary-400: #6267f2;
+            --color-success-0: #edfff2;
+            --color-success-100: #d5ffe2;
+            --color-success-500: #00e043;
+            --color-success-600: #00c035;
+            --color-success-700: #00962d;
+            --color-success-800: #067528;
+            --color-warning-0: #fff8ec;
+            --color-warning-100: #ffefd2;
+            --color-warning-500: #ff7b06;
+            --color-warning-600: #f95e00;
+            --color-warning-700: #cf4600;
+            --color-warning-800: #a33609;
+            --color-error-0: #ffd5d5;
+            --color-error-100: #ff9898;
+            --color-error-500: #eb0000;
+            --color-error-600: #c20000;
+            --color-gray-0: #f0f1f3;
+            --color-gray-100: #e0e2e7;
+            --color-gray-200: #c2c6ce;
+            --color-gray-300: #a3a9b6;
+            --color-gray-400: #858d9d;
+            --color-gray-500: #667085;
+            --color-gray-600: #525a6a;
+            --color-gray-700: #3d4350;
+            --color-white-0: #ffffff;
+            --color-white-500: #fafafa;
+
+            --color-bg-frame-main: #fefefe;
+            --color-bg-frame-base: #fafafa;
+            --color-bg-frame-alternative: #f0f1f3;
+            --color-border-frame-main: #e0e2e7;
+            --color-text-default-strong: #16161d;
+            --color-text-default-moderate: #737377;
+            --color-text-default-weak: #a2a2a5;
+            --color-header-from: #1a2340;
+            --color-header-to: #0d1529;
+
+            --radius-md: 8px;
+            --radius-xl: 12px;
+            --radius-2xl: 16px;
+            --radius-3xl: 20px;
+            --radius-full: 9999px;
+
+            --spacing-xs: 4px;
+            --spacing-sm: 6px;
+            --spacing-md: 8px;
+            --spacing-lg: 12px;
+            --spacing-xl: 16px;
+            --spacing-2xl: 20px;
+            --spacing-3xl: 24px;
+            --spacing-4xl: 32px;
+            --spacing-5xl: 40px;
+        }
+
+        * {
+            font-family: 'Vazirmatn', sans-serif;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            direction: rtl;
+            margin: 0;
+            padding: 0;
+            background: var(--color-bg-frame-alternative);
+        }
+
+        .screen { display: none; }
+        .screen.active { display: flex; flex-direction: column; }
+
+        .mobile-frame {
+            max-width: 430px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: var(--color-bg-frame-main);
+            position: relative;
+            box-shadow: 0 0 40px rgba(22,22,29,0.08);
+            overflow-x: hidden;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, var(--color-header-from), var(--color-header-to));
+        }
+
+        .payment-option input:checked + .payment-card {
+            border-color: var(--color-secondary-500) !important;
+            background: rgba(75, 69, 230, 0.05) !important;
+        }
+
+        .radio-outer {
+            width: 20px; height: 20px;
+            border: 2px solid var(--color-gray-200);
+            border-radius: var(--radius-full);
+            display: flex; align-items: center; justify-content: center;
+            transition: border-color 0.2s;
+            flex-shrink: 0;
+        }
+        .radio-inner {
+            width: 10px; height: 10px;
+            border-radius: var(--radius-full);
+            background: transparent;
+            transform: scale(0);
+            transition: all 0.2s;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--color-gray-200);
+            border-radius: var(--radius-xl);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .upload-zone:hover {
+            border-color: var(--color-secondary-500);
+            background: rgba(75, 69, 230, 0.03);
+        }
+
+        .step-dot {
+            width: 28px; height: 28px;
+            border-radius: var(--radius-full);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 2;
+            flex-shrink: 0;
+        }
+        .step-connector {
+            height: 3px;
+            flex: 1;
+            border-radius: 2px;
+        }
+
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .pulse-dot { animation: pulseDot 1.5s ease-in-out infinite; }
+        @keyframes pulseDot { 0%,100%{ opacity:1; } 50%{ opacity:0.5; } }
+
+        .toast {
+            position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+            z-index: 9999;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(22,22,29,0.15);
+            animation: toastIn 0.3s ease-out, toastOut 0.3s ease-in 2.7s forwards;
+            max-width: 380px;
+            text-align: center;
+        }
+        @keyframes toastIn { from { opacity:0; transform:translateX(-50%) translateY(-16px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+        @keyframes toastOut { to { opacity:0; transform:translateX(-50%) translateY(-16px); } }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .bottom-nav-item { transition: color 0.2s; }
+        .bottom-nav-item.active svg, .bottom-nav-item.active span { color: var(--color-secondary-500); }
+
+        .card {
+            background: var(--color-bg-frame-main);
+            border: 1px solid var(--color-border-frame-main);
+            border-radius: var(--radius-2xl);
+        }
+
+        .divider-dashed {
+            border-top: 1px dashed var(--color-gray-200);
+        }
+
+        /* ============ BOTTOM SHEET ============ */
+        .sheet-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(22,22,29,0.5);
+            z-index: 9998;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .sheet-backdrop.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .bottom-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(100%);
+            max-width: 430px;
+            width: 100%;
+            background: var(--color-bg-frame-main);
+            border-radius: 24px 24px 0 0;
+            z-index: 9999;
+            transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 -12px 40px rgba(22,22,29,0.15);
+        }
+        .bottom-sheet.active {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .sheet-handle {
+            width: 40px;
+            height: 4px;
+            background: var(--color-gray-200);
+            border-radius: 2px;
+            margin: 12px auto;
+        }
+
+        /* Input styles */
+        .ds-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--color-gray-200);
+            border-radius: 12px;
+            background: var(--color-bg-frame-main);
+            font-size: 13px;
+            color: var(--color-text-default-strong);
+            transition: all 0.2s;
+            font-family: 'Vazirmatn', sans-serif;
+            outline: none;
+        }
+        .ds-input:focus {
+            border-color: var(--color-secondary-500);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(75, 69, 230, 0.1);
+        }
+        .ds-input::placeholder {
+            color: var(--color-gray-300);
+        }
+        .ds-label {
+            display: block;
+            font-size: 11px;
+            color: var(--color-text-default-moderate);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        /* Check card */
+        .check-card {
+            background: var(--color-bg-frame-main);
+            border: 1px solid var(--color-gray-100);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        .check-card:hover {
+            border-color: var(--color-secondary-500);
+            box-shadow: 0 2px 8px rgba(22,22,29,0.05);
+        }
+
+        .check-thumb {
+            width: 56px;
+            height: 56px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #fff8ec, #ffdba4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<div class="mobile-frame" id="app">
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 1: EMPTY CART -->
+    <!-- ============================================================ -->
+    <div class="screen active" id="screen-empty-cart">
+        <div class="app-header text-white px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <button onclick="navigateTo('screen-cart')" class="p-1 opacity-80 hover:opacity-100">
+                    <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="flex-1 flex flex-col items-center justify-center px-8 py-20">
+            <div class="w-28 h-28 mb-6 opacity-20">
+                <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--color-gray-400)">
+                    <circle cx="50" cy="50" r="45" stroke-dasharray="4 4"/>
+                    <path d="M35 40h30M35 50h20M35 60h25" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <p class="font-semibold mb-2" style="font-size:16px;color:var(--color-text-default-strong)">سبد خرید شما خالی است</p>
+            <p class="text-center" style="font-size:13px;color:var(--color-text-default-weak)">لطفاً کالایی به سبد خرید خود اضافه کنید</p>
+            <button onclick="navigateTo('screen-cart')" class="mt-6 font-medium flex items-center gap-1" style="font-size:13px;color:var(--color-secondary-500)">
+                مشاهده محصولات
+                <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 2: CART -->
+    <!-- ============================================================ -->
+    <div class="screen" id="screen-cart">
+        <div class="app-header text-white px-4 py-3 flex items-center justify-between sticky top-0 z-40">
+            <button onclick="navigateTo('screen-empty-cart')" class="p-1 opacity-80">
+                <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <span style="font-size:13px" class="font-semibold">سبد خرید</span>
+            <div class="w-5"></div>
+        </div>
+        <div class="flex-1 overflow-y-auto no-scrollbar pb-24" style="background:var(--color-bg-frame-base)">
+            <div class="px-4 py-3">
+                <span class="font-semibold" style="font-size:13px;color:var(--color-text-default-strong)">سبد خرید شما · <span style="color:var(--color-text-default-moderate)">۲ کالا</span></span>
+            </div>
+            <div class="card mx-4 mb-3 p-4">
+                <div class="flex gap-3">
+                    <div class="w-20 h-20 rounded-xl flex-shrink-0 flex items-center justify-center" style="background: linear-gradient(135deg, #fef3c7, #fde68a)">
+                        <svg class="w-10 h-10 text-amber-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-medium mb-1" style="font-size:13px;color:var(--color-text-default-strong)">گردنبند نقره طرح ماه و ستاره</p>
+                        <div class="flex items-center justify-between mt-2">
+                            <div class="flex items-center gap-1">
+                                <span class="font-bold" style="font-size:13px;color:var(--color-text-default-strong)">۳,۵۰۰,۰۰۰</span>
+                                <span style="font-size:11px;color:var(--color-text-default-weak)">تومان</span>
+                            </div>
+                            <div class="flex items-center rounded-lg" style="background:var(--color-bg-frame-alternative)">
+                                <button class="w-8 h-8 text-lg font-bold" style="color:var(--color-secondary-500)">+</button>
+                                <span class="w-6 text-center font-bold" style="font-size:13px">۱</span>
+                                <button class="w-8 h-8 text-lg font-bold" style="color:var(--color-error-500)">−</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mx-4 mb-3 p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <span style="font-size:13px;color:var(--color-text-default-moderate)">قیمت کل کالاها</span>
+                    <span class="font-medium" style="font-size:13px;color:var(--color-text-default-strong)">۹,۰۵۰,۰۰۰ تومان</span>
+                </div>
+                <div class="flex items-center justify-between mb-3">
+                    <span style="font-size:13px;color:var(--color-text-default-moderate)">هزینه ارسال</span>
+                    <span class="font-medium" style="font-size:13px;color:var(--color-text-default-strong)">۸۵,۰۰۰ تومان</span>
+                </div>
+                <div class="flex items-center justify-between mb-3">
+                    <span style="font-size:13px;color:var(--color-text-default-moderate)">مجموع تخفیف</span>
+                    <span class="font-medium" style="font-size:13px;color:var(--color-error-500)">۵۰۰,۰۰۰ تومان</span>
+                </div>
+                <div class="divider-dashed my-3"></div>
+                <div class="flex items-center justify-between">
+                    <span class="font-bold" style="font-size:13px;color:var(--color-text-default-strong)">مبلغ قابل پرداخت</span>
+                    <span class="font-extrabold" style="font-size:16px;color:var(--color-success-700)">۸,۶۳۵,۰۰۰ <span class="font-medium" style="font-size:11px;color:var(--color-text-default-moderate)">تومان</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="sticky bottom-0 bg-white px-4 py-3 z-30" style="border-top:1px solid var(--color-border-frame-main)">
+            <button onclick="navigateTo('screen-checkout')" class="w-full py-3 rounded-xl font-bold text-white transition-all hover:opacity-90" style="font-size:13px;background:var(--color-primary-500)">
+                تایید و تکمیل سفارش
+            </button>
+        </div>
+    </div>
+
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 3: CHECKOUT -->
+    <!-- ============================================================ -->
+    <div class="screen" id="screen-checkout">
+        <div class="app-header text-white px-4 py-3 flex items-center justify-between sticky top-0 z-40">
+            <button onclick="navigateTo('screen-cart')" class="p-1 opacity-80">
+                <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <span style="font-size:13px" class="font-semibold">تکمیل سفارش</span>
+            <div class="w-5"></div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto no-scrollbar pb-28" style="background:var(--color-bg-frame-base)">
+
+            <!-- Address -->
+            <div class="card mx-4 mt-4 p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background:var(--color-success-0)">
+                        <svg class="w-4 h-4" style="color:var(--color-success-700)" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                    </div>
+                    <span class="font-bold flex-1" style="font-size:13px;color:var(--color-text-default-strong)">آدرس تحویل</span>
+                    <button style="font-size:11px;color:var(--color-secondary-500)" class="font-medium">تغییر</button>
+                </div>
+                <p class="mb-2" style="font-size:13px;color:var(--color-text-default-moderate);line-height:1.6">مشهد، خیابان احمدآباد، بلوار پاسداران، بلوک ۱۵</p>
+                <div class="flex items-center gap-4" style="font-size:11px;color:var(--color-text-default-weak)">
+                    <span>محمد جعفری</span>
+                    <span>۰۹۱۲۳۴۵۶۷۸۹</span>
+                </div>
+            </div>
+
+            <!-- Payment Method Selection -->
+            <div class="card mx-4 mt-3 p-4">
+                <div class="flex items-center gap-2 mb-5">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background:var(--color-secondary-0)">
+                        <svg class="w-4 h-4" style="color:var(--color-secondary-500)" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+                    </div>
+                    <span class="font-bold" style="font-size:13px;color:var(--color-text-default-strong)">شیوه پرداخت</span>
+                </div>
+
+                <!-- Gateway -->
+                <label class="payment-option block mb-3 cursor-pointer">
+                    <input type="radio" name="payment" value="gateway" class="hidden" checked onchange="selectPayment('gateway')">
+                    <div class="payment-card border-2 rounded-2xl p-4 transition-all" style="border-color:var(--color-secondary-500);background:rgba(75,69,230,0.05)">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-white" style="border:1px solid var(--color-border-frame-main)">
+                                <svg class="w-5 h-5" style="color:var(--color-warning-500)" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-bold" style="font-size:13px;color:var(--color-text-default-strong)">درگاه آنلاین</p>
+                                <p class="mt-0.5" style="font-size:11px;color:var(--color-text-default-weak)">پرداخت سریع و آنلاین · زرین‌پال</p>
+                            </div>
+                            <div class="radio-outer" style="border-color:var(--color-secondary-500)">
+                                <div class="radio-inner" style="background:var(--color-secondary-500);transform:scale(1)"></div>
+                            </div>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Receipt -->
+                <label class="payment-option block mb-3 cursor-pointer">
+                    <input type="radio" name="payment" value="receipt" class="hidden" onchange="selectPayment('receipt')">
+                    <div class="payment-card border-2 rounded-2xl p-4 transition-all" style="border-color:var(--color-border-frame-main)">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:var(--color-bg-frame-alternative)">
+                                <svg class="w-5 h-5" style="color:var(--color-secondary-400)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-bold" style="font-size:13px;color:var(--color-text-default-strong)">ثبت با بارگذاری رسید</p>
+                                <p class="mt-0.5" style="font-size:11px;color:var(--color-text-default-weak)">تصویر فیش واریز بانکی را بارگذاری کنید</p>
+                            </div>
+                            <div class="radio-outer">
+                                <div class="radio-inner"></div>
+                            </div>
+                        </div>
+
+                        <!-- =============== RECEIPT UPLOAD (SINGLE IMAGE) =============== -->
+                        <div id="receipt-upload-zone" class="mt-4 hidden fade-in">
+                            <!-- Empty state -->
+                            <div id="receipt-empty-state" class="upload-zone p-6 text-center" onclick="event.stopPropagation();simulateReceiptUpload()">
+                                <svg class="w-10 h-10 mx-auto mb-2" style="color:var(--color-gray-300)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <p class="font-medium" style="font-size:13px;color:var(--color-text-default-moderate)">بارگذاری تصویر فیش واریزی</p>
+                                <p class="mt-1" style="font-size:11px;color:var(--color-text-default-weak)">فرمت‌های مجاز: JPG, PNG · حداکثر ۵ مگابایت</p>
+                                <div class="inline-flex items-center gap-1 mt-3 px-3 py-1.5 rounded-lg font-medium" style="background:var(--color-secondary-500);color:white;font-size:11px">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    انتخاب فایل
+                                </div>
+                            </div>
+
+                            <!-- Uploaded state -->
+                            <div id="receipt-uploaded-state" class="hidden" onclick="event.stopPropagation()">
+                                <div class="rounded-xl p-3" style="background:var(--color-success-0);border:1px solid rgba(0,224,67,0.2)">
+                                    <div class="flex items-center gap-3">
+                                        <!-- Image preview -->
+                                        <div class="w-16 h-16 rounded-lg flex items-center justify-center flex-shrink-0 relative overflow-hidden" style="background: linear-gradient(135deg, #dcfce7, #86efac)">
+                                            <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                                            <div class="absolute -top-1 -left-1 w-5 h-5 rounded-full flex items-center justify-center" style="background:var(--color-success-600)">
+                                                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                                            </div>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="font-bold truncate" style="font-size:13px;color:var(--color-success-800)">فیش_واریزی.jpg</p>
+                                            <p class="mt-0.5" style="font-size:11px;color:var(--color-success-700)">۲.۳ مگابایت · بارگذاری موفق</p>
+                                        </div>
+                                        <div class="flex flex-col gap-1">
+                                            <button onclick="event.stopPropagation();simulateReceiptUpload()" class="p-1.5 rounded-lg transition-colors" style="background:rgba(75,69,230,0.1)" title="تغییر فایل">
+                                                <svg class="w-4 h-4" style="color:var(--color-secondary-500)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                            </button>
+                                            <button onclick="event.stopPropagation();removeReceipt()" class="p-1.5 rounded-lg transition-colors" style="background:rgba(235,0,0,0.1)" title="حذف">
+                                                <svg class="w-4 h-4" style="color:var(--color-error-500)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V4a2 2 0 012-2h4a2 2 0 012 2v3"/></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Conditional -->
+                <label class="payment-option block cursor-pointer">
+                    <input type="radio" name="payment" value="conditional" class="hidden" onchange="selectPayment('conditional')">
+                    <div class="payment-card border-2 rounded-2xl p-4 transition-all" style="border-color:var(--color-border-frame-main)">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:var(--color-warning-0)">
+                                <svg class="w-5 h-5" style="color:var(--color-warning-500)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-bold" style="font-size:13px;color:var(--color-text-default-strong)">شرایطی - مذاکره با ادمین</p>
+                                <p class="mt-0.5" style="font-size:11px;color:var(--color-text-default-weak)">ثبت سفارش و مذاکره با ادمین</p>
+                            </div>
+                            <div class="radio-outer">
+                                <div class="radio-inner"></div>
+                            </div>
+                        </div>
+                        <div id="conditional-warning" class="mt-4 hidden fade-in">
+                            <div class="flex items-start gap-2 p-3 rounded-xl" style="background:var(--color-warning-0);border:1px solid rgba(255,123,6,0.2)">
+                                <svg class="w-5 h-5 flex-shrink-0 mt-0.5" style="color:var(--color-warning-500)" fill="currentColor" viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+                                <p style="font-size:11px;color:var(--color-warning-700);line-height:1.6">ادمین جهت مذاکره و تایید با شما تماس خواهد گرفت.</p>
+                            </div>
+                        </div>
+                    </div>
+                </label>
+            </div>
+
+            <!-- Price Summary -->
+            <div class="card mx-4 mt-3 mb-4 p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <span style="font-size:11px;color:var(--color-text-default-moderate)">مجموع کالاها</span>
+                    <span class="font-medium" style="font-size:11px;color:var(--color-text-default-strong)">۹,۰۵۰,۰۰۰ تومان</span>
+                </div>
+                <div class="flex items-center justify-between mb-3">
+                    <span style="font-size:11px;color:var(--color-text-default-moderate)">هزینه ارسال</span>
+                    <span class="font-medium" style="font-size:11px;color:var(--color-text-default-strong)">۸۵,۰۰۰ تومان</span>
+                </div>
+                <div class="divider-dashed my-3"></div>
+                <div class="flex items-center justify-between">
+                    <span class="font-bold" style="font-size:13px;color:var(--color-text-default-strong)">مبلغ قابل پرداخت</span>
+                    <span class="font-extrabold" style="font-size:13px;color:var(--color-success-700)">۸,۶۳۵,۰۰۰ تومان</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sticky bottom-0 bg-white px-4 py-3 z-30" style="border-top:1px solid var(--color-border-frame-main)">
+            <button onclick="submitOrder()" class="w-full py-3 rounded-xl font-bold text-white transition-all hover:opacity-90 flex items-center justify-center gap-2" style="font-size:13px;background:var(--color-primary-500)">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                ثبت نهایی سفارش
+            </button>
+        </div>
+    </div>
+
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 4: SUCCESS -->
+    <!-- ============================================================ -->
+    <div class="screen" id="screen-success">
+        <div class="flex-1 flex flex-col items-center justify-center px-8" style="background:var(--color-bg-frame-main)">
+            <div class="w-32 h-32 rounded-full flex items-center justify-center mb-6" style="background:var(--color-success-0)">
+                <div class="w-20 h-20 rounded-full flex items-center justify-center" style="background:var(--color-success-100)">
+                    <svg class="w-12 h-12" style="color:var(--color-success-600)" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                </div>
+            </div>
+            <h2 class="font-extrabold mb-2" style="font-size:19px;color:var(--color-text-default-strong)">دوست عزیز، <span style="color:var(--color-success-600)">با موفقیت ثبت شد</span></h2>
+            <p class="text-center mb-1" style="font-size:13px;color:var(--color-text-default-moderate)" id="success-message">سفارش شما با موفقیت ثبت شد.</p>
+            <p class="mb-8" style="font-size:11px;color:var(--color-text-default-weak)" id="success-sub-message"></p>
+            <div class="w-full space-y-3">
+                <button onclick="navigateTo('screen-order-tracking')" class="w-full py-3 rounded-xl font-bold text-white transition-all hover:opacity-90" style="font-size:13px;background:var(--color-success-600)">
+                    مشاهده وضعیت سفارش
+                </button>
+                <button onclick="navigateTo('screen-empty-cart')" class="w-full py-3 rounded-xl font-medium transition-all" style="font-size:13px;background:var(--color-bg-frame-alternative);color:var(--color-text-default-moderate)">
+                    بازگشت به صفحه اصلی
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 5: ORDER TRACKING (with Check Upload) -->
+    <!-- ============================================================ -->
+    <div class="screen" id="screen-order-tracking">
+        <div class="app-header text-white px-4 py-3 flex items-center justify-between sticky top-0 z-40">
+            <button onclick="navigateTo('screen-orders-list')" class="p-1 opacity-80">
+                <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <span style="font-size:13px" class="font-semibold">جزئیات سفارش</span>
+            <button class="flex items-center gap-1" style="font-size:11px;color:var(--color-success-100)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                فاکتور
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto no-scrollbar pb-6" style="background:var(--color-bg-frame-base)">
+
+            <!-- Order Info -->
+            <div class="card mx-4 mt-4 p-4">
+                <div class="grid grid-cols-2 gap-4" style="font-size:11px">
+                    <div>
+                        <span class="block mb-1" style="color:var(--color-text-default-weak)">کد پیگیری</span>
+                        <span class="font-bold" style="color:var(--color-text-default-strong)">۱۱۵۶۸۰۳۳۱۹</span>
+                    </div>
+                    <div class="text-left">
+                        <span class="block mb-1" style="color:var(--color-text-default-weak)">تاریخ ثبت</span>
+                        <span class="font-bold" style="color:var(--color-text-default-strong)">۱۹ خرداد ۱۴۰۵</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Stepper -->
+            <div class="card mx-4 mt-3 p-4">
+                <h3 class="font-bold mb-5" style="font-size:13px;color:var(--color-text-default-strong)">وضعیت سفارش</h3>
+
+                <div id="conditional-stepper">
+                    <div class="flex items-center justify-between mb-2 px-1">
+                        <div class="flex flex-col items-center" style="flex:0.8">
+                            <div class="step-dot text-white" style="background:var(--color-success-600);font-size:11px">✓</div>
+                            <span class="mt-1.5 text-center font-medium" style="font-size:9px;color:var(--color-success-700)">ثبت</span>
+                        </div>
+                        <div class="step-connector -mt-4" style="background:var(--color-success-600)"></div>
+                        <div class="flex flex-col items-center" style="flex:0.8">
+                            <div class="step-dot text-white" style="background:var(--color-success-600);font-size:11px">✓</div>
+                            <span class="mt-1.5 text-center font-medium" style="font-size:9px;color:var(--color-success-700)">مذاکره</span>
+                        </div>
+                        <div class="step-connector -mt-4" style="background:var(--color-success-600)"></div>
+                        <div class="flex flex-col items-center" style="flex:0.8">
+                            <div class="step-dot text-white pulse-dot" style="background:var(--color-secondary-500);font-size:10px">●</div>
+                            <span class="mt-1.5 text-center font-bold" style="font-size:9px;color:var(--color-secondary-500)">مدارک</span>
+                        </div>
+                        <div class="step-connector -mt-4" style="background:var(--color-gray-100)"></div>
+                        <div class="flex flex-col items-center" style="flex:0.8">
+                            <div class="step-dot" style="background:var(--color-gray-100);color:var(--color-text-default-weak);font-size:11px">۴</div>
+                            <span class="mt-1.5 text-center" style="font-size:9px;color:var(--color-text-default-weak)">تایید</span>
+                        </div>
+                        <div class="step-connector -mt-4" style="background:var(--color-gray-100)"></div>
+                        <div class="flex flex-col items-center" style="flex:0.8">
+                            <div class="step-dot" style="background:var(--color-gray-100);color:var(--color-text-default-weak);font-size:11px">۵</div>
+                            <span class="mt-1.5 text-center" style="font-size:9px;color:var(--color-text-default-weak)">آماده</span>
+                        </div>
+                        <div class="step-connector -mt-4" style="background:var(--color-gray-100)"></div>
+                        <div class="flex flex-col items-center" style="flex:0.8">
+                            <div class="step-dot" style="background:var(--color-gray-100);color:var(--color-text-default-weak);font-size:11px">۶</div>
+                            <span class="mt-1.5 text-center" style="font-size:9px;color:var(--color-text-default-weak)">ارسال</span>
+                        </div>
+                        <div class="step-connector -mt-4" style="background:var(--color-gray-100)"></div>
+                        <div class="flex flex-col items-center" style="flex:0.8">
+                            <div class="step-dot" style="background:var(--color-gray-100);color:var(--color-text-default-weak);font-size:11px">۷</div>
+                            <span class="mt-1.5 text-center" style="font-size:9px;color:var(--color-text-default-weak)">تحویل</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 p-3 rounded-xl leading-relaxed" style="font-size:11px;background:var(--color-secondary-0);border:1px solid rgba(75,69,230,0.15);color:var(--color-secondary-600)">
+                    📄 در انتظار بارگذاری مدارک — لطفاً چک‌های بانکی و/یا رسید نقد خود را بارگذاری کنید.
+                </div>
+            </div>
+
+            <!-- ============ CHECKS UPLOAD SECTION ============ -->
+            <div class="card mx-4 mt-3 p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background:var(--color-warning-0)">
+                            <svg class="w-4 h-4" style="color:var(--color-warning-600)" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="font-bold" style="font-size:13px;color:var(--color-text-default-strong)">چک‌های بانکی</h3>
+                            <p style="font-size:11px;color:var(--color-text-default-weak)"><span id="checks-count">۰</span> چک ثبت شده</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info banner -->
+                <div class="p-3 rounded-xl mb-3" style="background:var(--color-bg-frame-alternative)">
+                    <p style="font-size:11px;color:var(--color-text-default-moderate);line-height:1.7">
+                        برای هر چک، تصویر آن را به همراه <span class="font-medium" style="color:var(--color-text-default-strong)">شماره چک، مبلغ و تاریخ سررسید</span> ثبت کنید.
+                    </p>
+                </div>
+
+                <!-- Checks List -->
+                <div id="checks-list" class="space-y-2 mb-3">
+                    <!-- Empty state -->
+                    <div id="checks-empty" class="text-center py-6">
+                        <svg class="w-12 h-12 mx-auto mb-2" style="color:var(--color-gray-200)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <p style="font-size:11px;color:var(--color-text-default-weak)">هنوز چکی اضافه نشده است</p>
+                    </div>
+                </div>
+
+                <!-- Add Check Button -->
+                <button onclick="openCheckSheet()" class="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90" style="font-size:13px;background:var(--color-secondary-0);color:var(--color-secondary-600);border:2px dashed var(--color-secondary-500)">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    افزودن تصویر چک
+                </button>
+            </div>
+
+            <!-- ============ CASH RECEIPT UPLOAD SECTION ============ -->
+            <div class="card mx-4 mt-3 p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background:var(--color-success-0)">
+                            <svg class="w-4 h-4" style="color:var(--color-success-700)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="font-bold" style="font-size:13px;color:var(--color-text-default-strong)">رسید پرداخت نقد</h3>
+                            <p style="font-size:11px;color:var(--color-text-default-weak)">فقط یک تصویر (اختیاری)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty state -->
+                <div id="cash-empty-state" class="upload-zone p-6 text-center" onclick="simulateCashUpload()">
+                    <svg class="w-10 h-10 mx-auto mb-2" style="color:var(--color-gray-300)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <p class="font-medium" style="font-size:13px;color:var(--color-text-default-moderate)">بارگذاری تصویر رسید نقدی</p>
+                    <p class="mt-1" style="font-size:11px;color:var(--color-text-default-weak)">JPG, PNG · حداکثر ۵ مگابایت</p>
+                    <div class="inline-flex items-center gap-1 mt-3 px-3 py-1.5 rounded-lg font-medium" style="background:var(--color-success-600);color:white;font-size:11px">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        انتخاب فایل
+                    </div>
+                </div>
+
+                <!-- Uploaded state -->
+                <div id="cash-uploaded-state" class="hidden">
+                    <div class="rounded-xl p-3" style="background:var(--color-success-0);border:1px solid rgba(0,224,67,0.2)">
+                        <div class="flex items-center gap-3">
+                            <div class="w-16 h-16 rounded-lg flex items-center justify-center flex-shrink-0 relative overflow-hidden" style="background: linear-gradient(135deg, #dcfce7, #86efac)">
+                                <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                                <div class="absolute -top-1 -left-1 w-5 h-5 rounded-full flex items-center justify-center" style="background:var(--color-success-600)">
+                                    <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-bold truncate" style="font-size:13px;color:var(--color-success-800)">رسید_نقدی.jpg</p>
+                                <p class="mt-0.5" style="font-size:11px;color:var(--color-success-700)">۱.۸ مگابایت · بارگذاری موفق</p>
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <button onclick="simulateCashUpload()" class="p-1.5 rounded-lg" style="background:rgba(75,69,230,0.1)">
+                                    <svg class="w-4 h-4" style="color:var(--color-secondary-500)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                </button>
+                                <button onclick="removeCashReceipt()" class="p-1.5 rounded-lg" style="background:rgba(235,0,0,0.1)">
+                                    <svg class="w-4 h-4" style="color:var(--color-error-500)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V4a2 2 0 012-2h4a2 2 0 012 2v3"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="mx-4 mt-4 mb-6">
+                <button onclick="submitAllDocuments()" class="w-full py-3.5 rounded-xl font-bold text-white transition-all hover:opacity-90 flex items-center justify-center gap-2 shadow-lg" style="font-size:13px;background:var(--color-success-600)">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    ثبت همه مدارک و ارسال برای بررسی
+                </button>
+                <p class="text-center mt-2" style="font-size:11px;color:var(--color-text-default-weak)">حداقل یک چک یا رسید باید بارگذاری شود</p>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 6: ORDERS LIST -->
+    <!-- ============================================================ -->
+    <div class="screen" id="screen-orders-list">
+        <div class="app-header text-white px-4 py-3 flex items-center justify-between sticky top-0 z-40">
+            <button onclick="navigateTo('screen-empty-cart')" class="p-1 opacity-80">
+                <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <span style="font-size:13px" class="font-semibold">لیست سفارشات</span>
+            <div class="w-5"></div>
+        </div>
+        <div class="flex-1 overflow-y-auto no-scrollbar pb-6" style="background:var(--color-bg-frame-base)">
+            <div class="card mx-4 mt-4 p-4 cursor-pointer" onclick="navigateTo('screen-order-tracking')">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="font-bold" style="font-size:11px;color:var(--color-text-default-strong)">شماره سفارش: ۳۳۴۸۵۹</span>
+                    <span class="font-medium px-2 py-0.5 rounded-full" style="font-size:11px;background:var(--color-secondary-0);color:var(--color-secondary-600)">در انتظار مدارک</span>
+                </div>
+                <div class="flex items-center justify-between" style="font-size:11px">
+                    <span style="color:var(--color-text-default-weak)">۱۷ خرداد ۱۴۰۵</span>
+                    <span class="font-bold" style="color:var(--color-text-default-strong)">۱۲,۰۰۰,۰۰۰ تومان</span>
+                </div>
+                <div class="flex items-center justify-between mt-2">
+                    <span style="font-size:11px;color:var(--color-text-default-weak)">شرایطی · مذاکره</span>
+                    <span class="font-medium" style="font-size:11px;color:var(--color-secondary-500)">مشاهده جزئیات ←</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- BOTTOM SHEET: ADD CHECK -->
+<!-- ============================================================ -->
+<div class="sheet-backdrop" id="sheet-backdrop" onclick="closeCheckSheet()"></div>
+<div class="bottom-sheet" id="check-sheet">
+    <div class="sheet-handle"></div>
+
+    <!-- Header -->
+    <div class="px-5 pb-3">
+        <div class="flex items-center justify-between mb-1">
+            <h3 class="font-bold" style="font-size:16px;color:var(--color-text-default-strong)" id="sheet-title">افزودن چک جدید</h3>
+            <button onclick="closeCheckSheet()" class="p-1.5 rounded-lg" style="background:var(--color-bg-frame-alternative)">
+                <svg class="w-4 h-4" style="color:var(--color-text-default-moderate)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <p style="font-size:11px;color:var(--color-text-default-weak)">اطلاعات چک و تصویر آن را وارد کنید</p>
+    </div>
+
+    <div class="divider-dashed mx-5 my-2"></div>
+
+    <!-- Form Body -->
+    <div class="px-5 py-4 space-y-4">
+
+        <!-- Check Image Upload -->
+        <div>
+            <label class="ds-label">تصویر چک <span style="color:var(--color-error-500)">*</span></label>
+
+            <div id="sheet-check-empty" class="upload-zone p-5 text-center" onclick="simulateSheetCheckUpload()">
+                <svg class="w-9 h-9 mx-auto mb-2" style="color:var(--color-gray-300)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <p class="font-medium" style="font-size:13px;color:var(--color-text-default-moderate)">انتخاب یا عکس‌برداری از چک</p>
+                <p class="mt-1" style="font-size:11px;color:var(--color-text-default-weak)">JPG, PNG · حداکثر ۵ مگابایت</p>
+            </div>
+
+            <div id="sheet-check-uploaded" class="hidden">
+                <div class="flex items-center gap-3 p-3 rounded-xl" style="background:var(--color-success-0);border:1px solid rgba(0,224,67,0.2)">
+                    <div class="w-14 h-14 rounded-lg flex-shrink-0 flex items-center justify-center relative overflow-hidden" style="background: linear-gradient(135deg, #fef3c7, #fde68a)">
+                        <svg class="w-7 h-7 text-amber-500" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2z"/></svg>
+                        <div class="absolute -top-1 -left-1 w-5 h-5 rounded-full flex items-center justify-center" style="background:var(--color-success-600)">
+                            <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-bold truncate" style="font-size:13px;color:var(--color-success-800)">چک_بانکی.jpg</p>
+                        <p style="font-size:11px;color:var(--color-success-700)">۱.۲ مگابایت</p>
+                    </div>
+                    <button onclick="simulateSheetCheckUpload()" class="px-2 py-1 rounded-md font-medium" style="font-size:11px;background:var(--color-secondary-0);color:var(--color-secondary-600)">تغییر</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Check Number -->
+        <div>
+            <label class="ds-label">شماره چک <span style="color:var(--color-error-500)">*</span></label>
+            <input type="text" id="input-check-no" class="ds-input" placeholder="مثال: ۱۲۳۴۵۶۷۸" dir="ltr" style="text-align:right">
+        </div>
+
+        <!-- Two column: Price + Date -->
+        <div class="grid grid-cols-2 gap-3">
+            <div>
+                <label class="ds-label">مبلغ چک (تومان) <span style="color:var(--color-error-500)">*</span></label>
+                <input type="text" id="input-check-price" class="ds-input" placeholder="۰" dir="ltr" style="text-align:right" oninput="formatPriceInput(this)">
+            </div>
+            <div>
+                <label class="ds-label">تاریخ سررسید <span style="color:var(--color-error-500)">*</span></label>
+                <div class="relative">
+                    <input type="text" id="input-check-date" class="ds-input pr-10" placeholder="۱۴۰۵/۰۴/۱۵">
+                    <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style="color:var(--color-text-default-weak)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bank Name (Optional) -->
+        <div>
+            <label class="ds-label">نام بانک <span style="color:var(--color-text-default-weak)">(اختیاری)</span></label>
+            <input type="text" id="input-check-bank" class="ds-input" placeholder="مثال: بانک ملت">
+        </div>
+
+    </div>
+
+    <!-- Sticky Footer -->
+    <div class="sticky bottom-0 bg-white px-5 py-4" style="border-top:1px solid var(--color-border-frame-main)">
+        <div class="grid grid-cols-2 gap-3">
+            <button onclick="closeCheckSheet()" class="py-3 rounded-xl font-bold transition-all" style="font-size:13px;background:var(--color-bg-frame-alternative);color:var(--color-text-default-moderate)">
+                انصراف
+            </button>
+            <button onclick="saveCheck()" class="py-3 rounded-xl font-bold text-white transition-all hover:opacity-90" style="font-size:13px;background:var(--color-secondary-500)" id="save-check-btn">
+                ثبت چک
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- DEV NAV -->
+<!-- ============================================================ -->
+<div class="fixed bottom-4 left-4 z-[100] bg-white rounded-2xl shadow-2xl p-3 max-w-[200px]" id="devNav" style="border:1px solid var(--color-border-frame-main)">
+    <p class="font-bold mb-2 text-center" style="font-size:11px;color:var(--color-text-default-weak)">🔧 ناوبری سریع</p>
+    <div class="grid grid-cols-2 gap-1.5">
+        <button onclick="navigateTo('screen-cart')" class="rounded-lg py-1.5 px-2" style="font-size:11px;background:var(--color-bg-frame-alternative);color:var(--color-text-default-moderate)">سبد</button>
+        <button onclick="navigateTo('screen-checkout')" class="rounded-lg py-1.5 px-2" style="font-size:11px;background:var(--color-bg-frame-alternative);color:var(--color-text-default-moderate)">چک‌اوت</button>
+        <button onclick="navigateTo('screen-success')" class="rounded-lg py-1.5 px-2" style="font-size:11px;background:var(--color-success-0);color:var(--color-success-700)">موفقیت</button>
+        <button onclick="navigateTo('screen-orders-list')" class="rounded-lg py-1.5 px-2" style="font-size:11px;background:var(--color-secondary-0);color:var(--color-secondary-600)">سفارشات</button>
+        <button onclick="navigateTo('screen-order-tracking')" class="rounded-lg py-1.5 px-2 col-span-2" style="font-size:11px;background:var(--color-warning-0);color:var(--color-warning-700)">📄 آپلود مدارک</button>
+    </div>
+    <button onclick="document.getElementById('devNav').style.display='none'" class="mt-2 block mx-auto" style="font-size:11px;color:var(--color-text-default-weak)">بستن ✕</button>
+</div>
+
+
+<script>
+// ============ STATE ============
+let currentPayment = 'gateway';
+let receiptUploaded = false;
+let cashReceiptUploaded = false;
+let sheetCheckUploaded = false;
+let editingCheckIndex = -1;
+let checks = []; // Array of check objects: { check_no, price, date, bank, file_name }
+
+// ============ NAVIGATION ============
+function navigateTo(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const target = document.getElementById(screenId);
+    if (target) {
+        target.classList.add('active');
+        target.classList.add('fade-in');
+        setTimeout(() => target.classList.remove('fade-in'), 300);
+        window.scrollTo(0, 0);
+    }
+}
+
+// ============ PAYMENT SELECTION ============
+function selectPayment(method) {
+    currentPayment = method;
+
+    // Reset all cards visually
+    document.querySelectorAll('.payment-card').forEach(c => {
+        c.style.borderColor = 'var(--color-border-frame-main)';
+        c.style.background = '';
+    });
+    document.querySelectorAll('.radio-outer').forEach(r => {
+        r.style.borderColor = 'var(--color-gray-200)';
+    });
+    document.querySelectorAll('.radio-inner').forEach(r => {
+        r.style.background = 'transparent';
+        r.style.transform = 'scale(0)';
+    });
+
+    // Highlight selected
+    const checked = document.querySelector(`input[value="${method}"]`);
+    if (checked) {
+        const card = checked.nextElementSibling;
+        card.style.borderColor = 'var(--color-secondary-500)';
+        card.style.background = 'rgba(75, 69, 230, 0.05)';
+        const outer = card.querySelector('.radio-outer');
+        const inner = card.querySelector('.radio-inner');
+        outer.style.borderColor = 'var(--color-secondary-500)';
+        inner.style.background = 'var(--color-secondary-500)';
+        inner.style.transform = 'scale(1)';
+    }
+
+    // Show/hide contextual sections
+    document.getElementById('receipt-upload-zone').classList.add('hidden');
+    document.getElementById('conditional-warning').classList.add('hidden');
+
+    if (method === 'receipt') document.getElementById('receipt-upload-zone').classList.remove('hidden');
+    else if (method === 'conditional') document.getElementById('conditional-warning').classList.remove('hidden');
+}
+
+// ============ RECEIPT UPLOAD ============
+function simulateReceiptUpload() {
+    receiptUploaded = true;
+    document.getElementById('receipt-empty-state').classList.add('hidden');
+    document.getElementById('receipt-uploaded-state').classList.remove('hidden');
+    document.getElementById('receipt-uploaded-state').classList.add('fade-in');
+    showToast('فیش با موفقیت بارگذاری شد', 'success');
+}
+
+function removeReceipt() {
+    receiptUploaded = false;
+    document.getElementById('receipt-empty-state').classList.remove('hidden');
+    document.getElementById('receipt-uploaded-state').classList.add('hidden');
+    showToast('فیش حذف شد', 'error');
+}
+
+// ============ SUBMIT ORDER ============
+function submitOrder() {
+    if (currentPayment === 'receipt' && !receiptUploaded) {
+        showToast('لطفاً ابتدا فیش واریزی را بارگذاری کنید', 'error');
+        return;
+    }
+
+    const msg = document.getElementById('success-message');
+    const sub = document.getElementById('success-sub-message');
+    if (currentPayment === 'gateway') {
+        msg.textContent = 'پرداخت شما با موفقیت انجام شد.';
+        sub.textContent = 'سفارش شما در حال آماده‌سازی است.';
+    } else if (currentPayment === 'receipt') {
+        msg.textContent = 'سفارش شما با موفقیت ثبت شد.';
+        sub.textContent = 'فیش واریزی شما در انتظار تایید فروشنده است.';
+    } else if (currentPayment === 'conditional') {
+        msg.textContent = 'سفارش شما با موفقیت ثبت شد.';
+        sub.textContent = 'ادمین جهت مذاکره و تایید با شما تماس خواهد گرفت.';
+    }
+    navigateTo('screen-success');
+}
+
+// ============ CHECKS MANAGEMENT ============
+function openCheckSheet(index = -1) {
+    editingCheckIndex = index;
+
+    // Reset form
+    document.getElementById('input-check-no').value = '';
+    document.getElementById('input-check-price').value = '';
+    document.getElementById('input-check-date').value = '';
+    document.getElementById('input-check-bank').value = '';
+    sheetCheckUploaded = false;
+    document.getElementById('sheet-check-empty').classList.remove('hidden');
+    document.getElementById('sheet-check-uploaded').classList.add('hidden');
+
+    // If editing, populate
+    if (index >= 0) {
+        const c = checks[index];
+        document.getElementById('sheet-title').textContent = 'ویرایش چک';
+        document.getElementById('save-check-btn').textContent = 'ذخیره تغییرات';
+        document.getElementById('input-check-no').value = c.check_no;
+        document.getElementById('input-check-price').value = c.price;
+        document.getElementById('input-check-date').value = c.date;
+        document.getElementById('input-check-bank').value = c.bank || '';
+        sheetCheckUploaded = true;
+        document.getElementById('sheet-check-empty').classList.add('hidden');
+        document.getElementById('sheet-check-uploaded').classList.remove('hidden');
+    } else {
+        document.getElementById('sheet-title').textContent = 'افزودن چک جدید';
+        document.getElementById('save-check-btn').textContent = 'ثبت چک';
+    }
+
+    document.getElementById('sheet-backdrop').classList.add('active');
+    document.getElementById('check-sheet').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCheckSheet() {
+    document.getElementById('sheet-backdrop').classList.remove('active');
+    document.getElementById('check-sheet').classList.remove('active');
+    document.body.style.overflow = '';
+    editingCheckIndex = -1;
+}
+
+function simulateSheetCheckUpload() {
+    sheetCheckUploaded = true;
+    document.getElementById('sheet-check-empty').classList.add('hidden');
+    document.getElementById('sheet-check-uploaded').classList.remove('hidden');
+    document.getElementById('sheet-check-uploaded').classList.add('fade-in');
+}
+
+function formatPriceInput(input) {
+    // Remove non-digits (Persian & English)
+    let val = input.value.replace(/[^\d۰-۹]/g, '');
+    // Convert to English for parsing
+    val = val.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+    // Add thousand separators
+    if (val) {
+        val = parseInt(val).toLocaleString('en-US');
+        // Convert back to Persian digits
+        val = val.replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+    }
+    input.value = val;
+}
+
+function saveCheck() {
+    const check_no = document.getElementById('input-check-no').value.trim();
+    const price = document.getElementById('input-check-price').value.trim();
+    const date = document.getElementById('input-check-date').value.trim();
+    const bank = document.getElementById('input-check-bank').value.trim();
+
+    // Validation
+    if (!sheetCheckUploaded) { showToast('لطفاً تصویر چک را بارگذاری کنید', 'error'); return; }
+    if (!check_no) { showToast('لطفاً شماره چک را وارد کنید', 'error'); return; }
+    if (!price) { showToast('لطفاً مبلغ چک را وارد کنید', 'error'); return; }
+    if (!date) { showToast('لطفاً تاریخ سررسید را وارد کنید', 'error'); return; }
+
+    const checkData = { check_no, price, date, bank, file_name: 'چک_بانکی.jpg' };
+
+    if (editingCheckIndex >= 0) {
+        checks[editingCheckIndex] = checkData;
+        showToast('چک با موفقیت ویرایش شد', 'success');
+    } else {
+        checks.push(checkData);
+        showToast('چک با موفقیت اضافه شد', 'success');
+    }
+
+    renderChecks();
+    closeCheckSheet();
+}
+
+function deleteCheck(index) {
+    checks.splice(index, 1);
+    renderChecks();
+    showToast('چک حذف شد', 'error');
+}
+
+function renderChecks() {
+    const list = document.getElementById('checks-list');
+    const emptyState = document.getElementById('checks-empty');
+    const count = document.getElementById('checks-count');
+
+    // Update count in Persian
+    count.textContent = String(checks.length).replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+
+    if (checks.length === 0) {
+        list.innerHTML = '';
+        list.appendChild(emptyState);
+        emptyState.style.display = 'block';
+        return;
+    }
+
+    emptyState.style.display = 'none';
+    list.innerHTML = '';
+
+    checks.forEach((c, i) => {
+        const num = String(i + 1).replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+        const card = document.createElement('div');
+        card.className = 'check-card fade-in';
+        card.innerHTML = `
+            <div class="check-thumb">
+                <svg class="w-8 h-8 text-amber-500" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2z"/></svg>
+                <div class="absolute top-0.5 right-0.5 w-4 h-4 rounded-full flex items-center justify-center" style="background:var(--color-secondary-500);color:white;font-size:9px;font-weight:700">${num}</div>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="font-bold truncate" style="font-size:13px;color:var(--color-text-default-strong)">چک شماره ${c.check_no}</span>
+                </div>
+                <div class="flex items-center gap-3" style="font-size:11px">
+                    <span class="flex items-center gap-1" style="color:var(--color-success-700)">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/></svg>
+                        <span class="font-bold">${c.price}</span>
+                        <span style="color:var(--color-text-default-weak)">تومان</span>
+                    </span>
+                </div>
+                <div class="flex items-center gap-3 mt-0.5" style="font-size:11px;color:var(--color-text-default-moderate)">
+                    <span class="flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        ${c.date}
+                    </span>
+                    ${c.bank ? `<span>${c.bank}</span>` : ''}
+                </div>
+            </div>
+            <div class="flex flex-col gap-1">
+                <button onclick="openCheckSheet(${i})" class="p-1.5 rounded-lg" style="background:rgba(75,69,230,0.1)" title="ویرایش">
+                    <svg class="w-4 h-4" style="color:var(--color-secondary-500)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                </button>
+                <button onclick="deleteCheck(${i})" class="p-1.5 rounded-lg" style="background:rgba(235,0,0,0.1)" title="حذف">
+                    <svg class="w-4 h-4" style="color:var(--color-error-500)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V4a2 2 0 012-2h4a2 2 0 012 2v3"/></svg>
+                </button>
+            </div>
+        `;
+        list.appendChild(card);
+    });
+}
+
+// ============ CASH RECEIPT ============
+function simulateCashUpload() {
+    cashReceiptUploaded = true;
+    document.getElementById('cash-empty-state').classList.add('hidden');
+    document.getElementById('cash-uploaded-state').classList.remove('hidden');
+    document.getElementById('cash-uploaded-state').classList.add('fade-in');
+    showToast('رسید نقدی بارگذاری شد', 'success');
+}
+
+function removeCashReceipt() {
+    cashReceiptUploaded = false;
+    document.getElementById('cash-empty-state').classList.remove('hidden');
+    document.getElementById('cash-uploaded-state').classList.add('hidden');
+    showToast('رسید نقدی حذف شد', 'error');
+}
+
+// ============ SUBMIT ALL DOCUMENTS ============
+function submitAllDocuments() {
+    if (checks.length === 0 && !cashReceiptUploaded) {
+        showToast('حداقل یک چک یا رسید بارگذاری کنید', 'error');
+        return;
+    }
+    showToast(`مدارک با موفقیت ارسال شد (${checks.length} چک ${cashReceiptUploaded ? '+ رسید نقدی' : ''})`, 'success');
+    setTimeout(() => navigateTo('screen-orders-list'), 1500);
+}
+
+// ============ TOAST ============
+function showToast(message, type) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.style.background = type === 'success' ? 'var(--color-success-600)' : 'var(--color-error-500)';
+    t.style.color = 'white';
+    t.textContent = message;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+}
+
+// Init
+selectPayment('gateway');
+renderChecks();
+</script>
+
+</body>
+</html>

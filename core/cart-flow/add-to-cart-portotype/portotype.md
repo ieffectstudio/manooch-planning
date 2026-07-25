@@ -1,115 +1,121 @@
-Alright, A.Mammad, here is the fully updated Product Requirements Document (PRD). It integrates your new logic for dynamic Minimum Order Quantity (MOQ) configuration on the seller side and the default pricing behavior for variant products on the customer side.
+Here is the fully updated, consolidated Product Requirements Document (PRD). It retains the entire end-to-end user journey and integrates the two new business rules regarding Cart Line Item separation (Variants and Units).
 
-All coding logic and technical architecture have been stripped out to focus entirely on user flows, product behavior, and strict business rules.
-
----
-
-## **Product Requirements Document (PRD): E-commerce Product Flow (List ➔ PDP ➔ Cart)**
-
-### **1. Product Overview**
-
-This product is a mobile-optimized e-commerce discovery and selection flow for a specialized handicraft store ("Manooch"). It handles a diverse catalog, accommodating everything from simple fixed-price retail items to complex wholesale goods that require unit conversions, multi-attribute variant selection, and dynamic minimum order quantities.
-
-### **2. User Roles**
-
-* **Customer (Buyer):** Browses products, views dynamic pricing, selects variants/units, adheres to order minimums, and adds items to the cart.
-* **Seller (Admin):** Configures product catalog, sets inventory, defines variant pricing, and establishes minimum order rules per product.
+As strictly requested, all code logic, state management architecture, and backend structure have been excluded.
 
 ---
 
-### **3. Seller Admin Flow: Product Configuration**
+# Product Requirements Document (PRD): End-to-End E-commerce & Order Flow
 
-To support the complex frontend logic, the seller must have specific controls during the "Add/Edit Product" phase.
+**Product:** Manooch E-commerce Platform
 
-* **Minimum Order Quantity (MOQ) Configuration:**
-* **Behavior:** The seller interface includes a numeric input field labeled **"حداقل سفارش" (Minimum Order Quantity)** grouped with stock/inventory settings.
-* **Rules:** * The default value is strictly `1`.
-* The value cannot be less than `1` and cannot exceed the total available stock.
+**Scope:** Product Listing ➔ Product Detail ➔ Cart ➔ Checkout (3 Payment Methods) ➔ Order Tracking
 
+## 1. Executive Summary
 
-* **Frontend Trigger:** If the seller sets this value greater than `1`, the product automatically inherits wholesale properties: the orange "عمده" (Wholesale) badge appears on the PLP, and MOQ warnings/stepper limits activate on the PDP.
+This product flow facilitates a specialized e-commerce experience designed to handle both standard retail transactions and complex, high-ticket (B2B-style) negotiated transactions. The system guides users from discovering products to cart management, and finally through a multi-tiered checkout process that supports instant online payments, manual bank transfers, and a conditional payment process involving physical bank checks and admin negotiations.
 
+## 2. Core User Flows: Discovery to Cart
 
-* **Variant & Default Price Setup:**
-* **Behavior:** When a seller creates a product with multiple variants (e.g., sizes or colors with different prices), the system must establish a "Starting Price."
-* **Rules:** The system automatically calculates the cheapest available variant and sets it as the product's baseline default price to display on catalog pages.
+### 2.1 Product Listing Page (PLP)
 
-
-
----
-
-### **4. Core Customer Flows & Screen Requirements**
-
-#### **4.1 Product Listing Page (PLP)**
-
-* **Search & Filtering:** Includes a persistent search bar and a horizontally scrollable category filter (e.g., All, Hand-woven carpets, Copper & Brass, Ceramics, Wood).
-* **Product Cards:** Cards dynamically display badges based on the seller's configuration:
-* *Discount Badge:* Shows percentage off (e.g., 15%).
-* *Variant Badge:* Indicates multiple options (Color/Size).
-* *Wholesale Badge:* Triggered automatically if the seller set the MOQ > 1.
-
-
-* **Dynamic Pricing Display (The "From" Rule):** * If a product is simple (no variants), it shows the exact price.
-* If a product has variants with varying prices, the card must display the lowest variant price prepended with **"از" (From)** (e.g., `از ۱۲,۰۰۰,۰۰۰ تومان`).
+* **Search & Filtering:** A persistent search bar and horizontal scrollable category filters (e.g., Hand-woven carpets, Copper & Brass, Ceramics, Wood).
+* **Dynamic Badges:** Product cards visually indicate business logic:
+* *Discount Badge:* Shows percentage off.
+* *Variant Badge:* Indicates multiple options (Color/Size) are available.
+* *Wholesale Badge:* Indicates bulk ordering rules apply.
 
 
 
-#### **4.2 Product Detail Page (PDP) Archetypes**
+### 2.2 Product Detail Page (PDP)
 
-The PDP dynamically morphs into four distinct archetypes based on the product's complexity.
+* **Variant Selection:** Users must select mandatory attributes (e.g., Color, Size). The UI updates text labels dynamically to reflect the chosen option (e.g., "رنگ زمینه : لاکی").
+* **Dynamic Pricing & Conversions:** If a user changes a unit of measurement (e.g., Meter to Yard) or selects a different size, the base price and aggregate total update instantly on the screen.
+* **Quantity Management (MOQ):** The quantity stepper strictly enforces the Minimum Order Quantity (MOQ) defined by the seller. The UI blocks the user from decrementing below this limit.
 
-**Archetype 1: Simple Product (Retail)**
+### 2.3 Cart Management & Line Item Rules
 
-* **Behavior:** Fixed price, no variations. MOQ is 1.
-* **Rules:** Shows original price (strike-through) and discounted price. Can be added to the cart immediately.
-
-**Archetype 2: Variant Product (Retail)**
-
-* **Behavior:** Requires configuration (e.g., Color, Size).
-* **Initial Load Rule (Default Selection):** Upon opening the page, the system must **automatically pre-select** the attributes of the cheapest variant. This prevents a blank or `null` price state and immediately gives the user a valid price calculation.
-* **Rules:** Mandatory fields are marked with `*`. Out-of-stock variations must be visually disabled (crossed out/dimmed) and unselectable.
-
-**Archetype 3: Bulk / Wholesale Product**
-
-* **Behavior:** Designed for bulk materials. Introduces customizable measurement units and strict minimums.
-* **Rules:**
-* **Unit Selection:** Users choose the measurement unit (Meter, Zar, Yard). Changing the unit instantly recalculates the base price.
-* **MOQ Enforcement:** The quantity stepper defaults to the seller-defined MOQ (e.g., 5). The UI displays a persistent warning ("حداقل سفارش: ۵ متر").
-* **Dynamic Total:** Features a breakdown showing Unit Price × Quantity = Total.
-
-**Archetype 4: Complex Product (Wholesale + Variants)**
-
-* **Behavior:** Combines all complexities (variants + seller-defined MOQ).
-* **Initial Load Rule:** Automatically pre-selects the cheapest variant combination and defaults the stepper to the seller-defined MOQ.
-* **Rules:** Includes a "Selection Summary" before the final sticky CTA to ensure the buyer understands their complex configuration and total cost.
-
-#### **4.3 Cart Preview (Screen: Cart)**
-
-* **Behavior:** Acts as an interstitial confirmation screen after an item is added.
-* **Rules:** * Displays a success banner indicating the current cart count.
-* Line items explicitly display the user's chosen configuration (e.g., "طلایی · سایز ۵۴ · ۱ عدد" or "۵ متر").
-* Calculates Subtotal, applies Shipping Costs, and displays the Final Total.
+* **Calculations:** The cart dynamically calculates: `(Sum of Items) + (Shipping Cost) - (Total Discounts) = Final Payable Amount`.
+* **Line Item Uniqueness (Variants):** If a user adds a product with a specific attribute (e.g., Color: Blue), and then adds the *same* product with a different attribute (e.g., Color: Red), the cart must store and display them as **two completely separate line items**. They must not merge.
+* **Line Item Uniqueness (Units):** If a user adds a product with a specific unit (e.g., 2 Bags), and then adds the *same* product with a different unit (e.g., 3 Cans), the cart must store and display them as **two completely separate line items**.
+* **Line Item Clarity (UI):** Each item in the cart must explicitly display the user's chosen configuration on the product card:
+* The selected variant must be shown as a clear text label (e.g., "رنگ : آبی").
+* The quantity counter must explicitly render the name of the chosen unit next to the number, rather than a generic default (e.g., "۲ گونی" instead of "۲ عدد").
 
 
 
----
+## 3. Checkout & The 3 Payment Methods
 
-### **5. Complexities & Global Business Rules**
+When the user proceeds to checkout, they are presented with three distinct payment pathways based on the seller's configuration.
 
-**Rule 1: Strict MOQ Validation**
+### Method 1: Online Gateway (درگاه پرداخت آنلاین)
 
-* The quantity stepper on the PDP can never be decremented below the seller-defined MOQ.
-* If a user attempts manual bypass, the system must block it and flash the localized warning box. The "Add to Cart" button strictly validates against this minimum before proceeding.
+* **Flow:** Standard instant payment via providers like Zarinpal or Zipal.
+* **Action:** User is redirected to the banking portal.
+* **State Resolution:** * *Success:* Order status instantly becomes **Processing / Approved**.
+* *Failure/Cancel:* Order status becomes **Payment Failed**, prompting the user to try again.
 
-**Rule 2: Real-Time Dynamic Pricing & Unit Conversions**
 
-* The UI must react instantly without page reloads.
-* If a user changes a unit (e.g., Meter to Yard) or selects a larger size variant, the base price and the aggregate total (Quantity × New Base Price) must update simultaneously on the screen.
 
-**Rule 3: Mandatory Variant Enforcement**
+### Method 2: Receipt Upload (فیش واریزی)
 
-* Users cannot add products to the cart unless all mandatory attributes (Color, Size) are actively selected. (Handled gracefully by the new Default Selection rule upon page load).
+* **Flow:** The user performs a manual bank transfer (Card-to-Card or Sheba) outside the platform and uploads the proof of payment.
+* **Customer Action:** User uploads the transaction receipt image and submits the order.
+* **System State:** Order is submitted with a **Pending Approval** status.
+* **Seller Action:** The seller sees the uploaded receipt in their Admin panel.
+* *Approve:* Seller clicks "Approve Receipt". Order moves to **Preparing / Shipped**.
+* *Reject:* Seller clicks "Reject". Order is flagged, and the customer is prompted to re-upload valid proof.
 
-**Rule 4: State Preservation & Accessibility**
 
-* When a user selects a variant (e.g., Color), the label above the selection chips must dynamically update to explicitly state the chosen option in text (e.g., "رنگ زمینه * : لاکی") to ensure clarity before adding to the cart.
+
+### Method 3: Conditional / Negotiation (پرداخت شرایطی / چکی)
+
+* **Flow:** Used for high-ticket or wholesale orders where the buyer and seller must agree on custom payment terms (e.g., paying via physical bank checks).
+* **Phase 1: Negotiation Initialization**
+* Customer selects "Conditional Payment". No money is requested upfront.
+* Order is submitted with a **Negotiation** status.
+* Seller receives a notification. Both parties review the order and negotiate terms (e.g., via phone).
+
+
+* **Phase 2: Agreement & Document Hub (check-upload flow)**
+* If terms are agreed upon, the seller updates the system, unlocking the "Document Upload Hub" on the customer's tracking page.
+* **Customer Action:** The user adds their financial documents:
+* *Bank Checks:* User opens a bottom sheet to add checks. They enter the Amount, Due Date, Bank Name, and Check Serial Number, then upload an image of the check. (Multiple checks can be added).
+* *Cash Receipt:* User can toggle and upload an image of a cash deposit receipt if the agreement included a partial cash upfront payment.
+
+
+* Customer clicks "Submit All Documents".
+
+
+* **Phase 3: Final Approval**
+* Seller reviews the uploaded checks and receipts (amounts, dates, images).
+* *Approve:* Order moves to **Processing / Shipped**.
+* *Reject:* Order state reverts back to the document upload phase, forcing the buyer to fix the issues.
+
+
+
+## 4. Order Tracking & Stepper UI (The Shared Dashboard)
+
+A critical requirement is that **both the Customer and the Seller (Admin) must see the exact same visual progress of the order** to avoid confusion.
+
+### 4.1 Dynamic Progress Bar (Stepper)
+
+The visual stepper dynamically changes its labels based on the chosen payment method:
+
+* **For Receipt Flow:** `Pending Approval` ➔ `Approved` ➔ `Processing` ➔ `Shipped`.
+* **For Negotiation Flow:** `Negotiation` ➔ `Agreement Reached` ➔ `Receipt/Check Uploaded` ➔ `Shipped`.
+
+### 4.2 Seller (Admin) Action Hooks
+
+The Seller's UI injects contextual action buttons directly tied to the current step on the progress bar:
+
+* *If PENDING_RECEIPT_APPROVAL:* Show "Approve Receipt" (تایید فیش) and "Reject" buttons.
+* *If NEGOTIATION:* Show "Confirm Negotiation & Request Payment" (تایید توافق).
+* *If APPROVED/PROCESSING:* Show "Mark as Shipped" (ارسال شد).
+
+## 5. Business Rules & UI/UX Constraints
+
+1. **Strict State Reversals:** In the Conditional (چکی) flow, rejecting an uploaded check does not cancel the order; it cleanly reverts the order state back one step, allowing the customer to upload a corrected document.
+2. **Input Formatting (Currency):** Whenever a user is typing a monetary amount (e.g., adding the amount to a bank check), the input field must dynamically format the numbers (adding commas every 3 digits) to prevent high-value typos. It must also support and standardize Persian numerals.
+3. **Mandatory Document Enforcement:** The system strictly blocks users from clicking "Submit" in the Receipt or Conditional upload stages unless at least one valid media file (image) has been attached.
+4. **No Cart Bypassing:** The "Add to Cart" and "Checkout" buttons must remain completely disabled or block progression if mandatory product variants (Color/Size) are unselected or if the MOQ is not met.
+5. **Strict Cart Separation Rules:** A product is only considered a "duplicate" in the cart if the Base Product, the Selected Variant/Attribute, AND the Selected Unit of Measurement are all completely identical. If any of these differ, the system must strictly create a separate line item.

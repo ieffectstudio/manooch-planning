@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Manooch - Advanced Checkout & Order Flow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* ============================================================
+           MANOOCH DESIGN SYSTEM TOKENS (inline for prototype)
+           ============================================================ */
+        @font-face {
+            font-family: 'Vazirmatn';
+            src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-Variable.woff2') format('woff2');
+            font-weight: 100 900;
+            font-display: swap;
+        }
+
+        :root {
+            /* Color Base palette */
+            --color-primary: #0068ff;
+            --color-menu-accent: #4b45e6;
+            --color-menu-accent-light: #c7c5f7;
+            --color-success: #22c55e;
+            --color-danger: #ff3b3b;
+            --color-danger-deep: #c20000;
+
+            --color-primary-0: #e9eaeb;
+            --color-primary-100: #babdc1;
+            --color-primary-200: #989da3;
+            --color-primary-300: #6a7079;
+            --color-primary-400: #4d555f;
+            --color-primary-500: #202a37;
+            --color-primary-600: #1d2632;
+            --color-primary-700: #171e27;
+            --color-primary-800: #12171e;
+            --color-primary-900: #0d1217;
+
+            --color-secondary-0: #e0e8ff;
+            --color-secondary-100: #c7d3fe;
+            --color-secondary-200: #a4b6fd;
+            --color-secondary-300: #808df9;
+            --color-secondary-400: #6267f2;
+            --color-secondary-500: #4b45e6;
+            --color-secondary-600: #3f37cb;
+            --color-secondary-700: #342fa4;
+            --color-secondary-800: #2f2d82;
+
+            --color-success-0: #edfff2;
+            --color-success-100: #d5ffe2;
+            --color-success-200: #aeffc6;
+            --color-success-300: #70ff9c;
+            --color-success-400: #2bfd6a;
+            --color-success-500: #00e043;
+            --color-success-600: #00c035;
+            --color-success-700: #00962d;
+            --color-success-800: #067528;
+
+            --color-warning-0: #fff8ec;
+            --color-warning-100: #ffefd2;
+            --color-warning-200: #ffdba4;
+            --color-warning-300: #ffc16b;
+            --color-warning-400: #ff9b2f;
+            --color-warning-500: #ff7b06;
+            --color-warning-600: #f95e00;
+            --color-warning-700: #cf4600;
+            --color-warning-800: #a33609;
+
+            --color-error-0: #ffd5d5;
+            --color-error-100: #ff9898;
+            --color-error-200: #ff6b6b;
+            --color-error-300: #ff3636;
+            --color-error-400: #ff0000;
+            --color-error-500: #eb0000;
+            --color-error-600: #c20000;
+            --color-error-700: #8e0000;
+
+            --color-gray-0: #f0f1f3;
+            --color-gray-100: #e0e2e7;
+            --color-gray-200: #c2c6ce;
+            --color-gray-300: #a3a9b6;
+            --color-gray-400: #858d9d;
+            --color-gray-500: #667085;
+            --color-gray-600: #525a6a;
+            --color-gray-700: #3d4350;
+            --color-gray-800: #292d35;
+            --color-gray-900: #14161b;
+
+            --color-black-500: #16161d;
+            --color-black-300: #737377;
+            --color-black-200: #a2a2a5;
+            --color-black-100: #d0d0d2;
+
+            --color-white-0: #ffffff;
+            --color-white-100: #fefefe;
+            --color-white-500: #fafafa;
+
+            /* Semantic */
+            --color-bg-default-primary: #202a37;
+            --color-bg-hover-primary: #1d2632;
+            --color-bg-frame-main: #fefefe;
+            --color-bg-frame-base: #fafafa;
+            --color-bg-frame-alternative: #f0f1f3;
+            --color-border-frame-main: #e0e2e7;
+            --color-border-frame-base: #c2c6ce;
+            --color-text-default-strong: #16161d;
+            --color-text-default-moderate: #737377;
+            --color-text-default-weak: #a2a2a5;
+            --color-text-default-placeholder: #a3a9b6;
+
+            /* Header gradient */
+            --color-header-from: #1a2340;
+            --color-header-to: #0d1529;
+
+            /* Radius */
+            --radius-xs: 6px;
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 8px;
+            --radius-xl: 12px;
+            --radius-2xl: 16px;
+            --radius-3xl: 20px;
+            --radius-full: 9999px;
+
+            /* Spacing */
+            --spacing-xs: 4px;
+            --spacing-sm: 6px;
+            --spacing-md: 8px;
+            --spacing-lg: 12px;
+            --spacing-xl: 16px;
+            --spacing-2xl: 20px;
+            --spacing-3xl: 24px;
+            --spacing-4xl: 32px;
+
+            /* Typography */
+            --font-size-small: 11px;
+            --font-size-text: 13px;
+            --font-size-p: 16px;
+            --font-size-h6: 19px;
+            --font-size-h5: 23px;
+
+            --leading-small: 20px;
+            --leading-text: 24px;
+            --leading-p: 32px;
+            --leading-h6: 40px;
+            --leading-h5: 48px;
+        }
+
+        * {
+            font-family: 'Vazirmatn', sans-serif;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            direction: rtl;
+            margin: 0;
+            padding: 0;
+            background: var(--color-bg-frame-alternative);
+        }
+
+        /* Screen management */
+        .screen { display: none; }
+        .screen.active { display: flex; flex-direction: column; }
+
+        .mobile-frame {
+            max-width: 430px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: var(--color-bg-frame-main);
+            position: relative;
+            box-shadow: 0 0 40px rgba(22,22,29,0.08);
+        }
+
+        /* Header gradient */
+        .app-header {
+            background: linear-gradient(135deg, var(--color-header-from), var(--color-header-to));
+        }
+
+        /* Payment option styling */
+        .payment-option input:checked + .payment-card {
+            border-color: var(--color-secondary-500);
+            background: rgba(75, 69, 230, 0.05);
+        }
+        .payment-option input:checked + .payment-card .radio-outer {
+            border-color: var(--color-secondary-500);
+        }
+        .payment-option input:checked + .payment-card .radio-inner {
+            background: var(--color-secondary-500);
+            transform: scale(1);
+        }
+
+        .radio-outer {
+            width: 20px; height: 20px;
+            border: 2px solid var(--color-gray-200);
+            border-radius: var(--radius-full);
+            display: flex; align-items: center; justify-content: center;
+            transition: border-color 0.2s;
+            flex-shrink: 0;
+        }
+        .radio-inner {
+            width: 10px; height: 10px;
+            border-radius: var(--radius-full);
+            background: transparent;
+            transform: scale(0);
+            transition: all 0.2s;
+        }
+
+        /* Upload zone */
+        .upload-zone {
+            border: 2px dashed var(--color-gray-200);
+            border-radius: var(--radius-xl);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .upload-zone:hover {
+            border-color: var(--color-secondary-500);
+            background: rgba(75, 69, 230, 0.03);
+        }
+
+        /* Progress stepper */
+        .step-dot {
+            width: 28px; height: 28px;
+            border-radius: var(--radius-full);
+            display: flex; align-items: center; justify-content: center;
+            font-size: var(--font-size-small);
+            font-weight: 600;
+            z-index: 2;
+            flex-shrink: 0;
+        }
+        .step-connector {
+            height: 3px;
+            flex: 1;
+            border-radius: 2px;
+        }
+
+        /* Animations */
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .pulse-dot { animation: pulseDot 1.5s ease-in-out infinite; }
+        @keyframes pulseDot { 0%,100%{ opacity:1; } 50%{ opacity:0.5; } }
+
+        /* Toast */
+        .toast {
+            position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+            z-index: 9999;
+            padding: var(--spacing-lg) var(--spacing-3xl);
+            border-radius: var(--radius-xl);
+            font-size: var(--font-size-text);
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(22,22,29,0.15);
+            animation: toastIn 0.3s ease-out, toastOut 0.3s ease-in 2.7s forwards;
+            max-width: 380px;
+            text-align: center;
+        }
+        @keyframes toastIn { from { opacity:0; transform:translateX(-50%) translateY(-16px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+        @keyframes toastOut { to { opacity:0; transform:translateX(-50%) translateY(-16px); } }
+
+        /* Scrollbar hide */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Bottom nav */
+        .bottom-nav-item { transition: color 0.2s; }
+        .bottom-nav-item.active svg, .bottom-nav-item.active span { color: var(--color-secondary-500); }
+
+        /* Badge */
+        .badge {
+            position: absolute;
+            top: -4px; right: -6px;
+            min-width: 16px; height: 16px;
+            background: var(--color-error-500);
+            border-radius: var(--radius-full);
+            font-size: 9px;
+            color: var(--color-white-0);
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 3px;
+            font-weight: 700;
+        }
+
+        /* Card */
+        .card {
+            background: var(--color-bg-frame-main);
+            border: 1px solid var(--color-border-frame-main);
+            border-radius: var(--radius-2xl);
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: var(--color-gray-0);
+        }
+        .divider-dashed {
+            border-top: 1px dashed var(--color-gray-200);
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'ds-primary': { 500: '#202a37', 400: '#4d555f', 600: '#1d2632', 700: '#171e27' },
+                        'ds-secondary': { 0: '#e0e8ff', 100: '#c7d3fe', 500: '#4b45e6', 600: '#3f37cb', 400: '#6267f2' },
+                        'ds-success': { 0: '#edfff2', 100: '#d5ffe2', 500: '#00e043', 600: '#00c035', 700: '#00962d', 800: '#067528' },
+                        'ds-warning': { 0: '#fff8ec', 100: '#ffefd2', 500: '#ff7b06', 600: '#f95e00' },
+                        'ds-error': { 0: '#ffd5d5', 100: '#ff9898', 500: '#eb0000', 600: '#c20000' },
+                        'ds-gray': { 0: '#f0f1f3', 100: '#e0e2e7', 200: '#c2c6ce', 300: '#a3a9b6', 400: '#858d9d', 500: '#667085', 600: '#525a6a', 700: '#3d4350', 800: '#292d35', 900: '#14161b' },
+                        'ds-black': { 100: '#d0d0d2', 200: '#a2a2a5', 300: '#737377', 500: '#16161d' },
+                        'ds-white': { 0: '#ffffff', 100: '#fefefe', 500: '#fafafa' },
+                    },
+                    fontFamily: { ravi: ['Vazirmatn', 'sans-serif'] },
+                    fontSize: {
+                        'ds-small': ['11px', '20px'],
+                        'ds-text': ['13px', '24px'],
+                        'ds-p': ['16px', '32px'],
+                        'ds-h6': ['19px', '40px'],
+                        'ds-h5': ['23px', '48px'],
+                    },
+                    borderRadius: {
+                        'ds-xs': '6px',
+                        'ds-md': '8px',
+                        'ds-xl': '12px',
+                        'ds-2xl': '16px',
+                        'ds-3xl': '20px',
+                    },
+                    spacing: {
+                        'ds-xs': '4px',
+                        'ds-sm': '6px',
+                        'ds-md': '8px',
+                        'ds-lg': '12px',
+                        'ds-xl': '16px',
+                        'ds-2xl': '20px',
+                        'ds-3xl': '24px',
+                        'ds-4xl': '32px',
+                        'ds-5xl': '40px',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="font-ravi">
+
+<div class="mobile-frame" id="app">
+
+    <!-- ============================================================ -->
+    <!-- STATUS BAR (shared) -->
+    <!-- ============================================================ -->
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 1: EMPTY CART -->
+    <!-- ============================================================ -->
+    <div class="screen active" id="screen-empty-cart">
+        <div class="app-header text-white px-ds-xl py-ds-lg flex items-center justify-between">
+            <div class="flex items-center gap-ds-lg">
+                <button onclick="navigateTo('screen-cart')" class="p-ds-xs opacity-80 hover:opacity-100 transition-opacity">
+                    <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+            </div>
+            <div class="flex items-center gap-ds-lg">
+                <div class="relative">
+                    <svg class="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                </div>
+                <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                    <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-1 flex flex-col items-center justify-center px-ds-4xl py-ds-5xl">
+            <div class="w-28 h-28 mb-ds-3xl opacity-20">
+                <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" class="text-ds-gray-400">
+                    <circle cx="50" cy="50" r="45" stroke-dasharray="4 4"/>
+                    <path d="M35 40h30M35 50h20M35 60h25" stroke-linecap="round"/>
+                    <path d="M55 35l10 10-10 10" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <p class="text-ds-p font-semibold mb-ds-md" style="color:var(--color-text-default-strong)">سبد خرید شما خالی است</p>
+            <p class="text-ds-text text-center leading-relaxed" style="color:var(--color-text-default-weak)">لطفاً کالایی به سبد خرید خود اضافه کنید</p>
+            <button onclick="navigateTo('screen-cart')" class="mt-ds-3xl text-ds-text font-medium flex items-center gap-ds-xs transition-colors" style="color:var(--color-secondary-500)">
+                مشاهده محصولات
+                <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+        </div>
+
+        <!-- Bottom Nav -->
+        <div class="border-t bg-white px-ds-xs py-ds-md flex items-center justify-around sticky bottom-0" style="border-color:var(--color-border-frame-main)">
+            <button class="bottom-nav-item flex flex-col items-center gap-1 text-ds-small" style="color:var(--color-text-default-weak)">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <span>حساب من</span>
+            </button>
+            <button class="bottom-nav-item flex flex-col items-center gap-1 text-ds-small" style="color:var(--color-text-default-weak)">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                <span>مگنت</span>
+            </button>
+            <button class="bottom-nav-item flex flex-col items-center gap-1 text-ds-small" style="color:var(--color-text-default-weak)" onclick="navigateTo('screen-cart')">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                <span>سبد خرید</span>
+            </button>
+            <button class="bottom-nav-item flex flex-col items-center gap-1 text-ds-small" style="color:var(--color-text-default-weak)">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                <span>دسته‌بندی</span>
+            </button>
+            <button class="bottom-nav-item active flex flex-col items-center gap-1 text-ds-small">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <span>خانه</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 2: CART WITH ITEMS -->
+    <!-- ============================================================ -->
+    <div class="screen" id="screen-cart">
+        <div class="app-header text-white px-ds-xl py-ds-lg flex items-center justify-between sticky top-0 z-40">
+            <div class="flex items-center gap-ds-lg">
+                <button onclick="navigateTo('screen-empty-cart')" class="p-ds-xs opacity-80 hover:opacity-100">
+                    <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+            </div>
+            <span class="text-ds-text font-semibold">سبد خرید</span>
+            <div class="flex items-center gap-ds-lg">
+                <div class="relative">
+                    <svg class="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                    <span class="badge">۲</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto no-scrollbar pb-24" style="background:var(--color-bg-frame-base)">
+            <!-- Breadcrumb -->
+            <div class="px-ds-xl py-ds-lg flex items-center justify-between">
+                <span class="text-ds-text font-semibold" style="color:var(--color-text-default-strong)">سبد خرید شما · <span style="color:var(--color-text-default-moderate)">۲ فروشگاه</span></span>
+                <button class="text-ds-small font-medium" style="color:var(--color-secondary-500)">بازگشت</button>
+            </div>
+
+            <!-- Product Card 1 -->
+            <div class="card mx-ds-xl mb-ds-lg overflow-hidden">
+                <div class="px-ds-xl py-ds-lg flex items-center gap-ds-md" style="border-bottom:1px solid var(--color-gray-0)">
+                    <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background:var(--color-secondary-0)">
+                        <svg class="w-3 h-3" style="color:var(--color-secondary-500)" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.884l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.116l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4z"/></svg>
+                    </div>
+                    <span class="text-ds-small" style="color:var(--color-text-default-moderate)">فروشگاه الکترونیکی مانوچ</span>
+                </div>
+
+                <!-- Item 1 -->
+                <div class="px-ds-xl py-ds-xl flex gap-ds-lg" style="border-bottom:1px solid var(--color-gray-0)">
+                    <div class="w-20 h-20 rounded-ds-xl overflow-hidden flex-shrink-0 flex items-center justify-center" style="background: linear-gradient(135deg, #fef3c7, #fde68a)">
+                        <svg class="w-10 h-10 text-amber-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-ds-text font-medium mb-ds-xs truncate" style="color:var(--color-text-default-strong)">گردنبند نقره طرح ماه و ستاره</p>
+                        <div class="flex items-center gap-ds-md mb-ds-md">
+                            <span class="text-ds-small font-medium px-ds-md py-1 rounded-full" style="background:rgba(235,0,0,0.08);color:var(--color-error-500)">۱۵٪ تخفیف</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-ds-xs">
+                                <span class="text-ds-text font-bold" style="color:var(--color-text-default-strong)">۳,۵۰۰,۰۰۰</span>
+                                <span class="text-ds-small" style="color:var(--color-text-default-weak)">تومان</span>
+                                <span class="text-ds-small line-through mr-ds-xs" style="color:var(--color-text-default-weak)">۴,۰۰۰,۰۰۰</span>
+                            </div>
+                            <div class="flex items-center rounded-ds-md" style="background:var(--color-bg-frame-alternative)">
+                                <button class="w-8 h-8 flex items-center justify-center text-lg font-bold" style="color:var(--color-secondary-500)" onclick="updateQty(this,1)">+</button>
+                                <span class="w-6 text-center text-ds-text font-bold qty-display" style="color:var(--color-text-default-strong)">۱</span>
+                                <button class="w-8 h-8 flex items-center justify-center text-lg font-bold" style="color:var(--color-error-500)" onclick="updateQty(this,-1)">−</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Item 2 -->
+                <div class="px-ds-xl py-ds-xl flex gap-ds-lg">
+                    <div class="w-20 h-20 rounded-ds-xl overflow-hidden flex-shrink-0 flex items-center justify-center" style="background: linear-gradient(135deg, #fce7f3, #fbcfe8)">
+                        <svg class="w-10 h-10 text-pink-400" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-ds-text font-medium mb-ds-xs truncate" style="color:var(--color-text-default-strong)">انگشتر نقره زنانه مدل پرنسس</p>
+                        <div class="flex items-center gap-ds-md mb-ds-md">
+                            <span class="text-ds-small font-medium px-ds-md py-1 rounded-full" style="background:rgba(0,224,67,0.08);color:var(--color-success-700)">ارسال رایگان</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-ds-xs">
+                                <span class="text-ds-text font-bold" style="color:var(--color-text-default-strong)">۱,۸۵۰,۰۰۰</span>
+                                <span class="text-ds-small" style="color:var(--color-text-default-weak)">تومان</span>
+                            </div>
+                            <div class="flex items-center rounded-ds-md" style="background:var(--color-bg-frame-alternative)">
+                                <button class="w-8 h-8 flex items-center justify-center text-lg font-bold" style="color:var(--color-secondary-500)" onclick="updateQty(this,1)">+</button>
+                                <span class="w-6 text-center text-ds-text font-bold qty-display" style="color:var(--color-text-default-strong)">۳</span>
+                                <button class="w-8 h-8 flex items-center justify-center text-lg font-bold" style="color:var(--color-error-500)" onclick="updateQty(this,-1)">−</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Summary Card -->
+            <div class="card mx-ds-xl mb-ds-lg p-ds-xl">
+                <div class="flex items-center justify-between mb-ds-lg">
+                    <span class="text-ds-text" style="color:var(--color-text-default-moderate)">قیمت کل کالاها (۴)</span>
+                    <span class="text-ds-text font-medium" style="color:var(--color-text-default-strong)">۹,۰۵۰,۰۰۰ تومان</span>
+                </div>
+                <div class="flex items-center justify-between mb-ds-lg">
+                    <span class="text-ds-text" style="color:var(--color-text-default-moderate)">هزینه ارسال</span>
+                    <span class="text-ds-text font-medium" style="color:var(--color-text-default-strong)">۸۵,۰۰۰ تومان</span>
+                </div>
+                <div class="flex items-center justify-between mb-ds-lg">
+                    <span class="text-ds-text" style="color:var(--color-text-default-moderate)">مجموع تخفیف</span>
+                    <span class="text-ds-text font-medium" style="color:var(--color-error-500)">۵۰۰,۰۰۰ تومان</span>
+                </div>
+                <div class="divider-dashed my-ds-lg"></div>
+                <div class="flex items-center justify-between">
+                    <span class="text-ds-text font-bold" style="color:var(--color-text-default-strong)">مبلغ قابل پرداخت</span>
+                    <span class="text-ds-p font-extrabold" style="color:var(--color-success-700)">۸,۶۳۵,۰۰۰ <span class="text-ds-small font-medium" style="color:var(--color-text-default-moderate)">تومان</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sticky CTA -->
+        <div class="sticky bottom-0 bg-white px-ds-xl py-ds-lg z-30" style="border-top:1px solid var(--color-border-frame-main)">
+            <button onclick="navigateTo('screen-checkout')" class="w-full py-ds-lg rounded-ds-xl text-ds-text font-bold text-white transition-all hover:opacity-90" style="background:var(--color-bg-default-primary)">
+                تایید و تکمیل سفارش
+            </button>
+        </div>
+    </div>
+
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 3: CHECKOUT -->
+    <!-- ============================================================ -->
+    <div class="screen" id="screen-checkout">
+        <div class="app-header text-white px-ds-xl py-ds-lg flex items-center justify-between sticky top-0 z-40">
+            <button onclick="navigateTo('screen-cart')" class="p-ds-xs opacity-80 hover:opacity-100">
+                <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <span class="text-ds-text font-semibold">تکمیل سفارش</span>
+            <div class="w-5"></div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto no-scrollbar pb-28" style="background:var(--color-bg-frame-base)">
+
+            <!-- Address Card -->
+            <div class="card mx-ds-xl mt-ds-xl p-ds-xl">
+                <div class="flex items-center gap-ds-md mb-ds-lg">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background:var(--color-success-0)">
+                        <svg class="w-4 h-4" style="color:var(--color-success-700)" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                    </div>
+                    <span class="text-ds-text font-bold flex-1" style="color:var(--color-text-default-strong)">آدرس تحویل</span>
+                    <button class="text-ds-small font-medium" style="color:var(--color-secondary-500)">تغییر</button>
+                </div>
+                <p class="text-ds-text leading-relaxed mb-ds-md" style="color:var(--color-text-default-moderate)">مشهد، خیابان احمدآباد، بلوار پاسداران، بلوک ۱۵، پلاک ۳</p>
+                <div class="flex items-center gap-ds-xl text-ds-small" style="color:var(--color-text-default-weak)">
+                    <span>محمد جعفری</span>
+                    <span>۰۹۱۲۳۴۵۶۷۸۹</span>
+                </div>
+            </div>
+
+            <!-- Products Summary -->
+            <div class="card mx-ds-xl mt-ds-lg overflow-hidden">
+                <div class="px-ds-xl py-ds-lg flex items-center justify-between" style="border-bottom:1px solid var(--color-gray-0)">
+                    <span class="text-ds-text font-bold" style="color:var(--color-text-default-strong)">محصولات سفارش</span>
+                    <span class="text-ds-small" style="color:var(--color-text-default-weak)">۴ کالا</span>
+                </div>
+                <div class="px-ds-xl py-ds-lg flex gap-ds-lg" style="border-bottom:1px solid var(--color-gray-0)">
+                    <div class="w-12 h-12 rounded-ds-md flex-shrink-0 flex items-center justify-center" style="background: linear-gradient(135deg, #fef3c7, #fde68a)">
+                        <svg class="w-6 h-6 text-amber-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-ds-small font-medium" style="color:var(--color-text-default-strong)">گردنبند نقره طرح ماه و ستاره</p>
+                        <div class="flex items-center justify-between mt-ds-xs">
+                            <span class="text-ds-small" style="color:var(--color-text-default-weak)">تعداد: ۱</span>
+                            <span class="text-ds-small font-bold" style="color:var(--color-text-default-strong)">۳,۵۰۰,۰۰۰ تومان</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-ds-xl py-ds-lg flex gap-ds-lg">
+                    <div class="w-12 h-12 rounded-ds-md flex-shrink-0 flex items-center justify-center" style="background: linear-gradient(135deg, #fce7f3, #fbcfe8)">
+                        <svg class="w-6 h-6 text-pink-400" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-ds-small font-medium" style="color:var(--color-text-default-strong)">انگشتر نقره زنانه مدل پرنسس</p>
+                        <div class="flex items-center justify-between mt-ds-xs">
+                            <span class="text-ds-small" style="color:var(--color-text-default-weak)">تعداد: ۳</span>
+                            <span class="text-ds-small font-bold" style="color:var(--color-text-default-strong)">۵,۵۵۰,۰۰۰ تومان</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Method Selection -->
+            <div class="card mx-ds-xl mt-ds-lg p-ds-xl">
+                <div class="flex items-center gap-ds-md mb-ds-2xl">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background:var(--color-secondary-0)">
+                        <svg class="w-4 h-4" style="color:var(--color-secondary-500)" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+                    </div>
+                    <span class="text-ds-text font-bold" style="color:var(--color-text-default-strong)">شیوه پرداخت</span>
+                </div>
+
+                <!-- Option A: Gateway -->
+                <label class="payment-option block mb-ds-lg cursor-pointer">
+                    <input type="radio" name="payment" value="gateway" class="hidden" checked onchange="selectPayment('gateway')">
+                    <div class="payment-card border-2 rounded-ds-2xl p-ds-xl transition-all" style="border-color:var(--color-secondary-500);background:rgba(75,69,230,0.05)">
+                        <div class="flex items-center gap-ds-lg">
+                            <div class="w-10 h-10 rounded-ds-xl flex items-center justify-center" style="background:var(--color-bg-frame-main);border:1px solid var(--color-border-frame-main)">
+                                <svg class="w-5 h-5" style="color:var(--color-warning-500)" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-ds-text font-bold" style="color:var(--color-text-default-strong)">درگاه آنلاین</p>
+                                <p class="text-ds-small mt-1" style="color:var(--color-text-default-weak)">پرداخت سریع و آنلاین · زرین‌پال / زیپال</p>
+                            </div>
+                            <div class="radio-outer" style="border-color:var(--color-secondary-500)">
+                                <div class="radio-inner" style="background:var(--color-secondary-500);transform:scale(1)"></div>
+                            </div>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Option B: Receipt -->
+                <label class="payment-option block mb-ds-lg cursor-pointer">
+                    <input type="radio" name="payment" value="receipt" class="hidden" onchange="selectPayment('receipt')">
+                    <div class="payment-card border-2 rounded-ds-2xl p-ds-xl transition-all" style="border-color:var(--color-border-frame-main)">
+                        <div class="flex items-center gap-ds-lg">
+                            <div class="w-10 h-10 rounded-ds-xl flex items-center justify-center" style="background:var(--color-bg-frame-alternative)">
+                                <svg class="w-5 h-5" style="color:var(--color-secondary-400)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-ds-text font-bold" style="color:var(--color-text-default-strong)">ثبت با بارگذاری رسید</p>
+                                <p class="text-ds-small mt-1" style="color:var(--color-text-default-weak)">تصویر فیش واریز بانکی را بارگذاری کنید</p>
+                            </div>
+                            <div class="radio-outer">
+                                <div class="radio-inner"></div>
+                            </div>
+                        </div>
+                        <!-- Upload Zone -->
+                        <div id="receipt-upload-zone" class="mt-ds-xl hidden fade-in">
+                            <div class="upload-zone p-ds-3xl text-center" onclick="simulateUpload('receipt-upload-preview')">
+                                <svg class="w-10 h-10 mx-auto mb-ds-md" style="color:var(--color-gray-300)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                <p class="text-ds-small font-medium" style="color:var(--color-text-default-moderate)">برای بارگذاری تصویر فیش کلیک کنید</p>
+                                <p class="text-ds-small mt-ds-xs" style="color:var(--color-text-default-weak)">فرمت: JPG, PNG · حداکثر ۵ مگابایت</p>
+                            </div>
+                            <div id="receipt-upload-preview" class="mt-ds-lg hidden fade-in">
+                                <div class="flex items-center gap-ds-lg p-ds-lg rounded-ds-xl" style="background:var(--color-success-0)">
+                                    <svg class="w-6 h-6" style="color:var(--color-success-700)" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                                    <div class="flex-1">
+                                        <p class="text-ds-small font-medium" style="color:var(--color-success-800)">فیش_واریزی.jpg</p>
+                                        <p class="text-ds-small" style="color:var(--color-success-700)">بارگذاری موفق</p>
+                                    </div>
+                                    <button class="text-ds-small" style="color:var(--color-error-500)" onclick="event.stopPropagation();removeUpload('receipt-upload-preview')">حذف</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Option C: Conditional -->
+                <label class="payment-option block cursor-pointer">
+                    <input type="radio" name="payment" value="conditional" class="hidden" onchange="selectPayment('conditional')">
+                    <div class="payment-card border-2 rounded-ds-2xl p-ds-xl transition-all" style="border-color:var(--color-border-frame-main)">
+                        <div class="flex items-center gap-ds-lg">
+                            <div class="w-10 h-10 rounded-ds-xl flex items-center justify-center" style="background:var(--color-warning-0)">
+                                <svg class="w-5 h-5" style="color:var(--color-warning-500)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-ds-text font-bold" style="color:var(--color-text-default-strong)">شرایطی - مذاکره با ادمین</p>
+                                <p class="text-ds-small mt-1" style="color:var(--color-text-default-weak)">ثبت سفارش و مذاکره با ادمین</p>
+                            </div>
+                            <div class="radio-outer">
+                                <div class="radio-inner"></div>
+                            </div>
+                        </div>
+                        <div id="conditional-warning" class="mt-ds-xl hidden fade-in">
+                            <div class="flex items-start gap-ds-md p-ds-lg rounded-ds-xl" style="background:var(--color-warning-0);border:1px solid rgba(255,123,6,0.2)">
+                                <svg class="w-5 h-5 flex-shrink-0 mt-0.5" style="color:var(--color-warning-500)" fill="currentColor" viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+                                <p class="text-ds-small leading-relaxed" style="color:var(--color-warning-700)">ادمین جهت مذاکره و تایید با شما تماس خواهد گرفت. لطفاً مطمئن شوید شماره تلفن شما فعال و در دسترس باشد.</p>
+                            </div>
+                        </div>
+                    </div>
+                </label>
+            </div>
+
+            <!-- Price Summary -->
+            <div class="card mx-ds-xl mt-ds-lg mb-ds-xl p-ds-xl">
+                <div class="flex items-center justify-between mb-ds-lg">
+                    <span class="text-ds-small" style="color:var(--color-text-default-moderate)">قیمت کل کالاها (۴)</span>
+                    <span class="text-ds-small font-medium" style="color:var(--color-text-default-strong)">۹,۰۵۰,۰۰۰ تومان</span>
+                </div>
+                <div class="flex items-center justify-between mb-ds-lg">
+                    <span class="text-ds-small" style="color:var(--color-text-default-moderate)">هزینه ارسال</span>
+                    <span class="text-ds-small font-medium" style="color:var(--color-text-default-strong)">۸۵,۰۰۰ تومان</span>
+                </div>
+                <div class="flex items-center justify-between mb-ds-lg">
+                    <span class="text-ds-small" style="color:var(--color-text-default-moderate)">مجموع تخفیف</span>
+                    <span class="text-ds-small font-medium" style="color:var(--color-error-500)">-۵۰۰,۰۰۰ تومان</span>
+                </div>
+                <div class="divider-dashed my-ds-lg"></div>
+                <div class="flex items-center justify-between">
+                    <span class="text-ds-text font-bold" style="color:var(--color-text-default-strong)">مبلغ قابل پرداخت</span>
+                    <span class="text-ds-text font-extrabold" style="color:var(--color-success-700)">۸,۶۳۵,۰۰۰ تومان</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sticky Submit -->
+        <div class="sticky bottom-0 bg-white px-ds-xl py-ds-lg z-30" style="border-top:1px solid var(--color-border-frame-main)">
+            <button onclick="submitOrder()" class="w-full py-ds-lg rounded-ds-xl text-ds-text font-bold text-white transition-all hover:opacity-90 flex items-center justify-center gap-ds-md" style="background:var(--color-bg-default-primary)">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                ثبت نهایی سفارش
+            </button>
+        </div>
+    </div>
+
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 4: SUCCESS -->
+    <!-- ============================================================ -->
+    <div class="screen" id="screen-success">
+        <div class="flex-1 flex flex-col items-center justify-center px-ds-4xl" style="background:var(--color-bg-frame-main)">
+            <div class="w-32 h-32 rounded-full flex items-center justify-center mb-ds-3xl" style="background:var(--color-success-0)">
+                <div class="w-20 h-20 rounded-full flex items-center justify-center" style="background:var(--color-success-100)">
+                    <svg class="w-12 h-12" style="color:var(--color-success-600)" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                </div>
+            </div>
+            <h2 class="text-ds-h6 font-extrabold mb-ds-md" style="color:var(--color-text-default-strong)">دوست عزیز، <span style="color:var(--color-success-600)">با موفقیت ثبت شد</span></h2>
+            <p class="text-ds-text text-center mb-ds-xs" style="color:var(--color-text-default-moderate)" id="success-message">سفارش شما با موفقیت ثبت شد.</p>
+            <p class="text-ds-small mb-ds-4xl" style="color:var(--color-text-default-weak)" id="success-sub-message"></p>
+
+            <div class="w-full space-y-ds-lg">
+                <button onclick="navigateTo('screen-order-tracking')" class="w-full py-ds-lg rounded-ds-xl text-ds-text font-bold text-white transition-all hover:opacity-90" style="background:var(--color-success-600)">
+                    مشاهده وضعیت سفارش
+                </button>
+                <button onclick="navigateTo('screen-empty-cart')" class="w-full py-ds-lg rounded-ds-xl text-ds-text font-medium transition-all" style="background:var(--color-bg-frame-alternative);color:var(--color-text-default-moderate)">
+                    (۵ ثانیه) بازگشت به صفحه اصلی
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 5: ORDER TRACKING -->
+    <!-- ============================================================ -->
+    <div class="screen" id="screen-order-tracking">
+        <div class="app-header text-white px-ds-xl py-ds-lg flex items-center justify-between sticky top-0 z-40">
+            <button onclick="navigateTo('screen-orders-list')" class="p-ds-xs opacity-80 hover:opacity-100">
+                <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <span class="text-ds-text font-semibold">جزئیات سفارش</span>
+            <button class="text-ds-small flex items-center gap-ds-xs" style="color:var(--color-success-400)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                فاکتور
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto no-scrollbar pb-20" style="background:var(--color-bg-frame-base)">
+
+            <!-- Order Info -->
+            <div class="card mx-ds-xl mt-ds-xl p-ds-xl">
+                <div class="grid grid-cols-2 gap-ds-xl text-ds-small">
+                    <div>
+                        <span class="block mb-ds-xs" style="color:var(--color-text-default-weak)">کد پیگیری</span>
+                        <span class="font-bold" style="color:var(--color-text-default-strong)">۱۱۵۶۸۰۳۳۱۹</span>
+                    </div>
+                    <div class="text-left">
+                        <span class="block mb-ds-xs" style="color:var(--color-text-default-weak)">تاریخ ثبت</span>
+                        <span class="font-bold" style="color:var(--color-text-default-strong)">۱۹ خرداد ۱۴۰۵</span>
+                    </div>
+                    <div>
+                        <span class="block mb-ds-xs" style="color:var(--color-text-default-weak)">تحویل گیرنده</span>
+                        <span class="font-bold" style="color:var(--color-text-default-strong)">محمد جعفری</span>
+                    </div>
+                    <div class="text-left">
+                        <span class="block mb-ds-xs" style="color:var(--color-text-default-weak)">موبایل</span>
+                        <span class="font-bold" style="color:var(--color-text-default-strong)">۰۹۱۲۳۴۵۶۷۸۹</span>
+                    </div>
+                </div>
+                <div class="mt-ds-xl pt-ds-xl text-ds-small" style="border-top:1px solid var(--color-gray-0)">
+                    <span class="block mb-ds-xs" style="color:var(--color-text-default-weak)">آدرس</span>
+                    <span style="color:var(--color-text-default-moderate)" class="leading-relaxed">مشهد، خیابان احمدآباد، بلوار پاسداران، بلوک ۱۵، پلاک ۳</span>
+                </div>
+            </div>
+
+            <!-- Payment Info -->
+            <div class="card mx-ds-xl mt-ds-lg p-ds-xl">
+                <div class="flex items-center justify-between mb-ds-lg text-ds-small">
+                    <span style="color:var(--color-text-default-weak)">مبلغ</span>
+                    <span class="font-bold" style="color:var(--color-text-default-strong)">۸,۶۳۵,۰۰۰ تومان</span>
+                </div>
+                <div class="flex items-center justify-between mb-ds-lg text-ds-small">
+                    <span style="color:var(--color-text-default-weak)">نوع پرداخت</span>
+                    <span class="font-medium" id="tracking-payment-type" style="color:var(--color-secondary-500)">درگاه آنلاین</span>
+                </div>
+                <div class="flex items-center justify-between text-ds-small">
+                    <span style="color:var(--color-text-default-weak)">هزینه ارسال</span>
+                    <span class="font-bold" style="color:var(--color-text-default-strong)">۸۵,۰۰۰ تومان</span>
+                </div>
+            </div>
+
+            <!-- Progress Stepper -->
+            <div class="card mx-ds-xl mt-ds-lg p-ds-xl">
+                <h3 class="text-ds-text font-bold mb-ds-2xl" style="color:var(--color-text-default-strong)">وضعیت سفارش</h3>
+
+                <!-- Gateway Track -->
+                <div id="gateway-stepper" class="hidden">
+                    <div class="flex items-center justify-between mb-ds-md px-1">
+                        <div class="flex flex-col items-center" style="flex:1">
+                            <div class="step-dot text-white" style="background:var(--color-success-600)">✓</div>
+                            <span class="text-ds-small mt-ds-sm font-medium text-center" style="color:var(--color-success-700)">ثبت شده</span>
+                        </div>
+                        <div class="step-connector -mt-5" style="background:var(--color-success-600)"></div>
+                        <div class="flex flex-col items-center" style="flex:1">
+                            <div class="step-dot text-white" style="background:var(--color-success-600)">✓</div>
+                            <span class="text-ds-small mt-ds-sm font-medium text-center" style="color:var(--color-success-700)">پرداخت</span>
+                        </div>
+                        <div class="step-connector -mt-5" style="background:var(--color-success-200)"></div>
+                        <div class="flex flex-col items-center" style="flex:1">
+                            <div class="step-dot text-white pulse-dot" style="background:var(--color-secondary-500)">●</div>
+                            <span class="text-ds-small mt-ds-sm font-bold text-center" style="color:var(--color-secondary-500)">آماده‌سازی</span>
+                        </div>
+                        <div class="step-connector -mt-5" style="background:var(--color-gray-100)"></div>
+                        <div class="flex flex-col items-center" style="flex:1">
+                            <div class="step-dot" style="background:var(--color-gray-100);color:var(--color-text-default-weak)">۴</div>
+                            <span class="text-ds-small mt-ds-sm text-center" style="color:var(--color-text-default-weak)">ارسال</span>
+                        </div>
+                        <div class="step-connector -mt-5" style="background:var(--color-gray-100)"></div>
+                        <div class="flex flex-col items-center" style="flex:1">
+                            <div class="step-dot" style="background:var(--color-gray-100);color:var(--color-text-default-weak)">۵</div>
+                            <span class="text-ds-small mt-ds-sm text-center" style="color:var(--color-text-default-weak)">تحویل</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Receipt Track -->
+                <div id="receipt-stepper" class="hidden">
+                    <div class="flex items-center justify-between mb-ds-md px-1">
+                        <div class="flex flex-col items-center" style="flex:1">
+                            <div class="step-dot text-white" style="background:var(--color-success-600)">✓</div>
+                            <span class="text-ds-small mt-ds-sm font-medium text-center" style="color:var(--color-success-700)">ثبت شده</span>
+                        </div>
+                        <div class="step-connector -mt-5" style="background:var(--color-success-600)"></div>
+                        <div class="flex flex-col items-center" style="flex:1">
+                            <div class="step-dot text-white pulse-dot" style="background:var(--color-warning-500)">●</div>
+                            <span class="text-ds-small mt-ds-sm font-bold text-center" style="color:var(--color-warning-600)">بررسی فیش</span>
+                        </div>
+                        <div class="step-connector -mt-5" style="background:var(--color-gray-100)"></div>
+                        <div class="flex flex-col items-center" style="flex:1">
+                            <div class="step-dot" style="background:var(--color-gray-100);color:var(--color-text-default-weak)">۳</div>
+                            <span class="text-ds-small mt-ds-sm text-center" style="color:var(--color-text-default-weak)">آماده‌سازی</span>
+                        </div>
+                        <div class="step-connector -mt-5" style="background:var(--color-gray-100)"></div>
+                        <div class="flex flex-col items-center" style="flex:1">
+                            <div class="step-dot" style="background:var(--color-gray-100);color:var(--color-text-default-weak)">۴</div>
+                            <span class="text-ds-small mt-ds-sm text-center" style="color:var(--color-text-default-weak)">ارسال</span>
+                        </div>
+                        <div class="step-connector -mt-5" style="background:var(--color-gray-100)"></div>
+                        <div class="flex flex-col items-center" style="flex:1">
+                            <div class="step-dot" style="background:var(--color-gray-100);color:var(--color-text-default-weak)">۵</div>
+                            <span class="text-ds-small mt-ds-sm text-center" style="color:var(--color-text-default-weak)">تحویل</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conditional Track -->
+                <div id="conditional-stepper" class="hidden">
+                    <div class="flex items-center justify-between mb-ds-md px-1">
+                        <div class="flex flex-col items-center" style="flex:0.8">
+                            <div class="step-dot text-white text-ds-small" style="background:var(--color-success-600)">✓</div>
+                            <span class="mt-ds-sm text-center font-medium" style="font-size:9px;line-height:14px;color:var(--color-success-700)">ثبت</span>
+                        </div>
+                        <div class="step-connector -mt-4" style="background:var(--color-success-600)"></div>
+                        <div class="flex flex-col items-center" style="flex:0.8">
+                            <div class="step-dot text-white pulse-dot" id="cond-step-2" style="background:var(--color-warning-500);font-size:10px">●</div>
+                            <span class="mt-ds-sm text-center font-bold" id="cond-label-2" style="font-size:9px;line-height:14px;color:var(--color-warning-600)">مذاکره</span>
+                        </div>
+                        <div class="step-connector -mt-4" id="cond-conn-2" style="background:var(--color-gray-100)"></div>
+                        <div class="flex flex-col items-center" style="flex:0.8">
+                            <div class="step-dot text-ds-small" id="cond-step-3" style="background:var(--color-gray-100);color:var(--color-text-default-weak)">۳</div>
+                            <span class="mt-ds-sm text-center" id="cond-label-3" style="font-size:9px;line-height:14px;color:var(--color-text-default-weak)">مدارک</span>
+                        </div>
+                        <div class="step-connector -mt-4" id="cond-conn-3" style="background:var(--color-gray-100)"></div>
+                        <div class="flex flex-col items-center" style="flex:0.8">
+                            <div class="step-dot text-ds-small" id="cond-step-4" style="background:var(--color-gray-100);color:var(--color-text-default-weak)">۴</div>
+                            <span class="mt-ds-sm text-center" id="cond-label-4" style="font-size:9px;line-height:14px;color:var(--color-text-default-weak)">تایید</span>
+                        </div>
+                        <div class="step-connector -mt-4" id="cond-conn-4" style="background:var(--color-gray-100)"></div>
+                        <div class="flex flex-col items-center" style="flex:0.8">
+                            <div class="step-dot text-ds-small" id="cond-step-5" style="background:var(--color-gray-100);color:var(--color-text-default-weak)">۵</div>
+                            <span class="mt-ds-sm text-center" id="cond-label-5" style="font-size:9px;line-height:14px;color:var(--color-text-default-weak)">آماده</span>
+                        </div>
+                        <div class="step-connector -mt-4" id="cond-conn-5" style="background:var(--color-gray-100)"></div>
+                        <div class="flex flex-col items-center" style="flex:0.8">
+                            <div class="step-dot text-ds-small" id="cond-step-6" style="background:var(--color-gray-100);color:var(--color-text-default-weak)">۶</div>
+                            <span class="mt-ds-sm text-center" id="cond-label-6" style="font-size:9px;line-height:14px;color:var(--color-text-default-weak)">ارسال</span>
+                        </div>
+                        <div class="step-connector -mt-4" id="cond-conn-6" style="background:var(--color-gray-100)"></div>
+                        <div class="flex flex-col items-center" style="flex:0.8">
+                            <div class="step-dot text-ds-small" id="cond-step-7" style="background:var(--color-gray-100);color:var(--color-text-default-weak)">۷</div>
+                            <span class="mt-ds-sm text-center" id="cond-label-7" style="font-size:9px;line-height:14px;color:var(--color-text-default-weak)">تحویل</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Context Box -->
+                <div id="tracking-context-box" class="mt-ds-2xl p-ds-lg rounded-ds-xl text-ds-small leading-relaxed"></div>
+
+                <!-- Doc Upload Zone -->
+                <div id="tracking-upload-zone" class="mt-ds-2xl hidden fade-in">
+                    <p class="text-ds-text font-bold mb-ds-lg" style="color:var(--color-text-default-strong)">بارگذاری مدارک</p>
+                    <div class="space-y-ds-lg">
+                        <div>
+                            <label class="text-ds-small mb-ds-sm block" style="color:var(--color-text-default-moderate)">تصویر چک بانکی</label>
+                            <div class="upload-zone p-ds-xl text-center" onclick="simulateUpload('check-preview')">
+                                <svg class="w-8 h-8 mx-auto mb-ds-xs" style="color:var(--color-gray-300)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                <p class="text-ds-small" style="color:var(--color-text-default-weak)">کلیک برای بارگذاری</p>
+                            </div>
+                            <div id="check-preview" class="mt-ds-md hidden fade-in">
+                                <div class="flex items-center gap-ds-md p-ds-md rounded-ds-md" style="background:var(--color-success-0)">
+                                    <svg class="w-5 h-5" style="color:var(--color-success-700)" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                                    <span class="text-ds-small" style="color:var(--color-success-800)">چک_بانکی.jpg بارگذاری شد</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-ds-small mb-ds-sm block" style="color:var(--color-text-default-moderate)">رسید نقد</label>
+                            <div class="upload-zone p-ds-xl text-center" onclick="simulateUpload('cash-preview')">
+                                <svg class="w-8 h-8 mx-auto mb-ds-xs" style="color:var(--color-gray-300)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                <p class="text-ds-small" style="color:var(--color-text-default-weak)">کلیک برای بارگذاری</p>
+                            </div>
+                            <div id="cash-preview" class="mt-ds-md hidden fade-in">
+                                <div class="flex items-center gap-ds-md p-ds-md rounded-ds-md" style="background:var(--color-success-0)">
+                                    <svg class="w-5 h-5" style="color:var(--color-success-700)" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                                    <span class="text-ds-small" style="color:var(--color-success-800)">رسید_نقد.jpg بارگذاری شد</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="submitDocuments()" class="w-full py-ds-lg rounded-ds-xl text-ds-small font-bold text-white transition-all hover:opacity-90" style="background:var(--color-success-600)">
+                            ثبت همه مدارک
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products -->
+            <div class="card mx-ds-xl mt-ds-lg mb-ds-xl overflow-hidden">
+                <div class="px-ds-xl py-ds-lg flex items-center justify-between" style="border-bottom:1px solid var(--color-gray-0)">
+                    <span class="text-ds-small font-bold" style="color:var(--color-text-default-strong)">مرسوله ۱ از ۱</span>
+                    <span class="text-ds-small" style="color:var(--color-text-default-weak)">۲ کالا</span>
+                </div>
+                <div class="px-ds-xl py-ds-lg flex gap-ds-lg" style="border-bottom:1px solid var(--color-gray-0)">
+                    <div class="w-14 h-14 rounded-ds-md flex-shrink-0 flex items-center justify-center" style="background: linear-gradient(135deg, #fef3c7, #fde68a)">
+                        <svg class="w-7 h-7 text-amber-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-ds-small font-medium mb-ds-xs" style="color:var(--color-text-default-strong)">گردنبند نقره طرح ماه و ستاره</p>
+                        <span class="text-ds-small" style="color:var(--color-text-default-weak)">تعداد: ۱</span>
+                        <p class="text-ds-small font-bold mt-ds-xs" style="color:var(--color-text-default-strong)">۳,۵۰۰,۰۰۰ تومان</p>
+                    </div>
+                </div>
+                <div class="px-ds-xl py-ds-lg flex gap-ds-lg">
+                    <div class="w-14 h-14 rounded-ds-md flex-shrink-0 flex items-center justify-center" style="background: linear-gradient(135deg, #fce7f3, #fbcfe8)">
+                        <svg class="w-7 h-7 text-pink-400" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-ds-small font-medium mb-ds-xs" style="color:var(--color-text-default-strong)">انگشتر نقره زنانه مدل پرنسس</p>
+                        <span class="text-ds-small" style="color:var(--color-text-default-weak)">تعداد: ۳</span>
+                        <p class="text-ds-small font-bold mt-ds-xs" style="color:var(--color-text-default-strong)">۵,۵۵۰,۰۰۰ تومان</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Nav -->
+        <div class="border-t bg-white px-ds-xs py-ds-md flex items-center justify-around sticky bottom-0" style="border-color:var(--color-border-frame-main)">
+            <button class="bottom-nav-item flex flex-col items-center gap-1 text-ds-small" style="color:var(--color-text-default-weak)" onclick="navigateTo('screen-orders-list')">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <span>سفارشات</span>
+            </button>
+            <button class="bottom-nav-item flex flex-col items-center gap-1 text-ds-small" style="color:var(--color-text-default-weak)">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                <span>مگنت</span>
+            </button>
+            <button class="bottom-nav-item flex flex-col items-center gap-1 text-ds-small" style="color:var(--color-text-default-weak)">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                <span>سبد خرید</span>
+            </button>
+            <button class="bottom-nav-item flex flex-col items-center gap-1 text-ds-small" style="color:var(--color-text-default-weak)">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                <span>دسته‌بندی</span>
+            </button>
+            <button class="bottom-nav-item active flex flex-col items-center gap-1 text-ds-small">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <span>خانه</span>
+            </button>
+        </div>
+    </div>
+
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 6: ORDERS LIST -->
+    <!-- ============================================================ -->
+    <div class="screen" id="screen-orders-list">
+        <div class="app-header text-white px-ds-xl py-ds-lg flex items-center justify-between sticky top-0 z-40">
+            <button onclick="navigateTo('screen-empty-cart')" class="p-ds-xs opacity-80 hover:opacity-100">
+                <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <span class="text-ds-text font-semibold">لیست سفارشات</span>
+            <div class="w-5"></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="bg-white flex items-center justify-around sticky top-12 z-30" style="border-bottom:1px solid var(--color-border-frame-main)">
+            <button class="py-ds-lg px-ds-xl text-ds-small font-bold" style="color:var(--color-secondary-500);border-bottom:2px solid var(--color-secondary-500)">سفارشات</button>
+            <button class="py-ds-lg px-ds-xl text-ds-small" style="color:var(--color-text-default-weak)">تایید شده</button>
+            <button class="py-ds-lg px-ds-xl text-ds-small" style="color:var(--color-text-default-weak)">خرید قسطی</button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto no-scrollbar pb-20" style="background:var(--color-bg-frame-base)">
+
+            <!-- Order 1 -->
+            <div class="card mx-ds-xl mt-ds-xl p-ds-xl cursor-pointer hover:shadow-md transition-shadow" onclick="viewOrder('gateway')">
+                <div class="flex items-center justify-between mb-ds-lg">
+                    <div class="flex items-center gap-ds-md">
+                        <svg class="w-4 h-4" style="color:var(--color-text-default-weak)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        <span class="text-ds-small font-bold" style="color:var(--color-text-default-strong)">شماره سفارش: ۳۳۴۸۵۱</span>
+                    </div>
+                    <span class="text-ds-small font-medium px-ds-md py-1 rounded-full" style="background:var(--color-success-0);color:var(--color-success-700)">در حال آماده‌سازی</span>
+                </div>
+                <div class="flex items-center justify-between text-ds-small">
+                    <span style="color:var(--color-text-default-weak)">۱۹ خرداد ۱۴۰۵</span>
+                    <span class="font-bold" style="color:var(--color-text-default-strong)">۸,۶۳۵,۰۰۰ تومان</span>
+                </div>
+                <div class="flex items-center justify-between mt-ds-md">
+                    <span class="text-ds-small" style="color:var(--color-text-default-weak)">محمد جعفری · درگاه آنلاین</span>
+                    <span class="text-ds-small font-medium" style="color:var(--color-secondary-500)">مشاهده ←</span>
+                </div>
+            </div>
+
+            <!-- Order 2 -->
+            <div class="card mx-ds-xl mt-ds-lg p-ds-xl cursor-pointer hover:shadow-md transition-shadow" onclick="viewOrder('receipt')">
+                <div class="flex items-center justify-between mb-ds-lg">
+                    <div class="flex items-center gap-ds-md">
+                        <svg class="w-4 h-4" style="color:var(--color-text-default-weak)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        <span class="text-ds-small font-bold" style="color:var(--color-text-default-strong)">شماره سفارش: ۳۳۴۸۵۶</span>
+                    </div>
+                    <span class="text-ds-small font-medium px-ds-md py-1 rounded-full" style="background:var(--color-warning-0);color:var(--color-warning-700)">در انتظار تایید فیش</span>
+                </div>
+                <div class="flex items-center justify-between text-ds-small">
+                    <span style="color:var(--color-text-default-weak)">۱۸ خرداد ۱۴۰۵</span>
+                    <span class="font-bold" style="color:var(--color-text-default-strong)">۴,۲۵۰,۰۰۰ تومان</span>
+                </div>
+                <div class="flex items-center justify-between mt-ds-md">
+                    <span class="text-ds-small" style="color:var(--color-text-default-weak)">محمد جعفری · بارگذاری فیش</span>
+                    <span class="text-ds-small font-medium" style="color:var(--color-secondary-500)">مشاهده ←</span>
+                </div>
+            </div>
+
+            <!-- Order 3 -->
+            <div class="card mx-ds-xl mt-ds-lg mb-ds-xl p-ds-xl cursor-pointer hover:shadow-md transition-shadow" onclick="viewOrder('conditional')">
+                <div class="flex items-center justify-between mb-ds-lg">
+                    <div class="flex items-center gap-ds-md">
+                        <svg class="w-4 h-4" style="color:var(--color-text-default-weak)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        <span class="text-ds-small font-bold" style="color:var(--color-text-default-strong)">شماره سفارش: ۳۳۴۸۵۹</span>
+                    </div>
+                    <span class="text-ds-small font-medium px-ds-md py-1 rounded-full" style="background:rgba(255,123,6,0.1);color:var(--color-warning-700)">در حال مذاکره</span>
+                </div>
+                <div class="flex items-center justify-between text-ds-small">
+                    <span style="color:var(--color-text-default-weak)">۱۷ خرداد ۱۴۰۵</span>
+                    <span class="font-bold" style="color:var(--color-text-default-strong)">۱۲,۰۰۰,۰۰۰ تومان</span>
+                </div>
+                <div class="flex items-center justify-between mt-ds-md">
+                    <span class="text-ds-small" style="color:var(--color-text-default-weak)">محمد جعفری · شرایطی</span>
+                    <span class="text-ds-small font-medium" style="color:var(--color-secondary-500)">مشاهده ←</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Nav -->
+        <div class="border-t bg-white px-ds-xs py-ds-md flex items-center justify-around sticky bottom-0" style="border-color:var(--color-border-frame-main)">
+            <button class="bottom-nav-item flex flex-col items-center gap-1 text-ds-small" style="color:var(--color-text-default-weak)">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <span>حساب من</span>
+            </button>
+            <button class="bottom-nav-item flex flex-col items-center gap-1 text-ds-small" style="color:var(--color-text-default-weak)">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                <span>مگنت</span>
+            </button>
+            <button class="bottom-nav-item flex flex-col items-center gap-1 text-ds-small" style="color:var(--color-text-default-weak)">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                <span>سبد خرید</span>
+            </button>
+            <button class="bottom-nav-item flex flex-col items-center gap-1 text-ds-small" style="color:var(--color-text-default-weak)">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                <span>دسته‌بندی</span>
+            </button>
+            <button class="bottom-nav-item active flex flex-col items-center gap-1 text-ds-small">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <span>خانه</span>
+            </button>
+        </div>
+    </div>
+
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 7: SELLER ADMIN -->
+    <!-- ============================================================ -->
+    <div class="screen" id="screen-seller-admin">
+        <div class="px-ds-xl py-ds-lg flex items-center justify-between sticky top-0 z-40" style="background:var(--color-secondary-500)">
+            <button onclick="navigateTo('screen-orders-list')" class="p-ds-xs text-white opacity-80 hover:opacity-100">
+                <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <span class="text-ds-text font-semibold text-white">پنل مدیریت سفارش</span>
+            <span class="text-ds-small px-ds-md py-1 rounded-full text-white" style="background:rgba(255,255,255,0.2)">فروشنده</span>
+        </div>
+
+        <div class="flex-1 overflow-y-auto no-scrollbar pb-ds-3xl" style="background:var(--color-bg-frame-base)">
+
+            <!-- Customer Contact -->
+            <div class="card mx-ds-xl mt-ds-xl p-ds-xl">
+                <div class="flex items-center gap-ds-lg mb-ds-xl">
+                    <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background:var(--color-secondary-0)">
+                        <svg class="w-6 h-6" style="color:var(--color-secondary-500)" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-ds-text font-bold" style="color:var(--color-text-default-strong)">محمد جعفری</p>
+                        <p class="text-ds-small" style="color:var(--color-text-default-weak)">سفارش #۳۳۴۸۵۹ · ۱۷ خرداد ۱۴۰۵</p>
+                    </div>
+                </div>
+                <a href="tel:09123456789" class="flex items-center justify-center gap-ds-md py-ds-lg rounded-ds-xl text-ds-text font-bold text-white transition-all hover:opacity-90 mb-ds-lg" style="background:var(--color-secondary-500)">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
+                    تماس با مشتری
+                </a>
+                <div class="text-ds-small p-ds-lg rounded-ds-xl" style="background:var(--color-bg-frame-alternative)">
+                    <p class="font-medium mb-ds-xs" style="color:var(--color-text-default-moderate)">آدرس تحویل:</p>
+                    <p class="leading-relaxed" style="color:var(--color-text-default-moderate)">مشهد، خیابان احمدآباد، بلوار پاسداران، بلوک ۱۵، پلاک ۳</p>
+                </div>
+            </div>
+
+            <!-- Order Info -->
+            <div class="card mx-ds-xl mt-ds-lg p-ds-xl">
+                <h3 class="text-ds-text font-bold mb-ds-xl" style="color:var(--color-text-default-strong)">اطلاعات سفارش</h3>
+                <div class="space-y-ds-lg text-ds-small">
+                    <div class="flex justify-between"><span style="color:var(--color-text-default-weak)">روش پرداخت</span><span class="font-medium" id="admin-payment-method" style="color:var(--color-warning-600)">شرایطی - مذاکره</span></div>
+                    <div class="flex justify-between"><span style="color:var(--color-text-default-weak)">مبلغ کل</span><span class="font-bold" style="color:var(--color-text-default-strong)">۱۲,۰۰۰,۰۰۰ تومان</span></div>
+                    <div class="flex justify-between"><span style="color:var(--color-text-default-weak)">وضعیت فعلی</span><span class="font-bold" id="admin-current-status" style="color:var(--color-warning-500)">در حال مذاکره</span></div>
+                </div>
+            </div>
+
+            <!-- Negotiation Controls -->
+            <div id="admin-negotiation-controls" class="mx-ds-xl mt-ds-lg">
+                <div class="card p-ds-xl">
+                    <h3 class="text-ds-text font-bold mb-ds-lg flex items-center gap-ds-md" style="color:var(--color-text-default-strong)">
+                        <svg class="w-5 h-5" style="color:var(--color-warning-500)" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                        مرحله مذاکره
+                    </h3>
+                    <p class="text-ds-small leading-relaxed mb-ds-2xl" style="color:var(--color-text-default-moderate)">با مشتری تماس بگیرید و شرایط پرداخت را مذاکره کنید.</p>
+                    <div class="mb-ds-2xl">
+                        <label class="text-ds-small mb-ds-sm block" style="color:var(--color-text-default-moderate)">یادداشت فروشنده</label>
+                        <textarea class="w-full rounded-ds-xl p-ds-lg text-ds-small resize-none h-20 focus:outline-none transition-colors" style="border:1px solid var(--color-gray-200);background:var(--color-bg-frame-main)" placeholder="یادداشت‌های مذاکره..."></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-ds-lg">
+                        <button onclick="sellerAction('negotiation_success')" class="py-ds-lg rounded-ds-xl text-ds-small font-bold text-white transition-all hover:opacity-90 flex items-center justify-center gap-ds-xs" style="background:var(--color-success-600)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            موفقیت مذاکره
+                        </button>
+                        <button onclick="sellerAction('cancel_order')" class="py-ds-lg rounded-ds-xl text-ds-small font-bold text-white transition-all hover:opacity-90 flex items-center justify-center gap-ds-xs" style="background:var(--color-error-500)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            لغو سفارش
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Approval Controls -->
+            <div id="admin-approval-controls" class="mx-ds-xl mt-ds-lg hidden">
+                <div class="card p-ds-xl">
+                    <h3 class="text-ds-text font-bold mb-ds-xl flex items-center gap-ds-md" style="color:var(--color-text-default-strong)">
+                        <svg class="w-5 h-5" style="color:var(--color-secondary-500)" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                        بررسی مدارک ارسالی
+                    </h3>
+                    <div class="space-y-ds-lg mb-ds-2xl">
+                        <div class="rounded-ds-xl p-ds-lg" style="border:1px solid var(--color-gray-100)">
+                            <div class="flex items-center gap-ds-md mb-ds-md">
+                                <svg class="w-4 h-4" style="color:var(--color-secondary-500)" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6z"/></svg>
+                                <span class="text-ds-small font-medium" style="color:var(--color-text-default-strong)">تصویر چک بانکی</span>
+                                <span class="text-ds-small mr-auto" style="color:var(--color-text-default-weak)">۱۹ خرداد</span>
+                            </div>
+                            <div class="w-full h-28 rounded-ds-md flex items-center justify-center" style="background:var(--color-bg-frame-alternative)">
+                                <svg class="w-8 h-8" style="color:var(--color-gray-300)" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                            </div>
+                        </div>
+                        <div class="rounded-ds-xl p-ds-lg" style="border:1px solid var(--color-gray-100)">
+                            <div class="flex items-center gap-ds-md mb-ds-md">
+                                <svg class="w-4 h-4" style="color:var(--color-success-600)" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6z"/></svg>
+                                <span class="text-ds-small font-medium" style="color:var(--color-text-default-strong)">رسید نقد</span>
+                                <span class="text-ds-small mr-auto" style="color:var(--color-text-default-weak)">۱۹ خرداد</span>
+                            </div>
+                            <div class="w-full h-28 rounded-ds-md flex items-center justify-center" style="background:var(--color-bg-frame-alternative)">
+                                <svg class="w-8 h-8" style="color:var(--color-gray-300)" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-ds-lg">
+                        <button onclick="sellerAction('approve_order')" class="py-ds-lg rounded-ds-xl text-ds-small font-bold text-white transition-all hover:opacity-90 flex flex-col items-center gap-1" style="background:var(--color-success-600)">
+                            <span>تایید سفارش</span>
+                            <span class="opacity-70" style="font-size:9px">شروع آماده‌سازی</span>
+                        </button>
+                        <button onclick="sellerAction('reject_docs')" class="py-ds-lg rounded-ds-xl text-ds-small font-bold text-white transition-all hover:opacity-90 flex flex-col items-center gap-1" style="background:var(--color-error-500)">
+                            <span>رد مدارک</span>
+                            <span class="opacity-70" style="font-size:9px">مذاکره مجدد</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Receipt Review Controls -->
+            <div id="admin-receipt-controls" class="mx-ds-xl mt-ds-lg hidden">
+                <div class="card p-ds-xl">
+                    <h3 class="text-ds-text font-bold mb-ds-xl flex items-center gap-ds-md" style="color:var(--color-text-default-strong)">
+                        <svg class="w-5 h-5" style="color:var(--color-warning-500)" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6z"/></svg>
+                        بررسی فیش واریزی
+                    </h3>
+                    <div class="rounded-ds-xl p-ds-lg mb-ds-2xl" style="border:1px solid var(--color-gray-100)">
+                        <p class="text-ds-small font-medium mb-ds-md" style="color:var(--color-text-default-strong)">فیش واریزی مشتری</p>
+                        <div class="w-full h-36 rounded-ds-md flex items-center justify-center" style="background:var(--color-warning-0)">
+                            <div class="text-center">
+                                <svg class="w-10 h-10 mx-auto mb-ds-xs" style="color:var(--color-warning-300)" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                                <span class="text-ds-small" style="color:var(--color-warning-600)">فیش واریزی.jpg</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-ds-lg">
+                        <button onclick="sellerAction('approve_receipt')" class="py-ds-lg rounded-ds-xl text-ds-small font-bold text-white transition-all hover:opacity-90" style="background:var(--color-success-600)">تایید و آماده‌سازی</button>
+                        <button onclick="sellerAction('reject_receipt')" class="py-ds-lg rounded-ds-xl text-ds-small font-bold text-white transition-all hover:opacity-90" style="background:var(--color-error-500)">رد فیش واریزی</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mx-ds-xl mt-ds-2xl mb-ds-xl">
+                <button onclick="navigateTo('screen-orders-list')" class="w-full py-ds-lg rounded-ds-xl text-ds-small font-bold transition-all" style="background:var(--color-secondary-0);color:var(--color-secondary-500)">
+                    ← بازگشت به لیست سفارشات
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- ============================================================ -->
+<!-- DEV NAV -->
+<!-- ============================================================ -->
+<div class="fixed bottom-4 left-4 z-[100] bg-white rounded-ds-2xl shadow-2xl p-ds-lg max-w-[220px]" id="devNav" style="border:1px solid var(--color-border-frame-main);border-radius:16px">
+    <p class="text-ds-small font-bold mb-ds-md text-center" style="color:var(--color-text-default-weak)">🔧 ناوبری سریع</p>
+    <div class="grid grid-cols-2 gap-1.5">
+        <button onclick="navigateTo('screen-empty-cart')" class="text-ds-small rounded-ds-md py-1.5 px-2 transition-colors" style="background:var(--color-bg-frame-alternative);color:var(--color-text-default-moderate)">سبد خالی</button>
+        <button onclick="navigateTo('screen-cart')" class="text-ds-small rounded-ds-md py-1.5 px-2 transition-colors" style="background:var(--color-bg-frame-alternative);color:var(--color-text-default-moderate)">سبد خرید</button>
+        <button onclick="navigateTo('screen-checkout')" class="text-ds-small rounded-ds-md py-1.5 px-2 transition-colors" style="background:var(--color-bg-frame-alternative);color:var(--color-text-default-moderate)">چک‌اوت</button>
+        <button onclick="navigateTo('screen-success')" class="text-ds-small rounded-ds-md py-1.5 px-2 transition-colors" style="background:var(--color-success-0);color:var(--color-success-700)">موفقیت</button>
+        <button onclick="navigateTo('screen-orders-list')" class="text-ds-small rounded-ds-md py-1.5 px-2 transition-colors" style="background:var(--color-secondary-0);color:var(--color-secondary-600)">لیست سفارش</button>
+        <button onclick="viewOrder('gateway')" class="text-ds-small rounded-ds-md py-1.5 px-2 transition-colors" style="background:var(--color-success-0);color:var(--color-success-700)">پیگیری-درگاه</button>
+        <button onclick="viewOrder('receipt')" class="text-ds-small rounded-ds-md py-1.5 px-2 transition-colors" style="background:var(--color-warning-0);color:var(--color-warning-700)">پیگیری-فیش</button>
+        <button onclick="viewOrder('conditional')" class="text-ds-small rounded-ds-md py-1.5 px-2 transition-colors" style="background:rgba(255,123,6,0.1);color:var(--color-warning-700)">پیگیری-شرایطی</button>
+        <button onclick="showSellerAdmin('negotiation')" class="text-ds-small rounded-ds-md py-1.5 px-2 transition-colors" style="background:var(--color-secondary-0);color:var(--color-secondary-600)">ادمین-مذاکره</button>
+        <button onclick="showSellerAdmin('pending_approval')" class="text-ds-small rounded-ds-md py-1.5 px-2 transition-colors" style="background:var(--color-secondary-0);color:var(--color-secondary-600)">ادمین-تایید</button>
+        <button onclick="showSellerAdmin('receipt_review')" class="text-ds-small rounded-ds-md py-1.5 px-2 transition-colors col-span-2" style="background:var(--color-warning-0);color:var(--color-warning-700)">ادمین-بررسی فیش</button>
+    </div>
+    <button onclick="document.getElementById('devNav').style.display='none'" class="text-ds-small mt-ds-md block mx-auto transition-colors" style="color:var(--color-text-default-weak)">بستن ✕</button>
+</div>
+
+
+<script>
+let currentPayment = 'gateway';
+let currentScreen = 'screen-empty-cart';
+
+function navigateTo(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const target = document.getElementById(screenId);
+    if (target) {
+        target.classList.add('active');
+        target.classList.add('fade-in');
+        setTimeout(() => target.classList.remove('fade-in'), 300);
+        currentScreen = screenId;
+        window.scrollTo(0, 0);
+    }
+}
+
+function selectPayment(method) {
+    currentPayment = method;
+    const receiptZone = document.getElementById('receipt-upload-zone');
+    const conditionalWarning = document.getElementById('conditional-warning');
+    receiptZone.classList.add('hidden');
+    conditionalWarning.classList.add('hidden');
+    if (method === 'receipt') receiptZone.classList.remove('hidden');
+    else if (method === 'conditional') conditionalWarning.classList.remove('hidden');
+}
+
+function submitOrder() {
+    const successMsg = document.getElementById('success-message');
+    const successSub = document.getElementById('success-sub-message');
+    if (currentPayment === 'gateway') {
+        successMsg.textContent = 'پرداخت شما با موفقیت انجام شد.';
+        successSub.textContent = 'سفارش شما در حال آماده‌سازی است.';
+    } else if (currentPayment === 'receipt') {
+        successMsg.textContent = 'سفارش شما با موفقیت ثبت شد.';
+        successSub.textContent = 'فیش واریزی شما در انتظار تایید فروشنده است.';
+    } else if (currentPayment === 'conditional') {
+        successMsg.textContent = 'سفارش شما با موفقیت ثبت شد.';
+        successSub.textContent = 'ادمین جهت مذاکره و تایید با شما تماس خواهد گرفت.';
+    }
+    navigateTo('screen-success');
+}
+
+function viewOrder(type) {
+    const g = document.getElementById('gateway-stepper');
+    const r = document.getElementById('receipt-stepper');
+    const c = document.getElementById('conditional-stepper');
+    const ctx = document.getElementById('tracking-context-box');
+    const up = document.getElementById('tracking-upload-zone');
+    const pt = document.getElementById('tracking-payment-type');
+    g.classList.add('hidden'); r.classList.add('hidden'); c.classList.add('hidden'); up.classList.add('hidden');
+
+    if (type === 'gateway') {
+        g.classList.remove('hidden');
+        pt.textContent = 'درگاه آنلاین (زرین‌پال)';
+        pt.style.color = 'var(--color-success-700)';
+        ctx.style.background = 'var(--color-success-0)';
+        ctx.style.border = '1px solid rgba(0,224,67,0.2)';
+        ctx.style.color = 'var(--color-success-800)';
+        ctx.innerHTML = '✅ پرداخت تایید شد — سفارش شما در مرحله آماده‌سازی قرار دارد.';
+    } else if (type === 'receipt') {
+        r.classList.remove('hidden');
+        pt.textContent = 'بارگذاری فیش واریزی';
+        pt.style.color = 'var(--color-warning-600)';
+        ctx.style.background = 'var(--color-warning-0)';
+        ctx.style.border = '1px solid rgba(255,123,6,0.2)';
+        ctx.style.color = 'var(--color-warning-800)';
+        ctx.innerHTML = '⏳ در انتظار تایید فیش — فیش واریزی شما در حال بررسی توسط فروشنده است.';
+    } else if (type === 'conditional') {
+        c.classList.remove('hidden');
+        pt.textContent = 'شرایطی - مذاکره';
+        pt.style.color = 'var(--color-warning-600)';
+        ctx.style.background = 'rgba(255,123,6,0.06)';
+        ctx.style.border = '1px solid rgba(255,123,6,0.15)';
+        ctx.style.color = 'var(--color-warning-800)';
+        ctx.innerHTML = '📞 در حال مذاکره — لطفاً منتظر تماس تیم پشتیبانی باشید.';
+        // Reset conditional stepper
+        resetConditionalStepper();
+    }
+    navigateTo('screen-order-tracking');
+}
+
+function resetConditionalStepper() {
+    document.getElementById('cond-step-2').className = 'step-dot text-white pulse-dot';
+    document.getElementById('cond-step-2').style.background = 'var(--color-warning-500)';
+    document.getElementById('cond-step-2').textContent = '●';
+    document.getElementById('cond-label-2').style.color = 'var(--color-warning-600)';
+    document.getElementById('cond-label-2').style.fontWeight = '700';
+    document.getElementById('cond-conn-2').style.background = 'var(--color-gray-100)';
+
+    ['3','4','5','6','7'].forEach(n => {
+        document.getElementById('cond-step-'+n).className = 'step-dot text-ds-small';
+        document.getElementById('cond-step-'+n).style.background = 'var(--color-gray-100)';
+        document.getElementById('cond-step-'+n).style.color = 'var(--color-text-default-weak)';
+        document.getElementById('cond-step-'+n).textContent = n === '3' ? '۳' : n === '4' ? '۴' : n === '5' ? '۵' : n === '6' ? '۶' : '۷';
+        document.getElementById('cond-label-'+n).style.color = 'var(--color-text-default-weak)';
+        document.getElementById('cond-label-'+n).style.fontWeight = '400';
+        if(n!=='7') document.getElementById('cond-conn-'+n).style.background = 'var(--color-gray-100)';
+    });
+}
+
+function simulateUpload(previewId) {
+    const p = document.getElementById(previewId);
+    if (p) { p.classList.remove('hidden'); p.classList.add('fade-in'); }
+}
+function removeUpload(previewId) {
+    const p = document.getElementById(previewId);
+    if (p) p.classList.add('hidden');
+}
+
+function submitDocuments() {
+    showToast('مدارک با موفقیت ارسال شد', 'success');
+    const ctx = document.getElementById('tracking-context-box');
+    const up = document.getElementById('tracking-upload-zone');
+    setTimeout(() => {
+        up.classList.add('hidden');
+        document.getElementById('cond-step-2').className = 'step-dot text-white';
+        document.getElementById('cond-step-2').style.background = 'var(--color-success-600)';
+        document.getElementById('cond-step-2').textContent = '✓';
+        document.getElementById('cond-conn-2').style.background = 'var(--color-success-600)';
+        document.getElementById('cond-step-3').className = 'step-dot text-white';
+        document.getElementById('cond-step-3').style.background = 'var(--color-success-600)';
+        document.getElementById('cond-step-3').textContent = '✓';
+        document.getElementById('cond-label-3').style.color = 'var(--color-success-700)';
+        document.getElementById('cond-conn-3').style.background = 'var(--color-success-600)';
+        document.getElementById('cond-step-4').className = 'step-dot text-white pulse-dot';
+        document.getElementById('cond-step-4').style.background = 'var(--color-warning-500)';
+        document.getElementById('cond-step-4').textContent = '●';
+        document.getElementById('cond-label-4').style.color = 'var(--color-warning-600)';
+        document.getElementById('cond-label-4').style.fontWeight = '700';
+        ctx.style.background = 'var(--color-warning-0)';
+        ctx.style.border = '1px solid rgba(255,123,6,0.2)';
+        ctx.style.color = 'var(--color-warning-800)';
+        ctx.innerHTML = '⏳ در انتظار تایید — مدارک ارسالی شما در حال بررسی توسط فروشنده است.';
+    }, 500);
+}
+
+function showSellerAdmin(phase) {
+    document.getElementById('admin-negotiation-controls').classList.add('hidden');
+    document.getElementById('admin-approval-controls').classList.add('hidden');
+    document.getElementById('admin-receipt-controls').classList.add('hidden');
+    const status = document.getElementById('admin-current-status');
+    const method = document.getElementById('admin-payment-method');
+
+    if (phase === 'negotiation') {
+        document.getElementById('admin-negotiation-controls').classList.remove('hidden');
+        method.textContent = 'شرایطی - مذاکره'; method.style.color = 'var(--color-warning-600)';
+        status.textContent = 'در حال مذاکره'; status.style.color = 'var(--color-warning-500)';
+    } else if (phase === 'pending_approval') {
+        document.getElementById('admin-approval-controls').classList.remove('hidden');
+        method.textContent = 'شرایطی - مذاکره'; method.style.color = 'var(--color-secondary-500)';
+        status.textContent = 'در انتظار تایید مدارک'; status.style.color = 'var(--color-secondary-500)';
+    } else if (phase === 'receipt_review') {
+        document.getElementById('admin-receipt-controls').classList.remove('hidden');
+        method.textContent = 'بارگذاری فیش واریزی'; method.style.color = 'var(--color-warning-600)';
+        status.textContent = 'در انتظار تایید فیش'; status.style.color = 'var(--color-warning-500)';
+    }
+    navigateTo('screen-seller-admin');
+}
+
+function sellerAction(action) {
+    const status = document.getElementById('admin-current-status');
+    if (action === 'negotiation_success') {
+        showToast('مذاکره با موفقیت ثبت شد', 'success');
+        status.textContent = 'در انتظار بارگذاری مدارک'; status.style.color = 'var(--color-secondary-500)';
+        document.getElementById('admin-negotiation-controls').classList.add('hidden');
+        document.getElementById('admin-approval-controls').classList.remove('hidden');
+    } else if (action === 'cancel_order') {
+        showToast('سفارش لغو شد', 'error');
+        status.textContent = 'لغو شده - عدم توافق'; status.style.color = 'var(--color-error-500)';
+        document.getElementById('admin-negotiation-controls').classList.add('hidden');
+    } else if (action === 'approve_order') {
+        showToast('سفارش تایید شد — آماده‌سازی آغاز شد', 'success');
+        status.textContent = 'در حال آماده‌سازی'; status.style.color = 'var(--color-success-700)';
+        document.getElementById('admin-approval-controls').classList.add('hidden');
+    } else if (action === 'reject_docs') {
+        showToast('مدارک رد شد — مذاکره مجدد', 'error');
+        status.textContent = 'در حال مذاکره (مجدد)'; status.style.color = 'var(--color-warning-500)';
+        document.getElementById('admin-approval-controls').classList.add('hidden');
+        document.getElementById('admin-negotiation-controls').classList.remove('hidden');
+    } else if (action === 'approve_receipt') {
+        showToast('فیش تایید شد — آماده‌سازی آغاز شد', 'success');
+        status.textContent = 'در حال آماده‌سازی'; status.style.color = 'var(--color-success-700)';
+        document.getElementById('admin-receipt-controls').classList.add('hidden');
+    } else if (action === 'reject_receipt') {
+        showToast('فیش واریزی رد شد', 'error');
+        status.textContent = 'فیش رد شده'; status.style.color = 'var(--color-error-500)';
+        document.getElementById('admin-receipt-controls').classList.add('hidden');
+    }
+}
+
+function updateQty(btn, delta) {
+    const display = btn.parentElement.querySelector('.qty-display');
+    const p = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    let cur = parseInt(display.textContent.replace(/[۰-۹]/g, d => p.indexOf(d)));
+    cur = Math.max(0, cur + delta);
+    display.textContent = String(cur).replace(/[0-9]/g, d => p[d]);
+}
+
+function showToast(message, type) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.style.background = type === 'success' ? 'var(--color-success-600)' : 'var(--color-error-500)';
+    t.style.color = 'white';
+    t.textContent = message;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+}
+
+selectPayment('gateway');
+</script>
+
+</body>
+</html>
