@@ -1,93 +1,118 @@
-Hello A.Mammad. Shifting the focus entirely to business logic and user flow is a smart move. By stripping away the technical implementation details, we can ensure the core functionality perfectly matches your operational needs before writing a single line of backend logic.
+Here is the fully updated and comprehensive Product Requirements Document (PRD) for the Manooch Ticketing System.
 
-Here is the fully revised Product Requirements Document (PRD) focusing strictly on the business rules, user workflows, and the implementation plan for your prototypes.
+Per your standing instructions, I have run this request through the **`/human`** (User Experience & Psychology) and **`/blindspot`** (Edge Cases & Hidden Risks) frameworks before generating the final PRD.
+
+All coding logic, database schemas, and architectural jargon have been strictly excluded to focus purely on product behavior and business rules.
 
 ---
 
-### **Product Requirements Document: Ticketing System Business Logic**
+### 🧠 Pre-PRD Analysis
+
+#### 👤 `/human` (User Experience & Psychology)
+
+* **The Seller's State of Mind:** When a seller opens a ticket, they are usually blocked, frustrated, or anxious (e.g., delayed payouts, product rejection, a system bug). The system must feel transparent and reassuring. Seeing exactly when a ticket was read or when a reply is expected lowers anxiety.
+* **The Super Admin's Cognitive Load:** Super Admins will be managing dozens of tickets. A simple chronological list will quickly become overwhelming. They need visual cues (e.g., color-coded urgency tags based on topics like "Finance") to avoid burnout and prioritize effectively.
+
+#### 🔍 `/blindspot` (Edge Cases & Hidden Risks)
+
+* **The Re-open Dilemma:** If a Super Admin marks a ticket as "Closed" but the seller's issue isn't actually fixed, what happens? If they can't re-open it, they will just create a duplicate ticket, cluttering the queue. **Fix:** Allow sellers to reply to a closed ticket within 48 hours to automatically revert it to "Open."
+* **The "Heavy Upload" Trap:** You mentioned allowing image attachments. If sellers upload raw 20MB photos directly from their phones, it will break the UI and exhaust storage. **Fix:** Institute strict business rules for file size/type constraints at the upload stage.
+* **Collision (Concurrency):** What if two Super Admins open the same ticket and start typing a reply at the same time? **Fix:** The MVP must at least visually show if a ticket is "Claimed" by another Super Admin or strictly assign it upon opening.
+
+---
+
+### 📄 Fully Updated PRD: Ticketing System (Seller ↔ Super Admin)
 
 **Project Context:** Manooch Platform
 **Objective:** Establish a direct, reliable, and auditable communication channel between Sellers (Store Admins) and Platform Operators (Super Admins) to handle support, financial, and moderation inquiries.
 
----
+#### **1. Core Business Logic & Ticket Lifecycle**
 
-### **1. Core Business Logic & Ticket Lifecycle**
+The system operates on a linear progression to prevent communication gaps and ensure accountability.
 
-The system operates on a simple, linear progression to prevent communication gaps and ensure accountability.
-
-**Ticket Status Definitions**
+**Ticket Status Definitions & Transitions:**
 
 | Status | Business Meaning | Next Action Required By |
 | --- | --- | --- |
-| **Open** | The ticket has been created by the Seller or requires a response from the Super Admin. | Super Admin |
-| **Answered** | The Super Admin has replied. The issue is pending Seller review or further clarification. | Seller |
-| **Closed** | The issue is resolved. The thread is locked for new messages but remains visible for historical records. | None (Archived) |
+| **Open** | Ticket created by Seller OR the Seller just replied to a previous Admin message. | Super Admin |
+| **Answered** | Super Admin has replied. The issue is pending Seller review or clarification. | Seller |
+| **Closed** | Issue resolved. Thread locked from active queue but saved in history. | None (Archived) |
 
-**Operational Rules**
+**Status Rules:**
 
-* **Visibility:** Sellers can absolutely only view their own tickets. Super Admins have global visibility across all Seller tickets.
-* **Categorization (Topics):** Every ticket must be assigned a category at creation (e.g., *Payout Issue, Technical Bug, Product Moderation, General Policy*). This allows Super Admins to triage and prioritize urgent financial or operational issues.
-* **Evidence Collection:** A picture speaks a thousand words. Sellers must be able to attach a single image (e.g., a screenshot of an error or a receipt) per message to provide immediate context, reducing back-and-forth delays.
+* A ticket automatically shifts to **Open** the moment a Seller submits a new message in the thread.
+* A ticket automatically shifts to **Answered** the moment a Super Admin sends a reply.
+* Only a Super Admin can manually change the status to **Closed**.
+* *(Blindspot Fix)* **Re-opening Rule:** If a Seller replies to a "Closed" ticket within 48 hours of closure, it automatically reverts to **Open**. After 48 hours, the input field is disabled, and they must create a new ticket.
 
----
+#### **2. User Capabilities & Workflows**
 
-### **2. User Capabilities & Workflows**
+**A. The Seller Experience (Admin Panel)**
 
-#### **A. The Seller Experience (Admin Panel)**
+* **Dashboard Overview:** Sellers see a clear, chronological history of their tickets. The dashboard uses simple tab filters: "Active" (Open/Answered) and "Resolved" (Closed).
+* **Drafting a Request:** * Sellers must select a **Topic** from a predefined dropdown (e.g., *Financial/Payout, Technical Bug, Moderation/Policy, General*).
+* They provide a Subject line and a detailed description.
+* They can attach a single image (e.g., screenshot, receipt).
 
-**Goal:** Make it frictionless for a Seller to ask for help and track their requests.
 
-* **Dashboard Overview:** Upon entering the support section, the Seller sees a clear, chronological history of their past and current tickets. They can instantly see which tickets are open, which have replies, and which are resolved.
-* **Drafting a Request:** When creating a new ticket, the Seller selects the relevant Topic, writes a detailed description of their problem, and optionally uploads a screenshot as proof.
-* **Continuing the Conversation:** If a Super Admin asks for more details, the Seller accesses a chronological chat-style thread. They can read the response, view any images the Super Admin attached, and send a reply to keep the conversation going.
+* **Continuing the Conversation:** The UI behaves like a chat thread. Sellers can read Admin responses, view attachments, and seamlessly type a reply to keep the conversation going.
 
-#### **B. The Super Admin Experience (Portal Panel)**
+**B. The Super Admin Experience (Portal Panel)**
 
-**Goal:** Provide Platform Operators with a centralized "Mission Control" to process issues efficiently.
+* **Global Queue (Mission Control):** Super Admins view a master table of all platform tickets.
+* **Mandatory Sorting:** The default view *must* push "Open" (unanswered) tickets to the very top, sorted by oldest first.
+* **Filtering:** Admins can filter by Seller Name, Ticket Topic, and Status.
 
-* **Global Queue Management:** The Super Admin logs in to see a master list of every support request across the platform. They need to be able to scan this list by Seller Name, Ticket Topic, Date, and current Status to prioritize their workflow.
-* **Issue Resolution:** Clicking into a ticket opens the full context. The Super Admin can read the Seller's initial complaint, review any attached evidence (expanding images for detail), and construct a reply.
-* **Closing the Loop:** Once the Super Admin determines the issue is fully addressed (e.g., a payout has been processed), they have the authority to explicitly mark the ticket as "Closed," removing it from the active queue.
 
----
+* **Issue Resolution (Thread View):** Admins can read the full context, expand the Seller's image evidence, and write a reply.
+* **Closing the Loop:** Once resolved (e.g., payout approved), the Admin clicks a prominent "Mark as Closed" button.
 
-### **3. Prototype Implementation Plan**
+#### **3. Operational & Evidence Rules**
 
-To build these views, here is the blueprint you can hand off to your design or frontend team. It dictates exactly what needs to be built in your directories based purely on the business requirements.
+* **Visibility Boundaries:** Sellers can *only* view tickets they created. They have zero visibility into other stores. Super Admins have global visibility.
+* **Evidence Collection (Attachments):** * Users (both Sellers and Admins) can attach exactly **one image** per message.
+* *Constraint Rule:* The system must block non-image files (PDFs, docs) and enforce a strict UI warning if the image exceeds the allowed file size (e.g., 5MB).
 
-#### **Phase 1: Seller Interface**
 
+* **Notification Triggers:** * When a Super Admin replies, an in-app visual notification (red dot/badge) must appear on the Seller's dashboard support icon.
+* When a Seller replies or creates a ticket, the ticket bumps to the top of the Super Admin's "Open" queue.
+
+
+
+#### **4. Prototype Implementation Plan (UI Blueprints)**
+
+These are the exact views your frontend team must build in the designated directories, based purely on business needs.
+
+**Phase 1: Seller Interface**
 **Directory:** `manooch-planings\ticket-seller-to-admin\admin`
 
 1. **`ticket-list-view`:**
-* Primary Action: "Create New Ticket" button.
-* Display: A table listing Ticket ID, Subject/Topic, Date Submitted, and a clear Status indicator.
+* **Primary Action:** "Create New Ticket" button.
+* **Display:** Table listing Ticket ID, Subject/Topic, Date Submitted, and Status (with clear color coding: Open = Red/Orange, Answered = Blue/Yellow, Closed = Gray/Green).
 
 
 2. **`ticket-creation-view`:**
-* Form Interface: A dropdown menu for standard Topics.
-* Input Interface: A large text box for the issue description.
-* Attachment Interface: A designated area to upload one image file.
-* Action: "Submit Request" button.
+* **Form Interface:** Dropdown menu for Topics, Subject Line input, Large text area for description.
+* **Attachment Interface:** A drag-and-drop or click-to-upload area for a single image, clearly stating file limits.
+* **Action:** "Submit Request" button (disabled until Topic and Description are filled).
 
 
 3. **`ticket-thread-view`:**
-* Display: A conversational, message-by-message layout (like a standard chat app) showing the back-and-forth between the Seller and Super Admin.
-* Input Interface: A reply box at the bottom with an option to attach another image.
+* **Display:** Conversational layout (chat-bubbles). Seller messages aligned to one side, Super Admin messages on the other. Timestamp on every message.
+* **Input Interface:** Sticky reply box at the bottom with an image-attachment icon.
 
 
 
-#### **Phase 2: Super Admin Interface**
-
+**Phase 2: Super Admin Interface**
 **Directory:** `manooch-planings\ticket-seller-to-admin\portal`
 
 1. **`master-support-queue`:**
-* Display: A comprehensive data table. Columns must include Seller Name/Store, Ticket ID, Topic, Date, and Status.
-* Tools: A search bar to find specific sellers and filters to show only "Open" tickets.
+* **Display:** Comprehensive data table (Columns: Seller Name, Store Name, Ticket ID, Topic, Date, Status).
+* **Tools:** Search bar (find by Seller or Ticket ID), Status Toggle (Show All vs. Show Open Only), and Topic Filter.
 
 
 2. **`ticket-resolution-view`:**
-* Display: The full conversation thread for the selected ticket.
-* Tools: An image viewer to inspect attached screenshots.
-* Input Interface: A text area to write a response back to the Seller.
-* Action: A prominent "Mark as Closed" toggle or button to finalize the ticket lifecycle.
+* **Header Info:** Seller name, Store Details, and Ticket Topic permanently visible at the top.
+* **Display:** The full conversation thread. Image viewer that expands screenshots on click.
+* **Input Interface:** Text area for Admin response.
+* **Action:** Two distinct buttons: "Reply & Keep Open" and "Mark as Closed."
