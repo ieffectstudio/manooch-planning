@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#2563eb" />
   <title>انبار و قیمت‌گذاری</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 </head>
 <body class="bg-gray-50 text-gray-900 antialiased">
 
@@ -40,6 +41,24 @@
         <input id="searchInput" type="search" inputmode="search" autocomplete="off" placeholder="جستجوی محصول..."
                class="w-full bg-white border border-gray-200 rounded-xl ps-10 pe-4 py-3 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500" />
       </div>
+    </div>
+
+    <!-- Import entry (list only) -->
+    <div class="px-4 pt-2">
+      <button type="button" id="importEntry" class="w-full flex items-center gap-3 bg-blue-50 border border-blue-100 rounded-2xl p-3 text-start active:bg-blue-100/60 transition">
+        <div class="w-10 h-10 shrink-0 rounded-xl bg-blue-600 flex items-center justify-center text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="font-semibold text-sm text-blue-700">ورود قیمت و موجودی با اکسل</p>
+          <p class="text-[11px] text-blue-500 mt-0.5">دانلود نمونه، آپلود فایل و مشاهده خطاها</p>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-blue-400 shrink-0">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 4.5l-7.5 7.5 7.5 7.5" />
+        </svg>
+      </button>
     </div>
 
     <!-- Product List -->
@@ -338,6 +357,84 @@
       </div>
     </main>
 
+    <!-- ================= VIEW: IMPORT (hidden by default) ================= -->
+
+    <!-- Import Header -->
+    <header id="importHeader" class="bg-white border-b border-gray-100 px-4 pt-4 pb-4 sticky top-0 z-30 hidden">
+      <div class="flex items-center gap-3">
+        <button type="button" id="importBackBtn" class="w-10 h-10 shrink-0 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 active:bg-gray-200 transition" aria-label="بازگشت">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 4.5l-7.5 7.5 7.5 7.5" />
+          </svg>
+        </button>
+        <div class="min-w-0">
+          <h1 class="text-lg font-bold text-gray-900 truncate">ورود با اکسل</h1>
+        </div>
+      </div>
+    </header>
+
+    <main id="importView" class="hidden px-4 pt-4 space-y-4">
+
+      <!-- How it works -->
+      <div class="flex items-start gap-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-700 p-3 text-xs leading-relaxed">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4 mt-0.5 shrink-0">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+        </svg>
+        <span>فایل اکسل را از همین بخش دانلود کنید، قیمت و موجودی را برای هر سه نوع قیمت‌گذاری وارد کنید و دوباره آپلود نمایید. ستون «کد محصول» شناسه اصلی هر ردیف است.</span>
+      </div>
+
+      <!-- Download sample -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+        <h2 class="text-sm font-bold text-gray-800">۱. دانلود فایل نمونه</h2>
+        <p class="text-[11px] text-gray-400 mt-1 mb-3">یک فایل اکسل با سه برگه (ساده، واحد، ویژگی) و ستون‌های آماده.</p>
+        <button type="button" id="downloadSampleBtn"
+                class="w-full py-3 rounded-xl border-2 border-dashed border-blue-300 text-blue-700 text-sm font-semibold flex items-center justify-center gap-2 active:bg-blue-50 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+          دانلود فایل نمونه اکسل
+        </button>
+      </div>
+
+      <!-- Upload -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+        <h2 class="text-sm font-bold text-gray-800">۲. آپلود فایل</h2>
+        <p class="text-[11px] text-gray-400 mt-1 mb-3">فقط فرمت‌های xlsx / xls پشتیبانی می‌شوند.</p>
+        <label class="block w-full rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 p-6 text-center cursor-pointer active:bg-gray-100 transition">
+          <input id="fileInput" type="file" accept=".xlsx,.xls" class="hidden" />
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-8 h-8 mx-auto text-gray-400">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+          <p class="mt-2 text-sm text-gray-600 font-medium" id="uploadLabel">برای انتخاب فایل لمس کنید</p>
+          <p class="text-[11px] text-gray-400 mt-0.5">xlsx / xls — حداکثر ۲ مگابایت</p>
+        </label>
+      </div>
+
+      <!-- Preview / Import -->
+      <div id="importResult" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hidden">
+        <h2 class="text-sm font-bold text-gray-800">۳. بررسی و ثبت</h2>
+        <div class="flex items-center justify-between mt-3 text-sm">
+          <span class="text-gray-500">نام فایل</span>
+          <span class="text-gray-800 font-medium truncate" id="fileNameLabel">—</span>
+        </div>
+        <div class="flex items-center justify-between mt-2 text-sm">
+          <span class="text-gray-500">تعداد ردیف‌های معتبر</span>
+          <span class="text-gray-800 font-semibold" id="validCountLabel">۰</span>
+        </div>
+        <div class="flex items-center justify-between mt-2 text-sm">
+          <span class="text-gray-500">تعداد ردیف‌های خطادار</span>
+          <span class="text-amber-700 font-semibold" id="errorCountLabel">۰</span>
+        </div>
+        <button type="button" id="runImportBtn"
+                class="mt-4 w-full py-3 rounded-xl bg-blue-600 text-white text-sm font-bold active:bg-blue-700 transition">
+          ثبت تغییرات (ورود داده‌ها)
+        </button>
+      </div>
+
+      <!-- Import result / errors -->
+      <div id="importErrors" class="space-y-3 hidden"></div>
+    </main>
+
     <!-- ================= BOTTOM STACK: Save CTA + Nav ================= -->
     <div class="fixed inset-x-0 bottom-0 z-40 bg-white border-t border-gray-100">
       <!-- Save CTA (edit only) -->
@@ -577,10 +674,215 @@
       const toast = document.getElementById('toast');
       toast.classList.remove('hidden');
       setTimeout(() => toast.classList.add('hidden'), 2600);
-      // optionally return to list after save
       showList();
+    });
+
+    // ================= Excel Import =================
+    const importEntry = document.getElementById('importEntry');
+    const importHeader = document.getElementById('importHeader');
+    const importView = document.getElementById('importView');
+    const importBackBtn = document.getElementById('importBackBtn');
+    const fileInput = document.getElementById('fileInput');
+    const uploadLabel = document.getElementById('uploadLabel');
+    const importResult = document.getElementById('importResult');
+    const fileNameLabel = document.getElementById('fileNameLabel');
+    const validCountLabel = document.getElementById('validCountLabel');
+    const errorCountLabel = document.getElementById('errorCountLabel');
+    const importErrors = document.getElementById('importErrors');
+    const runImportBtn = document.getElementById('runImportBtn');
+
+    function showImport() {
+      listHeader.classList.add('hidden');
+      searchBar.classList.add('hidden');
+      listView.classList.add('hidden');
+      editHeader.classList.add('hidden');
+      editView.classList.add('hidden');
+      saveCta.classList.add('hidden');
+      importHeader.classList.remove('hidden');
+      importView.classList.remove('hidden');
+      window.scrollTo(0, 0);
+    }
+
+    function closeImport() {
+      importHeader.classList.add('hidden');
+      importView.classList.add('hidden');
+      showList();
+    }
+
+    importEntry.addEventListener('click', showImport);
+    importBackBtn.addEventListener('click', closeImport);
+
+    // Known product codes (demo) — the key column of the import file.
+    const knownProducts = {
+      'COF-AR-500': 'قهوه عربیکا ۵۰۰ گرمی',
+      'TEA-BLK-BAG': 'چای سیاه ممتاز کیسه‌ای',
+      'PST-RF-1K': 'پسته رفسنجان فله'
+    };
+
+    function buildSample() {
+      if (typeof XLSX === 'undefined') { alert('کتابخانه اکسل در دسترس نیست.'); return; }
+      const wb = XLSX.utils.book_new();
+      const simple = XLSX.utils.aoa_to_sheet([
+        ['کد محصول', 'قیمت اصلی', 'درصد تخفیف', 'موجودی کل'],
+        ['COF-AR-500', 250000, 10, 12],
+        ['TEA-BLK-BAG', 85000, 0, 3]
+      ]);
+      const unit = XLSX.utils.aoa_to_sheet([
+        ['کد محصول', 'نام واحد', 'قیمت', 'موجودی', 'درصد تخفیف'],
+        ['COF-AR-500', 'بسته ۵۰۰ گرمی', 250000, 12, 10],
+        ['COF-AR-500', 'قوطی ۱ کیلویی', 450000, 3, 0],
+        ['TEA-BLK-BAG', 'بسته ۲۵۰ گرمی', 45000, 3, 5]
+      ]);
+      const attr = XLSX.utils.aoa_to_sheet([
+        ['کد محصول', 'گروه ویژگی', 'مقدار ویژگی', 'قیمت', 'موجودی', 'درصد تخفیف'],
+        ['PST-RF-1K', 'سایز', 'L', 250000, 8, 0],
+        ['PST-RF-1K', 'سایز', 'XL', 280000, 4, 10]
+      ]);
+      XLSX.utils.book_append_sheet(wb, simple, 'ساده');
+      XLSX.utils.book_append_sheet(wb, unit, 'واحد');
+      XLSX.utils.book_append_sheet(wb, attr, 'ویژگی');
+      XLSX.writeFile(wb, 'sample-price-stock.xlsx');
+    }
+    document.getElementById('downloadSampleBtn').addEventListener('click', buildSample);
+
+    let parsedRows = [];
+
+    function parseFile(file) {
+      if (typeof XLSX === 'undefined') { alert('کتابخانه اکسل در دسترس نیست.'); return; }
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const wb = XLSX.read(e.target.result, { type: 'array' });
+          parsedRows = [];
+          wb.SheetNames.forEach(name => {
+            const sheet = wb.Sheets[name];
+            const json = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+            json.forEach(row => parsedRows.push({ sheet: name, row }));
+          });
+          showPreview(file.name);
+        } catch (err) {
+          alert('خطا در خواندن فایل: ' + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function validateRow(rec) {
+      const r = rec.row;
+      const code = (r['کد محصول'] || '').toString().trim();
+      const errors = [];
+      if (!code) errors.push('کد محصول خالی است');
+      else if (!knownProducts[code]) errors.push('محصول یافت نشد (کد ' + code + ')');
+
+      const num = v => {
+        const n = parseFloat(v);
+        return isNaN(n) ? null : n;
+      };
+      const inRange = (v, lo, hi) => v !== null && v >= lo && v <= hi;
+
+      if (rec.sheet === 'ساده') {
+        const p = num(r['قیمت اصلی']);
+        const d = r['درصد تخفیف'] === '' ? 0 : num(r['درصد تخفیف']);
+        const s = num(r['موجودی کل']);
+        if (p === null || p < 0) errors.push('قیمت اصلی نامعتبر');
+        if (d !== null && !inRange(d, 0, 100)) errors.push('درصد تخفیف باید ۰ تا ۱۰۰ باشد');
+        if (s === null || s < 0 || !Number.isInteger(s)) errors.push('موجودی باید عدد صحیح باشد');
+      } else if (rec.sheet === 'واحد') {
+        const unit = (r['نام واحد'] || '').toString().trim();
+        if (!unit) errors.push('نام واحد خالی است');
+        const p = num(r['قیمت']);
+        const d = r['درصد تخفیف'] === '' ? 0 : num(r['درصد تخفیف']);
+        const s = num(r['موجودی']);
+        if (p === null || p < 0) errors.push('قیمت واحد نامعتبر');
+        if (d !== null && !inRange(d, 0, 100)) errors.push('درصد تخفیف باید ۰ تا ۱۰۰ باشد');
+        if (s !== null && s < 0) errors.push('موجودی منفی است');
+      } else if (rec.sheet === 'ویژگی') {
+        const grp = (r['گروه ویژگی'] || '').toString().trim();
+        const val = (r['مقدار ویژگی'] || '').toString().trim();
+        if (!grp) errors.push('گروه ویژگی خالی است');
+        if (!val) errors.push('مقدار ویژگی خالی است');
+        const p = num(r['قیمت']);
+        const d = r['درصد تخفیف'] === '' ? 0 : num(r['درصد تخفیف']);
+        const s = num(r['موجودی']);
+        if (p === null || p < 0) errors.push('قیمت ویژگی نامعتبر');
+        if (d !== null && !inRange(d, 0, 100)) errors.push('درصد تخفیف باید ۰ تا ۱۰۰ باشد');
+        if (s !== null && s < 0) errors.push('موجودی منفی است');
+      } else {
+        errors.push('برگه ناشناخته: ' + rec.sheet);
+      }
+      return errors;
+    }
+
+    function showPreview(fname) {
+      fileNameLabel.textContent = fname;
+      uploadLabel.textContent = fname;
+      let valid = 0, err = 0;
+      parsedRows.forEach(rec => {
+        if (validateRow(rec).length === 0) valid++; else err++;
+      });
+      validCountLabel.textContent = valid;
+      errorCountLabel.textContent = err;
+      importResult.classList.remove('hidden');
+      importErrors.classList.add('hidden');
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    fileInput.addEventListener('change', () => {
+      const f = fileInput.files[0];
+      if (f) parseFile(f);
+    });
+
+    runImportBtn.addEventListener('click', () => {
+      let valid = 0, errors = [];
+      parsedRows.forEach(rec => {
+        const errs = validateRow(rec);
+        if (errs.length) {
+          errors.push({ row: rec, errs });
+        } else {
+          valid++;
+        }
+      });
+
+      importResult.classList.add('hidden');
+
+      importErrors.classList.remove('hidden');
+      importErrors.innerHTML = '';
+
+      // Summary card
+      const summary = document.createElement('div');
+      summary.className = 'bg-white p-4 rounded-2xl shadow-sm border border-gray-100';
+      summary.innerHTML =
+        '<h2 class="text-sm font-bold text-gray-800 mb-3">نتیجه ثبت</h2>' +
+        '<div class="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700 p-3 text-sm font-semibold">✓ ' + valid + ' ردیف با موفقیت ثبت شد</div>' +
+        (errors.length ? '<div class="mt-2 flex items-center gap-2 rounded-xl bg-red-50 border border-red-100 text-red-700 p-3 text-sm font-semibold">✕ ' + errors.length + ' ردیف با خطا رد شد</div>' : '');
+      importErrors.appendChild(summary);
+
+      // Errors list
+      if (errors.length) {
+        const errCard = document.createElement('div');
+        errCard.className = 'bg-white p-4 rounded-2xl shadow-sm border border-gray-100';
+        errCard.innerHTML = '<h2 class="text-sm font-bold text-gray-800 mb-3">خطاها (ردیف‌های ناموفق)</h2>';
+        const list = document.createElement('div');
+        list.className = 'space-y-2';
+        errors.forEach((e, idx) => {
+          const code = e.row.row['کد محصول'];
+          const item = document.createElement('div');
+          item.className = 'rounded-xl border border-red-100 bg-red-50/50 p-3';
+          item.innerHTML =
+            '<div class="flex items-center justify-between">' +
+              '<span class="text-xs font-semibold text-gray-700 truncate pe-2">' + (code || 'بدون کد') + '</span>' +
+              '<span class="text-[10px] text-gray-400 shrink-0">' + e.row.sheet + ' • ردیف ' + (idx + 1) + '</span>' +
+            '</div>' +
+            '<ul class="mt-1.5 space-y-0.5">' + e.errs.map(x => '<li class="text-xs text-red-600 flex items-start gap-1"><span>•</span><span>' + x + '</span></li>').join('') + '</ul>';
+          list.appendChild(item);
+        });
+        errCard.appendChild(list);
+        importErrors.appendChild(errCard);
+      }
+
+      window.scrollTo(0, 0);
     });
   </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a253fea60b6e91dd',t:'MTc4NTc0NjE4Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a255a5f1bfe79762',t:'MTc4NTc2MzUyNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

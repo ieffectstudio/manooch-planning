@@ -147,20 +147,89 @@ The product list shows a stock status badge per product. Rules:
 
 ---
 
+## 6A. Bulk Update via Excel Import
+
+Sellers can update pricing & stock for **many products at once** — including all three pricing types — by uploading an Excel file.
+
+### 6A.1 Access
+- A dedicated entry point on the **List screen** («ورود قیمت و موجودی با اکسل») opens the Import view.
+- The Import view is a distinct screen with its own back button.
+
+### 6A.2 Product identification (key column)
+- The unique key for each row is the **کد محصول (Product Code / SKU)**.
+- **Why not the numeric database ID?** IDs are meaningless to sellers, fragile to reference, and not printed on the product.
+- **Why not the product title?** Titles can be duplicated, are editable, and are long/RTL-prone — they break reliable matching.
+- The Product Code is **unique, immutable, stable**, and **visible on the product card** so sellers always know what to write in the column.
+- Titles/IDs are **not** used to match rows; only the Product Code is authoritative.
+
+### 6A.3 Excel structure (three sheets)
+The sample file contains **three sheets**, one per pricing type. Sellers use the sheet(s) that match their products:
+
+**Sheet «ساده» (Simple)**
+| کد محصول | قیمت اصلی | درصد تخفیف | موجودی کل |
+|---|---|---|---|
+
+**Sheet «واحد» (Unit)** — one row per unit; a product can appear on multiple rows
+| کد محصول | نام واحد | قیمت | موجودی | درصد تخفیف |
+|---|---|---|---|---|
+
+**Sheet «ویژگی» (Attribute)** — one row per attribute value; a product can appear on multiple rows
+| کد محصول | گروه ویژگی | مقدار ویژگی | قیمت | موجودی | درصد تخفیف |
+|---|---|---|---|---|---|
+
+### 6A.4 Download sample
+- A **«دانلود فایل نمونه»** button generates a ready `.xlsx` with all three sheets, correct column headers, and example rows.
+- Sellers edit this file rather than building columns from scratch.
+
+### 6A.5 Upload
+- Accepted formats: **`.xlsx` and `.xls`**.
+- File size cap: **2 MB** (MVP; adjustable).
+- Only the supported sheets/columns are processed; unknown sheets are reported as errors.
+
+### 6A.6 Validation (per row)
+Each data row is validated before any update is applied:
+- **کد محصول** required; must match an existing product → otherwise error «محصول یافت نشد».
+- **Price** required and ≥ 0.
+- **Discount %** optional, 0–100. Out of range rejected.
+- **Stock** integer ≥ 0. Negative / non-integer rejected.
+- **Unit sheet:** «نام واحد» required.
+- **Attribute sheet:** «گروه ویژگی» and «مقدار ویژگی» required.
+- A row with any validation error is **rejected entirely** (no partial update of that row).
+
+### 6A.7 Import result & error reporting (critical requirement)
+After import, the seller sees a clear result:
+- **Success summary:** count of rows successfully updated.
+- **Error summary:** count of rows rejected.
+- **Per-row error list**, each showing:
+  - the Product Code,
+  - the source sheet,
+  - the row number,
+  - the specific reason(s) — e.g., «محصول یافت نشد», «قیمت نامعتبر», «درصد تخفیف باید ۰ تا ۱۰۰ باشد».
+- Errors are **returned to the seller in the UI** so they can fix and re-upload; nothing is silently skipped.
+- A successful import refreshes the product list so badges/prices reflect the new data.
+
+### 6A.8 Non-goals (MVP)
+- No creation of new products via import (updates only).
+- No template auto-detection of arbitrary seller files (sellers must use the provided sample structure).
+- No background/large-file batch processing — synchronous import of the uploaded file.
+
+---
+
 ## 7. List Screen (انبار و قیمت‌گذاری) — Capabilities
 
 1. **Header:** Title «انبار و قیمتگذاری»; optional notification icon.
 2. **Search:** sticky, live-filter by product title (case-insensitive substring). No results → empty state «محصولی یافت نشد».
-3. **Product card** shows:
+3. **Bulk import entry:** a highlighted card («ورود قیمت و موجودی با اکسل») opens the Excel Import view (§6A).
+4. **Product card** shows:
    - Thumbnail placeholder (or product image).
    - Product title (long names truncated).
    - SKU (secondary).
    - Current price in «تومان» with formatted thousand-separators.
    - Stock status badge (§6).
    - **ویرایش (Edit)** icon button → opens edit screen for that product.
-4. **Loading state:** skeleton placeholders while list loads.
-5. **Empty state:** shown when there are no products at all (distinct from search-no-results).
-6. **Bottom navigation:** fixed 4-item Sarnakh bar (خانه / محصولات / انبار / حساب). «انبار» is the active item.
+5. **Loading state:** skeleton placeholders while list loads.
+6. **Empty state:** shown when there are no products at all (distinct from search-no-results).
+7. **Bottom navigation:** fixed 4-item Sarnakh bar (خانه / محصولات / انبار / حساب). «انبار» is the active item.
 
 ### 7.1 Current price shown on the card
 - **Simple:** the final selling price (after discount %), or base price if no discount.
@@ -228,3 +297,5 @@ The product list shows a stock status badge per product. Rules:
 - **Error/retry state** for list load failures is noted but not fully specced (recommend a lightweight retry prompt).
 - Discount as **percentage** is a confirmed decision; amount-based discounts are not supported in this version.
 - Product *capability* (which products can use Unit/Attribute) is driven by the product's configured units/attributes — the mechanism for how those are configured is a separate feature (Product Catalog), referenced but not built here.
+- **Excel import (§6A)** is updates-only (no product creation). Background batch processing, larger files, and auto-detection of arbitrary seller templates are deferred.
+- **Conflict rule (open):** if an imported row sets a pricing method (e.g., writes a «واحد» row) for a product that currently uses a different method (e.g., Attribute), the PRD must state whether the import **overrides** the existing method or **rejects** the row. Recommended default: **reject with a clear error** to avoid accidental destructive switches (consistent with the manual confirm gate in §3.3).
