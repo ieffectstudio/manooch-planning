@@ -43,22 +43,32 @@
       </div>
     </div>
 
-    <!-- Import entry (list only) -->
+    <!-- Import & Export entry (list only) -->
     <div class="px-4 pt-2">
-      <button type="button" id="importEntry" class="w-full flex items-center gap-3 bg-blue-50 border border-blue-100 rounded-2xl p-3 text-start active:bg-blue-100/60 transition">
-        <div class="w-10 h-10 shrink-0 rounded-xl bg-blue-600 flex items-center justify-center text-white">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-          </svg>
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="font-semibold text-sm text-blue-700">ورود قیمت و موجودی با اکسل</p>
-          <p class="text-[11px] text-blue-500 mt-0.5">دانلود نمونه، آپلود فایل و مشاهده خطاها</p>
-        </div>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-blue-400 shrink-0">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 4.5l-7.5 7.5 7.5 7.5" />
-        </svg>
-      </button>
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" id="importEntry" class="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-2xl p-3 text-start active:bg-blue-100/60 transition">
+          <div class="w-9 h-9 shrink-0 rounded-xl bg-blue-600 flex items-center justify-center text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <p class="font-semibold text-xs text-blue-700 truncate">ورود با اکسل</p>
+            <p class="text-[10px] text-blue-500 truncate">دانلود نمونه و آپلود</p>
+          </div>
+        </button>
+        <button type="button" id="exportEntry" class="flex items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-2xl p-3 text-start active:bg-emerald-100/60 transition">
+          <div class="w-9 h-9 shrink-0 rounded-xl bg-emerald-600 flex items-center justify-center text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <p class="font-semibold text-xs text-emerald-700 truncate">خروجی اکسل</p>
+            <p class="text-[10px] text-emerald-600 truncate">دانلود همه محصولات</p>
+          </div>
+        </button>
+      </div>
     </div>
 
     <!-- Product List -->
@@ -677,6 +687,42 @@
       showList();
     });
 
+    // ================= Excel Export =================
+    const exportEntry = document.getElementById('exportEntry');
+
+    // Full catalog data (demo) — one sheet per pricing type, matching the import structure.
+    const catalogData = {
+      simple: [
+        { 'کد محصول': 'COF-AR-500', 'قیمت اصلی': 250000, 'درصد تخفیف': 10, 'موجودی کل': 12 }
+      ],
+      unit: [
+        { 'کد محصول': 'COF-AR-500', 'نام واحد': 'بسته ۵۰۰ گرمی', 'قیمت': 250000, 'موجودی': 12, 'درصد تخفیف': 10 },
+        { 'کد محصول': 'COF-AR-500', 'نام واحد': 'قوطی ۱ کیلویی', 'قیمت': 450000, 'موجودی': 3, 'درصد تخفیف': 0 },
+        { 'کد محصول': 'TEA-BLK-BAG', 'نام واحد': 'بسته ۲۵۰ گرمی', 'قیمت': 45000, 'موجودی': 3, 'درصد تخفیف': 5 }
+      ],
+      attribute: [
+        { 'کد محصول': 'PST-RF-1K', 'گروه ویژگی': 'سایز', 'مقدار ویژگی': 'L', 'قیمت': 250000, 'موجودی': 8, 'درصد تخفیف': 0 },
+        { 'کد محصول': 'PST-RF-1K', 'گروه ویژگی': 'سایز', 'مقدار ویژگی': 'XL', 'قیمت': 280000, 'موجودی': 4, 'درصد تخفیف': 10 }
+      ]
+    };
+
+    function buildExport() {
+      if (typeof XLSX === 'undefined') { alert('کتابخانه اکسل در دسترس نیست.'); return; }
+      const wb = XLSX.utils.book_new();
+      const makeSheet = (headers, rows) => {
+        const aoa = [headers, ...rows.map(r => headers.map(h => r[h] ?? ''))];
+        return XLSX.utils.aoa_to_sheet(aoa);
+      };
+      XLSX.utils.book_append_sheet(wb,
+        makeSheet(['کد محصول', 'قیمت اصلی', 'درصد تخفیف', 'موجودی کل'], catalogData.simple), 'ساده');
+      XLSX.utils.book_append_sheet(wb,
+        makeSheet(['کد محصول', 'نام واحد', 'قیمت', 'موجودی', 'درصد تخفیف'], catalogData.unit), 'واحد');
+      XLSX.utils.book_append_sheet(wb,
+        makeSheet(['کد محصول', 'گروه ویژگی', 'مقدار ویژگی', 'قیمت', 'موجودی', 'درصد تخفیف'], catalogData.attribute), 'ویژگی');
+      XLSX.writeFile(wb, 'all-products-price-stock.xlsx');
+    }
+    exportEntry.addEventListener('click', buildExport);
+
     // ================= Excel Import =================
     const importEntry = document.getElementById('importEntry');
     const importHeader = document.getElementById('importHeader');
@@ -884,5 +930,5 @@
     });
   </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a255a5f1bfe79762',t:'MTc4NTc2MzUyNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>

@@ -215,11 +215,45 @@ After import, the seller sees a clear result:
 
 ---
 
+## 6B. Full Catalog Export (Excel)
+
+Sellers can **download all products** (with all their units and attributes) as an Excel file in a single click.
+
+### 6B.1 Access
+- A **«خروجی اکسل»** card on the List screen, placed beside the import card.
+- One tap downloads the file — no dedicated screen needed.
+
+### 6B.2 Content (three sheets)
+The export mirrors the import structure (§6A.3), so a downloaded export can be **edited and re-imported** directly (round-trip compatible):
+
+**Sheet «ساده»** — products priced in Simple mode
+| کد محصول | قیمت اصلی | درصد تخفیف | موجودی کل |
+|---|---|---|---|
+
+**Sheet «واحد»** — **all unit rows** for all products (a product may span multiple rows)
+| کد محصول | نام واحد | قیمت | موجودی | درصد تخفیف |
+|---|---|---|---|---|
+
+**Sheet «ویژگی»** — **all attribute-value rows** for all products
+| کد محصول | گروه ویژگی | مقدار ویژگی | قیمت | موجودی | درصد تخفیف |
+|---|---|---|---|---|---|
+
+### 6B.3 Behavior
+- Exports the **current** prices, stocks, and discount percentages from the seller's catalog at the time of download.
+- Includes every product and every unit/attribute row — nothing is omitted.
+- The downloaded file's structure exactly matches the import template, enabling easy bulk edits and re-upload.
+
+### 6B.4 Non-goals (MVP)
+- No filtered/partial export (e.g., by category) — full catalog only.
+- No formatting/theme styling of the workbook beyond headers.
+
+---
+
 ## 7. List Screen (انبار و قیمت‌گذاری) — Capabilities
 
 1. **Header:** Title «انبار و قیمتگذاری»; optional notification icon.
 2. **Search:** sticky, live-filter by product title (case-insensitive substring). No results → empty state «محصولی یافت نشد».
-3. **Bulk import entry:** a highlighted card («ورود قیمت و موجودی با اکسل») opens the Excel Import view (§6A).
+3. **Bulk import & export entry:** two cards beside each other — «ورود با اکسل» opens the Excel Import view (§6A), and «خروجی اکسل» downloads the full catalog (§6B).
 4. **Product card** shows:
    - Thumbnail placeholder (or product image).
    - Product title (long names truncated).
