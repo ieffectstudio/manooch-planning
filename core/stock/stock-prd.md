@@ -1,14 +1,3 @@
-Hello A.Mammad. It looks like a small part of your previous Ticketing System prompt accidentally copied over at the top, but I clearly see your new objective: building the MVP **Stock and Pricing** feature for the Seller Admin Panel.
-
-I have structured your requirements into a highly deterministic, execution-ready prompt for Claude. As requested in your global instructions, I have also strategically injected the **`/blindspot`** and **`/human`** directives. This will force Claude to proactively check for UI/UX edge cases (like RTL flexbox quirks or mobile touch targets) and get your explicit approval before it starts writing the code.
-
-Here is the exact prompt to feed your agent:
-
----
-
-**📋 COPY-PASTE THIS TO CLAUDE:**
-
-[COPY START]
 Claude, we are building a simple, streamlined "Stock and Pricing" feature for the Manooch Seller Admin Panel. This is an MVP feature; absolutely do not over-engineer it with complex warehouse management, database schemas, or ERP logic. We are strictly generating the frontend UI architecture right now.
 
 **Target Directory:** `manooch-planings\stock`
@@ -52,4 +41,3 @@ Once I approve, execute these two tasks exactly as specified:
 3. Match the clean, spacious, Shadcn-like aesthetic of the existing Manooch app.
 
 Confirm when you understand these instructions and provide your `/blindspot` analysis.
-[COPY END]
