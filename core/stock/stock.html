@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#2563eb" />
+  <title>انبار و قیمت‌گذاری</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 antialiased">
+
+  <!-- PWA mobile wrapper -->
+  <div dir="rtl" class="max-w-md mx-auto relative min-h-screen bg-gray-50 pb-28">
+
+    <!-- ================= VIEW: LIST ================= -->
+
+    <!-- List Header -->
+    <header id="listHeader" class="bg-white border-b border-gray-100 px-4 pt-5 pb-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs text-gray-400">مانوچ • پنل فروشنده</p>
+          <h1 class="text-xl font-bold text-gray-900 mt-0.5">انبار و قیمت‌گذاری</h1>
+        </div>
+        <button type="button" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500" aria-label="اعلان‌ها">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Sticky Search (list only) -->
+    <div id="searchBar" class="sticky top-0 z-30 bg-gray-50/95 backdrop-blur px-4 py-3">
+      <div class="relative">
+        <span class="absolute inset-y-0 start-3 flex items-center text-gray-400 pointer-events-none">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+        </span>
+        <input id="searchInput" type="search" inputmode="search" autocomplete="off" placeholder="جستجوی محصول..."
+               class="w-full bg-white border border-gray-200 rounded-xl ps-10 pe-4 py-3 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500" />
+      </div>
+    </div>
+
+    <!-- Product List -->
+    <main id="listView" class="px-4 space-y-3">
+
+      <!-- Card 1 — In stock -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 flex items-center gap-3 active:bg-gray-50 transition" data-product="1">
+        <div class="w-16 h-16 shrink-0 rounded-xl bg-gray-100 flex items-center justify-center overflow-hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7 text-gray-300">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="font-semibold text-sm text-gray-900 truncate">قهوه عربیکا ۵۰۰ گرمی</h3>
+          <p class="text-xs text-gray-400 mt-0.5 truncate">SKU: COF-AR-500</p>
+          <div class="flex items-center justify-between mt-2 gap-2">
+            <p class="text-gray-900 font-bold text-sm whitespace-nowrap">۲۵۰٬۰۰۰ <span class="text-xs font-medium text-gray-400">تومان</span></p>
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium px-2.5 py-1 whitespace-nowrap">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> موجود (۱۲)
+            </span>
+          </div>
+        </div>
+        <button type="button" class="edit-btn w-9 h-9 shrink-0 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-500" aria-label="ویرایش">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Card 2 — Low stock -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 flex items-center gap-3 active:bg-gray-50 transition" data-product="2">
+        <div class="w-16 h-16 shrink-0 rounded-xl bg-gray-100 flex items-center justify-center overflow-hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7 text-gray-300">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="font-semibold text-sm text-gray-900 truncate">چای سیاه ممتاز کیسه‌ای</h3>
+          <p class="text-xs text-gray-400 mt-0.5 truncate">SKU: TEA-BLK-BAG</p>
+          <div class="flex items-center justify-between mt-2 gap-2">
+            <p class="text-gray-900 font-bold text-sm whitespace-nowrap">۸۵٬۰۰۰ <span class="text-xs font-medium text-gray-400">تومان</span></p>
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-medium px-2.5 py-1 whitespace-nowrap">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> رو به اتمام (۳)
+            </span>
+          </div>
+        </div>
+        <button type="button" class="edit-btn w-9 h-9 shrink-0 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-500" aria-label="ویرایش">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Card 3 — Out of stock -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 flex items-center gap-3 active:bg-gray-50 transition" data-product="3">
+        <div class="w-16 h-16 shrink-0 rounded-xl bg-gray-100 flex items-center justify-center overflow-hidden opacity-60">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7 text-gray-300">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="font-semibold text-sm text-gray-900 truncate">پسته رفسنجان فله</h3>
+          <p class="text-xs text-gray-400 mt-0.5 truncate">SKU: PST-RF-1K</p>
+          <div class="flex items-center justify-between mt-2 gap-2">
+            <p class="text-gray-900 font-bold text-sm whitespace-nowrap">۴۵۰٬۰۰۰ <span class="text-xs font-medium text-gray-400">تومان</span></p>
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-red-50 border border-red-200 text-red-700 text-xs font-medium px-2.5 py-1 whitespace-nowrap">
+              <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> ناموجود (۰)
+            </span>
+          </div>
+        </div>
+        <button type="button" class="edit-btn w-9 h-9 shrink-0 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-500" aria-label="ویرایش">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Empty state -->
+      <div id="emptyState" class="hidden flex-col items-center text-center py-16 px-6">
+        <div class="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-gray-300">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+        </div>
+        <p class="font-medium text-gray-600">محصولی یافت نشد</p>
+        <p class="text-sm text-gray-400 mt-1">عبارت جستجو را تغییر دهید یا محصول دیگری را امتحان کنید.</p>
+      </div>
+    </main>
+
+    <!-- ================= VIEW: EDIT (hidden by default) ================= -->
+
+    <!-- Edit Header -->
+    <header id="editHeader" class="bg-white border-b border-gray-100 px-4 pt-4 pb-4 sticky top-0 z-30 hidden">
+      <div class="flex items-center gap-3">
+        <button type="button" id="backBtn" class="w-10 h-10 shrink-0 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 active:bg-gray-200 transition" aria-label="بازگشت">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 4.5l-7.5 7.5 7.5 7.5" />
+          </svg>
+        </button>
+        <div class="min-w-0">
+          <h1 class="text-lg font-bold text-gray-900 truncate">بروزرسانی قیمت و موجودی</h1>
+        </div>
+      </div>
+    </header>
+
+    <main id="editView" class="hidden px-4 pt-4 space-y-4">
+
+      <!-- Context Card -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 flex items-center gap-3">
+        <div class="w-14 h-14 shrink-0 rounded-xl bg-gray-100 flex items-center justify-center overflow-hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-gray-300">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-[11px] text-gray-400 mb-0.5">در حال ویرایش</p>
+          <h2 id="ctxTitle" class="font-semibold text-sm text-gray-900 truncate">قهوه عربیکا ۵۰۰ گرمی</h2>
+          <p id="ctxSku" class="text-xs text-gray-400 mt-0.5">SKU: COF-AR-500</p>
+        </div>
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium px-2.5 py-1 whitespace-nowrap">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> موجود (۱۲)
+        </span>
+      </div>
+
+      <!-- Form Container -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+
+        <!-- Pricing Method Toggle (3-way) -->
+        <div class="grid grid-cols-3 gap-1 bg-gray-100 rounded-xl p-1" role="tablist" aria-label="نوع قیمت‌گذاری">
+          <button type="button" role="tab" data-mode="simple" class="pricing-tab rounded-lg py-2 text-sm font-medium text-gray-500 transition">ساده</button>
+          <button type="button" role="tab" data-mode="unit" class="pricing-tab rounded-lg py-2 text-sm font-medium text-gray-500 transition">واحد</button>
+          <button type="button" role="tab" data-mode="attribute" class="pricing-tab rounded-lg py-2 text-sm font-medium text-gray-500 transition">ویژگی</button>
+        </div>
+        <p class="text-[11px] text-gray-400 mt-2 leading-relaxed">
+          نوع قیمت‌گذاری محصول: <span class="text-gray-600" id="modeLabel">ساده</span>
+        </p>
+        <p class="flex items-center gap-1.5 text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-2.5 py-1.5 mt-2 leading-relaxed">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 shrink-0">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+          </svg>
+          هر محصول فقط <b>یکی</b> از روش‌های قیمت‌گذاری (واحد یا ویژگی) را می‌تواند داشته باشد.
+        </p>
+
+        <!-- Base Pricing section -->
+        <section id="basicSection" class="mt-4 space-y-4">
+          <span class="text-xs font-bold text-gray-500">قیمت پایه</span>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5" for="basePrice">قیمت اصلی <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input id="basePrice" type="number" inputmode="numeric" min="0" value="250000"
+                     class="basic-input w-full bg-white border border-gray-200 rounded-xl ps-4 pe-16 py-3 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500" />
+              <span class="absolute inset-y-0 end-3 flex items-center text-xs text-gray-400 pointer-events-none">تومان</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5" for="discPrice">درصد تخفیف <span class="text-gray-400">(اختیاری)</span></label>
+            <div class="relative">
+              <input id="discPrice" type="number" inputmode="numeric" min="0" max="100" placeholder="٪"
+                     class="basic-input w-full bg-white border border-gray-200 rounded-xl ps-4 pe-16 py-3 text-base placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500" />
+              <span class="absolute inset-y-0 end-3 flex items-center text-xs text-gray-400 pointer-events-none">٪</span>
+            </div>
+            <p class="text-[11px] text-gray-400 mt-1">درصد تخفیف (۰ تا ۱۰۰). خالی = بدون تخفیف.</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5" for="totalStock">موجودی کل</label>
+            <input id="totalStock" type="number" inputmode="numeric" min="0" value="12"
+                   class="basic-input w-full bg-white border border-gray-200 rounded-xl pe-4 ps-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500" />
+          </div>
+        </section>
+
+        <!-- Price selector (unit / attribute mode only) -->
+        <section id="priceSelector" class="mt-4 space-y-3 hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-gray-500">قیمت انتخابی</span>
+            <span id="priceSelBadge" class="text-[11px] font-medium text-blue-600 bg-blue-50 border border-blue-100 rounded-full px-2.5 py-1">از واحد</span>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5" for="priceSelect">انتخاب واحد / ویژگی</label>
+            <select id="priceSelect" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"></select>
+          </div>
+          <div class="rounded-xl border border-gray-200 p-3 flex items-center justify-between bg-gray-50">
+            <span class="text-xs text-gray-500">قیمت این گزینه</span>
+            <span id="selectedPrice" class="text-gray-900 font-bold text-lg">—</span>
+          </div>
+          <p class="text-[11px] text-gray-400 leading-relaxed">
+            قیمت از بین گزینه‌های واحد/ویژگی انتخاب می‌شود و به‌صورت مستقیم قابل ورود نیست.
+          </p>
+        </section>
+
+        <!-- Mode: Simple note -->
+        <section id="panel-simple" class="mt-4 hidden">
+          <p class="text-xs text-gray-400 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2.5">
+            این محصول با قیمت ساده فروخته می‌شود؛ قیمت و موجودی را در بخش «قیمت پایه» بالا وارد کنید.
+          </p>
+        </section>
+
+        <!-- Mode: Unit -->
+        <section id="panel-unit" class="mt-4 space-y-4 hidden">
+          <div class="flex items-start gap-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-700 p-3 text-xs leading-relaxed">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4 mt-0.5 shrink-0">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+            </svg>
+            <span>قیمت و موجودی برای هر واحد فروش (مانند بسته، قوطی، کیسه) به‌صورت جداگانه ثبت می‌شود.</span>
+          </div>
+          <div class="space-y-3">
+            <div class="rounded-xl border border-gray-200 p-3 bg-white">
+              <p class="text-sm font-medium text-gray-800 mb-2">بسته ۵۰۰ گرمی</p>
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">قیمت (تومان)</label>
+                  <input type="number" inputmode="numeric" min="0" value="250000" class="unit-price w-full bg-gray-50 border border-gray-200 rounded-lg pe-1 ps-1 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500" />
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">موجودی</label>
+                  <input type="number" inputmode="numeric" min="0" value="12" class="unit-stock w-full bg-gray-50 border border-gray-200 rounded-lg pe-1 ps-1 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500" />
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">٪ تخفیف</label>
+                  <input type="number" inputmode="numeric" min="0" max="100" value="" placeholder="٪" class="unit-disc w-full bg-gray-50 border border-gray-200 rounded-lg pe-1 ps-1 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500" />
+                </div>
+              </div>
+            </div>
+            <div class="rounded-xl border border-gray-200 p-3 bg-white">
+              <p class="text-sm font-medium text-gray-800 mb-2">قوطی ۱ کیلویی</p>
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">قیمت (تومان)</label>
+                  <input type="number" inputmode="numeric" min="0" value="450000" class="w-full bg-gray-50 border border-gray-200 rounded-lg pe-1 ps-1 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500" />
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">موجودی</label>
+                  <input type="number" inputmode="numeric" min="0" value="3" class="w-full bg-gray-50 border border-gray-200 rounded-lg pe-1 ps-1 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500" />
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">٪ تخفیف</label>
+                  <input type="number" inputmode="numeric" min="0" max="100" value="" placeholder="٪" class="w-full bg-gray-50 border border-gray-200 rounded-lg pe-1 ps-1 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Mode: Attribute -->
+        <section id="panel-attribute" class="mt-4 space-y-4 hidden">
+          <div class="flex items-start gap-2 rounded-xl bg-violet-50 border border-violet-100 text-violet-700 p-3 text-xs leading-relaxed">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4 mt-0.5 shrink-0">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" />
+            </svg>
+            <span>فقط <b>یک گروه ویژگی</b> می‌تواند قیمت‌گذاری شود. در این محصول گروه «سایز» فعال است.</span>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">گروه ویژگی</label>
+            <select class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500">
+              <option>سایز</option>
+              <option disabled>رنگ (غیرفعال)</option>
+            </select>
+          </div>
+          <div class="space-y-3">
+            <div class="rounded-xl border border-gray-200 p-3 bg-gray-50">
+              <p class="text-sm font-medium text-gray-800 mb-2">سایز L</p>
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">قیمت (تومان)</label>
+                  <input type="number" inputmode="numeric" min="0" value="250000" class="attr-price w-full bg-white border border-gray-200 rounded-lg pe-1 ps-1 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500" />
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">موجودی</label>
+                  <input type="number" inputmode="numeric" min="0" value="8" class="attr-stock w-full bg-white border border-gray-200 rounded-lg pe-1 ps-1 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500" />
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">٪ تخفیف</label>
+                  <input type="number" inputmode="numeric" min="0" max="100" value="" placeholder="٪" class="attr-disc w-full bg-white border border-gray-200 rounded-lg pe-1 ps-1 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500" />
+                </div>
+              </div>
+            </div>
+            <div class="rounded-xl border border-gray-200 p-3 bg-gray-50">
+              <p class="text-sm font-medium text-gray-800 mb-2">سایز XL</p>
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">قیمت (تومان)</label>
+                  <input type="number" inputmode="numeric" min="0" value="280000" class="w-full bg-white border border-gray-200 rounded-lg pe-1 ps-1 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500" />
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">موجودی</label>
+                  <input type="number" inputmode="numeric" min="0" value="4" class="w-full bg-white border border-gray-200 rounded-lg pe-1 ps-1 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500" />
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">٪ تخفیف</label>
+                  <input type="number" inputmode="numeric" min="0" max="100" value="" placeholder="٪" class="w-full bg-white border border-gray-200 rounded-lg pe-1 ps-1 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- ================= BOTTOM STACK: Save CTA + Nav ================= -->
+    <div class="fixed inset-x-0 bottom-0 z-40 bg-white border-t border-gray-100">
+      <!-- Save CTA (edit only) -->
+      <div id="saveCta" class="max-w-md mx-auto px-4 pt-3 pb-2 bg-white hidden">
+        <button id="saveBtn" type="button"
+                class="w-full py-3.5 rounded-xl bg-blue-600 text-white text-base font-bold shadow-lg shadow-blue-600/25 active:bg-blue-700 transition">
+          ثبت تغییرات
+        </button>
+      </div>
+      <!-- Sarnakh Bottom Navigation -->
+      <nav class="border-t border-gray-100">
+        <div class="max-w-md mx-auto grid grid-cols-4">
+          <a href="#" class="flex flex-col items-center gap-1 py-2.5 text-gray-400 active:bg-gray-50">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
+            </svg>
+            <span class="text-[11px]">خانه</span>
+          </a>
+          <a href="#" class="flex flex-col items-center gap-1 py-2.5 text-gray-400 active:bg-gray-50">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+            </svg>
+            <span class="text-[11px]">محصولات</span>
+          </a>
+          <a href="#" class="flex flex-col items-center gap-1 py-2.5 text-blue-600 font-medium active:bg-blue-50/50">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+            </svg>
+            <span class="text-[11px]">انبار</span>
+          </a>
+          <a href="#" class="flex flex-col items-center gap-1 py-2.5 text-gray-400 active:bg-gray-50">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            </svg>
+            <span class="text-[11px]">حساب</span>
+          </a>
+        </div>
+        <div class="h-[env(safe-area-inset-bottom)] bg-white"></div>
+      </nav>
+    </div>
+
+    <!-- ===== Success Toast ===== -->
+    <div id="toast" class="fixed top-5 inset-x-0 z-50 hidden">
+      <div class="max-w-md mx-auto px-4">
+        <div class="flex items-center gap-2 rounded-xl bg-emerald-600 text-white text-sm font-medium px-4 py-3 shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 shrink-0">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+          </svg>
+          تغییرات با موفقیت ذخیره شد
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Confirm modal: switching complex pricing mode ===== -->
+    <div id="confirmModal" class="fixed inset-0 z-50 hidden">
+      <div class="absolute inset-0 bg-black/40"></div>
+      <div class="absolute inset-0 flex items-end justify-center">
+        <div class="max-w-md w-full mx-auto bg-white rounded-t-2xl p-5 pb-6 shadow-xl">
+          <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4"></div>
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 shrink-0 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-bold text-gray-900 text-base">تغییر روش قیمت‌گذاری</h3>
+              <p class="text-sm text-gray-500 mt-1 leading-relaxed">
+                هر محصول فقط می‌تواند <b>یکی</b> از روش‌های قیمت‌گذاری را داشته باشد. با تغییر، قیمت‌ها و موجودی روش فعلی حذف می‌شود. ادامه می‌دهید؟
+              </p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3 mt-5">
+            <button id="confirmCancel" type="button" class="py-3 rounded-xl border border-gray-200 text-gray-700 text-sm font-semibold active:bg-gray-50 transition">انصراف</button>
+            <button id="confirmOk" type="button" class="py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold active:bg-blue-700 transition">بله، تغییر بده</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ================= View routing (list <-> edit) =================
+    const listHeader = document.getElementById('listHeader');
+    const searchBar = document.getElementById('searchBar');
+    const listView = document.getElementById('listView');
+    const editHeader = document.getElementById('editHeader');
+    const editView = document.getElementById('editView');
+    const saveCta = document.getElementById('saveCta');
+
+    function showList() {
+      listHeader.classList.remove('hidden');
+      searchBar.classList.remove('hidden');
+      listView.classList.remove('hidden');
+      editHeader.classList.add('hidden');
+      editView.classList.add('hidden');
+      saveCta.classList.add('hidden');
+      window.scrollTo(0, 0);
+    }
+
+    function showEdit() {
+      listHeader.classList.add('hidden');
+      searchBar.classList.add('hidden');
+      listView.classList.add('hidden');
+      editHeader.classList.remove('hidden');
+      editView.classList.remove('hidden');
+      saveCta.classList.remove('hidden');
+      window.scrollTo(0, 0);
+    }
+
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        showEdit();
+      });
+    });
+    document.getElementById('backBtn').addEventListener('click', showList);
+
+    // ================= Search filter =================
+    const searchInput = document.getElementById('searchInput');
+    const cards = Array.from(document.querySelectorAll('#listView > [data-product]'));
+    const emptyState = document.getElementById('emptyState');
+
+    searchInput.addEventListener('input', function () {
+      const q = this.value.trim();
+      let visible = 0;
+      cards.forEach(card => {
+        const title = card.querySelector('h3').textContent;
+        const match = title.includes(q);
+        card.style.display = match ? '' : 'none';
+        if (match) visible++;
+      });
+      emptyState.style.display = visible === 0 ? 'flex' : 'none';
+    });
+
+    // ================= Pricing mode tabs =================
+    const modes = ['simple', 'unit', 'attribute'];
+    const labels = { simple: 'ساده', unit: 'واحد', attribute: 'ویژگی' };
+    const tabs = document.querySelectorAll('.pricing-tab');
+    const modeLabel = document.getElementById('modeLabel');
+    const basicSection = document.getElementById('basicSection');
+    const priceSelector = document.getElementById('priceSelector');
+    const priceSelect = document.getElementById('priceSelect');
+    const selectedPrice = document.getElementById('selectedPrice');
+    const priceSelBadge = document.getElementById('priceSelBadge');
+    const basePrice = document.getElementById('basePrice');
+    const discPrice = document.getElementById('discPrice');
+    const totalStock = document.getElementById('totalStock');
+    let activeMode = 'simple';
+    let simpleSaved = { base: basePrice.value, disc: discPrice.value, stock: totalStock.value };
+
+    // Options shown in the price selector, per mode
+    const priceOptions = {
+      unit: [
+        { label: 'بسته ۵۰۰ گرمی', price: '۲۵۰٬۰۰۰' },
+        { label: 'قوطی ۱ کیلویی', price: '۴۵۰٬۰۰۰' }
+      ],
+      attribute: [
+        { label: 'سایز L', price: '۲۵۰٬۰۰۰' },
+        { label: 'سایز XL', price: '۲۸۰٬۰۰۰' }
+      ]
+    };
+
+    function populatePriceSelector(mode) {
+      priceSelect.innerHTML = '';
+      const options = priceOptions[mode] || [];
+      options.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o.price;
+        opt.textContent = o.label + ' — ' + o.price + ' تومان';
+        priceSelect.appendChild(opt);
+      });
+      priceSelBadge.textContent = mode === 'unit' ? 'از واحد' : 'از ویژگی';
+      updateSelectedPrice();
+    }
+
+    function updateSelectedPrice() {
+      selectedPrice.textContent = priceSelect.value ? priceSelect.value + ' تومان' : '—';
+    }
+    priceSelect.addEventListener('change', updateSelectedPrice);
+
+    function applyMode(mode) {
+      // remember simple values before leaving simple mode
+      if (activeMode === 'simple' && mode !== 'simple') {
+        simpleSaved = { base: basePrice.value, disc: discPrice.value, stock: totalStock.value };
+      }
+      activeMode = mode;
+      tabs.forEach(tab => {
+        const isActive = tab.dataset.mode === mode;
+        tab.classList.toggle('bg-white', isActive);
+        tab.classList.toggle('shadow-sm', isActive);
+        tab.classList.toggle('text-gray-900', isActive);
+        tab.classList.toggle('font-semibold', isActive);
+        tab.classList.toggle('text-gray-500', !isActive);
+      });
+      modes.forEach(m => {
+        document.getElementById('panel-' + m).classList.toggle('hidden', m !== mode);
+      });
+      // Base pricing shows only in simple mode; unit/attribute use the price selector instead
+      const showBasic = mode === 'simple';
+      basicSection.classList.toggle('hidden', !showBasic);
+      priceSelector.classList.toggle('hidden', showBasic);
+      if (!showBasic) populatePriceSelector(mode);
+      modeLabel.textContent = labels[mode];
+    }
+
+    const complexModes = ['unit', 'attribute'];
+    function setMode(mode) {
+      if (mode === activeMode) return;
+      if (complexModes.includes(mode) && complexModes.includes(activeMode)) {
+        openConfirm(mode);
+        return;
+      }
+      applyMode(mode);
+    }
+
+    // ---- Confirm dialog ----
+    const confirmModal = document.getElementById('confirmModal');
+    let pendingMode = null;
+    function openConfirm(mode) { pendingMode = mode; confirmModal.classList.remove('hidden'); }
+    document.getElementById('confirmOk').addEventListener('click', () => {
+      confirmModal.classList.add('hidden');
+      if (pendingMode) applyMode(pendingMode);
+      pendingMode = null;
+    });
+    document.getElementById('confirmCancel').addEventListener('click', () => {
+      confirmModal.classList.add('hidden');
+      pendingMode = null;
+    });
+
+    tabs.forEach(tab => tab.addEventListener('click', () => setMode(tab.dataset.mode)));
+    applyMode('simple');
+
+    // ---- Save feedback ----
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      const toast = document.getElementById('toast');
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 2600);
+      // optionally return to list after save
+      showList();
+    });
+  </script>
+
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a253fea60b6e91dd',t:'MTc4NTc0NjE4Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
