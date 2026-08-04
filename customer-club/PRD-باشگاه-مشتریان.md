@@ -1,283 +1,286 @@
-# PRD — باشگاه مشتریان (پنل ادمین فروشگاه‌ساز)
+# PRD — Customer Loyalty Club (Store Builder Admin Panel)
 
-**نسخه:** 1.0 — **تاریخ:** مرداد ۱۴۰۵ — **وضعیت:** تأییدشده / آماده توسعه
-
----
-
-## ۱. خلاصه اجرایی
-
-«باشگاه مشتریان» ماژول وفاداری و اس‌ام‌اس مارکتینگ برای فروشگاه‌های آنلاین و حضوری است که در **پنل ادمین فروشگاه‌ساز** ارائه می‌شود. هدف، تبدیل مشتریان عادی به مشتریان وفادار از طریق **سیستم امتیاز، پیامک‌های هوشمند و خودکار، ابزارهای جذب و بازگشت مشتری، و فروشگاه ایتم‌های امتیازی (کلاب)** است.
-
-محصول در **قالب موبایل** طراحی می‌شود (مدیریت فروشگاه از موبایل)، با فونت **راوی** و ساختار کاملاً راست‌به‌چپ (RTL).
-
-### ارزش‌های کلیدی محصول
-1. **رشد فروش**: جذب مشتری جدید (رفرال/لیدمگنت) و بازگشت مشتریان ریزشی (هدف‌گیری مجدد/یادآوری)
-2. **نگه‌داشت مشتری**: امتیاز، کلاب، گردونه شانس، مناسبت‌ها
-3. **تصمیم‌گیری مبتنی بر داده**: گزارشات جامع، بخش‌بندی RFM، جزئیات ارسال پیامک
-4. **اتوماسیون کامل**: پیامک‌های خودکار بر اساس رویداد (تولد، X روز بدون خرید، انقضا و…)
+**Version:** 1.0 — **Date:** Mordad 1405 — **Status:** Approved / Ready for development
 
 ---
 
-## ۲. اهداف و معیارهای موفقیت (KPIs)
+## 1. Executive Summary
 
-| هدف | معیار (KPI) | مقدار هدف (۶ ماه اول) |
+The "Customer Loyalty Club" is a loyalty and SMS-marketing module for online and physical stores, offered in the **store builder's admin panel**. Its goal is to convert ordinary customers into loyal customers through a **points system, smart automated SMS, customer acquisition and win-back tools, and a store for point-based items (Club)**.
+
+The product is designed in a **mobile format** (store management from mobile), using the **Ravi** font and a fully **right-to-left (RTL)** structure.
+
+### Key Product Values
+1. **Sales growth**: acquiring new customers (referral/lead magnet) and win-back of churned customers (retargeting/reminders)
+2. **Customer retention**: points, club, wheel of fortune, occasions
+3. **Data-driven decisions**: comprehensive reports, RFM segmentation, SMS send details
+4. **Full automation**: event-based automated SMS (birthday, X days without purchase, expiry, etc.)
+
+---
+
+## 2. Goals and Success Metrics (KPIs)
+
+| Goal | Metric (KPI) | Target (first 6 months) |
 |---|---|---|
-| افزایش عضویت | تعداد مشتریان باشگاه | +۳۰٪ |
-| بازگشت مشتریان | نرخ استفاده از اعتبار هدف‌گیری مجدد | ≥ ۴۵٪ |
-| جذب از طریق دعوت | نرخ تبدیل ریفرال | ≥ ۴۰٪ |
-| تعامل پیامکی | نرخ تحویل | ≥ ۹۶٪ |
-| مشارکت | مشارکت در نظرسنجی‌ها | ≥ ۲۵٪ |
-| مصرف امتیاز | امتیاز مصرف‌شده (کلاب/گردونه/تخفیف) | ≥ ۳۰٪ امتیاز صادرشده |
-| ریزش | کاهش مشتریان در خطر ریزش | −۲۰٪ |
+| Increase membership | Number of club customers | +30% |
+| Customer win-back | Retargeting credit usage rate | ≥ 45% |
+| Acquisition via invite | Referral conversion rate | ≥ 40% |
+| SMS engagement | Delivery rate | ≥ 96% |
+| Participation | Survey participation | ≥ 25% |
+| Points usage | Points spent (club/wheel/discount) | ≥ 30% of issued points |
+| Churn | Reduction of at-risk customers | −20% |
 
 ---
 
-## ۳. مخاطبان و سناریوهای کاربری
+## 3. Audiences and Usage Scenarios
 
-| نقش | نیاز اصلی | سناریوی کلیدی |
+| Role | Primary Need | Key Scenario |
 |---|---|---|
-| **مالک/مدیر فروشگاه** | رشد فروش و وفاداری | پیامک گروهی به بخش «در خطر ریزش» با تخفیف ۲۰٪ |
-| **اپراتور بازاریابی** | اجرای کمپین‌ها | ساخت گردونه نوروزی → اتصال به کمپین → پایش برندگان |
-| **کارشناس پشتیبانی** | مدیریت مشتریان | مشاهده سوابق خرید و امتیاز مشتری، ثبت کش‌بک |
-| **مشتری نهایی** (اپ مشتری) | استفاده از امتیازها | خرید ایتم از کلاب / چرخش گردونه با امتیاز |
+| **Store owner/manager** | Sales growth and loyalty | Bulk SMS to the "at risk of churn" segment with a 20% discount |
+| **Marketing operator** | Running campaigns | Build Nowruz wheel → link to campaign → monitor winners |
+| **Support specialist** | Managing customers | View customer purchase history and points, record cashback |
+| **End customer** (customer app) | Using points | Buy an item from the club / spin the wheel with points |
 
 ---
 
-## ۴. محدوده محصول
+## 4. Product Scope
 
-### ۴.۱ در محدوده (نسخه ۱)
-- پنل ادمین موبایلی با ۵ تب اصلی + زیرصفحه‌ها
-- مدیریت امتیاز و قوانین، بخش‌بندی (امتیاز/RFM/برچسب)
-- کمپین‌های پیامکی (خودکار/دستی/هوشمند AI)، قالب‌های پیام با دسته‌بندی
-- ۱۰ ابزار وفاداری (فهرست در بخش ۷.۳)
-- کلاب: تعریف ایتم با تصویر + خرید امتیازی + صفحه مشتری
-- گزارشات جامع و جزئیات ارسال (موفق/خطا/نرسیده)
-- سوابق خرید مشتریان و اعتبار هدیه (کش‌بک)
+### 4.1 In Scope (Version 1)
+- Mobile admin panel with 5 main tabs + subpages
+- Points and rules management, segmentation (points/RFM/labels)
+- SMS campaigns (automated/manual/smart AI), categorized message templates
+- 10 loyalty tools (listed in section 7.3)
+- Club: define items with image + points purchase + customer page
+- Comprehensive reports and send details (success/error/undelivered)
+- Customer purchase history and gift credit (cashback)
 
-### ۴.۲ خارج از محدوده (نسخه‌های بعدی)
-- اپلیکیشن مستقل مشتری (فعلاً صفحه پیش‌نمایش درون پنل)
-- اتصال درگاه پرداخت واقعی برای خرید اعتبار پیامک
-- سناریوی وب (فعلاً موبایل‌فرست)
-- نمره‌دهی RFM خودکار مبتنی بر ML (نسخه ۲)
+### 4.2 Out of Scope (Later Versions)
+- Standalone customer app (currently an in-panel preview page)
+- Real payment gateway integration for buying SMS credit
+- Web scenario (currently mobile-first)
+- ML-based automated RFM scoring (version 2)
 
 ---
 
-## ۵. اصول طراحی
+## 5. Design Principles
 
-### ۵.۱ تایپوگرافی — فونت راوی (Ravi)
-| المان | وزن |
+### 5.1 Typography — Ravi font
+
+| Element | Weight |
 |---|---|
-| h1 (تیتر صفحه/کارت) | **SemiBold (600)** |
-| h2 (تیتر بخش/زیرتیتر) | **Medium (500)** |
-| متن بدنه | **Regular (400)** |
+| h1 (page/card title) | **SemiBold (600)** |
+| h2 (section title/subtitle) | **Medium (500)** |
+| Body text | **Regular (400)** |
 
-> راوی فونت تجاری (فونت ایران) است؛ فایل‌های woff2 لایسنس‌دار در پوشه `fonts/` قرار می‌گیرند و تا زمان نبود آن‌ها «وزیرمتن» به‌عنوان فالبک نمایش داده می‌شود.
+> Ravi is a commercial font (FontIran); licensed woff2 files go in the `fonts/` folder, and until they are available "Vazirmatn" is shown as a fallback.
 
-### ۵.۲ رنگ و فاصله‌گذاری
-- **رنگ اصلی:** بنفش `#6C4DF6` — پس‌زمینه `#F4F5FA` — متن `#181B26`
-- رنگ‌های وضعیت: موفق `#12B76A`، خطا `#F04438`، هشدار `#F79009`
-- گپ کارت‌ها ۱۴px، پدینگ کارت ۱۶px، فاصله عنوان‌بخش ۲۸px
+### 5.2 Color and Spacing
+- **Primary color:** Purple `#6C4DF6` — background `#F4F5FA` — text `#181B26`
+- Status colors: success `#12B76A`, error `#F04438`, warning `#F79009`
+- Card gap 14px, card padding 16px, section-title spacing 28px
 
-### ۵.۳ قالب
-- **موبایل‌فرست** (۳۹۰×۸۴۴) با قاب تلفن در دسکتاپ
-- RTL کامل + اعداد فارسی (تبدیل خودکار)
+### 5.3 Layout
+- **Mobile-first** (390×844) with a phone frame on desktop
+- Full RTL + Persian numerals (automatic conversion)
 
 ---
 
-## ۶. معماری اطلاعات و ناوبری
+## 6. Information Architecture and Navigation
 
 ```
-نوار پایین (۵ تب)
-├── ۱) داشبورد
-│     ├── هدر: دکمه «مدیریت فروشگاه» (لایت) + تایتل زیر منو
-│     ├── کارت اعتبار پیامک، آمار، نمودار ارسال
-│     ├── کارت‌های ورود: کلاب، گزارشات
-│     └── اکشن‌های سریع ابزارها
-├── ۲) کمپین‌ها و ساختار باشگاه  (۳ تب داخلی)
-│     ├── کمپین‌ها (لیست + CTA پیامک گروهی)
-│     ├── ساختار باشگاه (فعال/پیکربندی ۵ ابزار)
-│     └── قالب‌های پیام
-├── ۳) ابزارها (هاب ۱۰ ابزار — هرکدام: تنظیمات + تاریخچه)
-├── ۴) مشتریان
-│     ├── جستجو/فیلتر بخش‌بندی
-│     ├── مودال گزارش مشتری (امتیازها + سوابق خرید)
-│     └── ورود به بخش‌بندی پیشرفته
-└── ۵) تنظیمات (۳ تب)
-      ├── امتیازها و قوانین
-      ├── پیامک‌های خودکار
-      └── عمومی
+Bottom bar (5 tabs)
+
+├── 1) Dashboard
+│     ├── Header: "Manage Store" button (light) + subtitle under menu title
+│     ├── SMS credit card, stats, send chart
+│     ├── Entry cards: Club, Reports
+│     └── Tool quick actions
+├── 2) Campaigns and Club Structure (3 inner tabs)
+│     ├── Campaigns (list + bulk SMS CTA)
+│     ├── Club structure (active/configure 5 tools)
+│     └── Message templates
+├── 3) Tools (hub of 10 tools — each: settings + history)
+├── 4) Customers
+│     ├── Search/segmentation filter
+│     ├── Customer report modal (points + purchase history)
+│     └── Entry to advanced segmentation
+└── 5) Settings (3 tabs)
+      ├── Points and rules
+      ├── Automated SMS
+      └── General
 ```
 
-**زیرصفحه‌ها** (با دکمه بازگشت و هایلایت تب والد): رفرال، مناسبت‌ها، پیامک منطقه‌ای، کلاب (+ صفحه مشتری کلاب)، پیامک گروهی، هدف‌گیری مجدد، گردونه شانس، نظرسنجی، رادار، یادآوری، مدیریت امتیازها، بخش‌بندی، قالب‌های پیام، گزارشات.
+**Subpages** (with back button and parent-tab highlight): referral, occasions, regional SMS, club (+ club customer page), bulk SMS, retargeting, wheel of fortune, survey, radar, reminders, points management, segmentation, message templates, reports.
 
 ---
 
-## ۷. ماژول‌های عملکردی
+## 7. Functional Modules
 
-### ۷.۱ داشبورد
-- **هدر:** دکمه «مدیریت فروشگاه» (استایل لایت، فقط این صفحه) + تایتل «باشگاه مشتریان» زیر منوی بالا
-- **کارت اعتبار پیامک:** موجودی، مصرف ماه، نوار پیشرفت، خرید اعتبار (ارتباط درگاه در نسخه ۲)
-- **آمار:** مشتریان، فعال، کمپین‌های فعال، امتیاز صادرشده
-- **نمودار** ارسال ۷ روز اخیر + **بخش‌بندی هوشمند** + **اکشن‌های سریع**
-- **کارت‌های ورود:** کلاب و گزارشات
-- **اعلان‌ها** (نماد در هدر)
+### 7.1 Dashboard
+- **Header:** "Manage Store" button (light style, this page only) + "Customer Loyalty Club" title below the top menu
+- **SMS credit card:** balance, monthly usage, progress bar, buy credit (gateway integration in version 2)
+- **Stats:** customers, active, active campaigns, issued points
+- **Chart** of last 7 days of sends + **smart segmentation** + **quick actions**
+- **Entry cards:** Club and Reports
+- **Notifications** (icon in header)
 
-### ۷.۲ کمپین‌ها و ساختار باشگاه
-**تب کمپین‌ها:**
-- لیست کمپین‌های خودکار (تولد، خوش‌آمدگویی، انقضای امتیاز، سبد رهاشده) و دستی
-- مودال تنظیمات هر کمپین: **تب «تنظیمات»** (رویداد، ساعت، فعال، ساعات کاری، پیامک اختصاصی با پیش‌نمایش) + **تب «گزارش ارسال»** (موفق/خطا/نرسیده + نوار نسبی + آخرین پیامک)
-- **ابزار متصل:** انتخاب گردونه/نظرسنجی برای لینک‌کردن پیامک
-- فیلتر خودکار/دستی + CTA پیامک گروهی
+### 7.2 Campaigns and Club Structure
 
-**تب ساختار باشگاه:**
-- کارت پیکربندی ۵ ابزار: هدف‌گیری مجدد، گردونه شانس، نظرسنجی، رادار، یادآوری — با سوئیچ فعال و دکمه پیکربندی
+**Campaigns tab:**
+- List of automated campaigns (birthday, welcome, points expiry, abandoned cart) and manual ones
+- Settings modal per campaign: **"Settings" tab** (event, time, active, business hours, dedicated SMS with preview) + **"Send report" tab** (success/error/undelivered + relative bar + last SMS)
+- **Linked tool:** select wheel/survey to link the SMS
+- Auto/manual filter + bulk SMS CTA
 
-**تب قالب‌های پیام:** ۳ قالب سریع + لینک صفحه کامل قالب‌ها
+**Club structure tab:**
+- Configuration card for 5 tools: retargeting, wheel of fortune, survey, radar, reminders — with active switch and configure button
 
-### ۷.۳ ابزارها (۱۰ ابزار)
+**Message templates tab:** 3 quick templates + link to the full templates page
 
-| ابزار | ورودی صفحه | قابلیت‌ها |
+### 7.3 Tools (10 tools)
+
+| Tool | Page Entry | Capabilities |
 |---|---|---|
-| **رفرال (جذب مشتری)** | `acquire` | کد دعوت، پاداش دعوت‌کننده/دعوت‌شونده، سقف روزانه، پیامک دعوت، تاریخچه + **لیدمگنت** (لینک لندینگ، قیف تبدیل، هدیه) + **کمپین هوشمند AI** (تولید متن، پیشنهاد مخاطب/زمان، پیش‌بینی باز شدن) |
-| **مناسبت‌ها** | `occasions` | تولد (پیش‌فرض، غیرقابل حذف) + مناسبت‌های سفارشی (عنوان، تاریخ، ساعت، دسته مشتریان، پیامک با `{مناسبت}`) + تاریخچه |
-| **پیامک گروهی** | `smsgroup` | انتخاب چندبخشی گیرندگان، شمارنده ۳۲۰ کاراکتر، برآورد هزینه زنده، پیش‌نمایش، قالب‌های سریع، زمان‌بندی، تنظیمات ارسال، تاریخچه |
-| **یادآوری** | `reminders` | قاعده: «اگر X روز از آخرین خرید گذشت ← پیامک خودکار» — روزهای ۷/۳۰/۶۰/۹۰ یا دلخواه، بخش‌بندی، متغیر `{روز}`، تاریخچه با جزئیات |
-| **هدف‌گیری مجدد** | `buyback` | درصد اعتبار بازگشتی، سقف، مهلت، حداقل سبد، پیامک‌ها + **تب کش‌بک**: ثبت اعتبار هدیه (مشتری/مبلغ/دلیل) + تاریخچه |
-| **گردونه شانس** | `lucky` | **چند گردونه با ایتم‌های متفاوت** (نام جایزه + شانس + رنگ، ردیف‌های پویا، مجموع ۱۰۰٪) — تب‌ها: گردونه‌ها / چرخش و جوایز / برندگان / تنظیمات — **جزئیات هر گردونه شامل برندگان همان گردونه** + لینک پیش‌نمایش مشتری |
-| **نظرسنجی** | `surveys` | ساخت چند نظرسنجی (عنوان/سوال/گزینه‌های پویا)، ارسال لینک کوتاه در پیامک، نتایج درصدی، یادآوری به بی‌پاسخ‌ها، پاداش امتیاز |
-| **رادار (Zone)** | `zones` | محدوده‌های مکانی با **دو حالت: نقطه‌ای (شعاع) و ذوزنقه‌ای (کلیک روی نقشه برای رئوس)** — پیامک اختصاصی هر منطقه، یک پیامک در ۲۴ ساعت |
-| **پیامک منطقه‌ای** | `regional` | انتخاب **سلسله‌مراتبی استان → شهر → محله** (چند انتخابی) + **سهمیه ارسال** (از N شماره موجود، M تا بفرست — ورودی عددی/اسلایدر) + هزینه زنده |
-| **کلاب** | `club` | ایتم‌های امتیازی با **بارگذاری تصویر**، دسته (کالا/تخفیف/سرویس)، قیمت امتیاز، موجودی + خرید اعضا + تنظیمات + **صفحه مشتری** (موجودی، خرید با کد دریافت) |
+| **Referral (customer acquisition)** | `acquire` | Invite code, inviter/invitee reward, daily cap, invite SMS, history + **lead magnet** (landing link, conversion funnel, gift) + **AI smart campaign** (text generation, audience/time suggestion, open-rate prediction) |
+| **Occasions** | `occasions` | Birthday (default, cannot be deleted) + custom occasions (title, date, time, customer category, SMS with `{occasion}`) + history |
+| **Bulk SMS** | `smsgroup` | Multi-segment recipient selection, 320-character counter, live cost estimate, preview, quick templates, scheduling, send settings, history |
+| **Reminders** | `reminders` | Rule: "if X days since last purchase ← automated SMS" — days 7/30/60/90 or custom, segmentation, `{days}` variable, history with details |
+| **Retargeting** | `buyback` | Return credit percentage, cap, deadline, minimum cart, SMSs + **cashback tab**: record gift credit (customer/amount/reason) + history |
+| **Wheel of fortune** | `lucky` | **Multiple wheels with different items** (prize name + chance + color, dynamic rows, total 100%) — tabs: wheels / spins and prizes / winners / settings — **details of each wheel including that wheel's winners** + customer preview link |
+| **Survey** | `surveys` | Create multiple surveys (title/question/dynamic options), send short link in SMS, percentage results, reminder to non-respondents, points reward |
+| **Radar (Zone)** | `zones` | Geographic zones with **two modes: point (radius) and trapezoid (click on map for vertices)** — dedicated SMS per zone, one SMS in 24 hours |
+| **Regional SMS** | `regional` | **Hierarchical selection province → city → neighborhood** (multi-select) + **send quota** (from N available numbers, send to M — numeric/slider input) + live cost |
+| **Club** | `club` | Point-based items with **image upload**, category (product/discount/service), points price, stock + member purchases + settings + **customer page** (balance, purchase with redemption code) |
 
-### ۷.۴ مشتریان
-- جستجو (نام/موبایل) + فیلتر بخش‌بندی (VIP، وفادار، تازه‌وارد، در خطر ریزش)
-- **مودال گزارش مشتری:** کارت‌های موجودی/کسب‌شده/مصرف‌شده + **تب «امتیازها»** (تاریخچه با دلیل: خرید، پاداش، چرخش، نظرسنجی، کلاب، انقضا…) + **تب «سوابق خرید»** (ایتم، مبلغ، تاریخ، کانال) + ارسال پیامک
-- ورود به **بخش‌بندی پیشرفته** (امتیاز / RFM / برچسب‌ها)
+### 7.4 Customers
+- Search (name/mobile) + segmentation filter (VIP, loyal, newcomer, at risk of churn)
+- **Customer report modal:** balance/earned/spent cards + **"Points" tab** (history with reason: purchase, reward, spin, survey, club, expiry, etc.) + **"Purchase history" tab** (item, amount, date, channel) + send SMS
+- Entry to **advanced segmentation** (points / RFM / labels)
 
-### ۷.۵ کلاب
-- **ادمین (۳ تب):** ایتم‌ها (تصویر/دسته/قیمت/موجودی) • خرید اعضا • تنظیمات (حداقل امتیاز، سقف روزانه، قالب پیامک تأیید با `{ایتم}` `{کد}`)
-- **مشتری (صفحه پیش‌نمایش):** کارت موجودی، دسته‌بندی ایتم‌ها، خرید با امتیاز → کسر موجودی + کد دریافت + خطای «امتیاز کافی نیست»
+### 7.5 Club
+- **Admin (3 tabs):** Items (image/category/price/stock) • member purchases • settings (minimum points, daily cap, confirmation SMS template with `{item}` `{code}`)
+- **Customer (preview page):** balance card, item categorization, purchase with points → stock deduction + redemption code + "insufficient points" error
 
-### ۷.۶ گزارشات
-- فیلتر بازه (امروز/ماه/۳ ماه/سال)
-- KPI: پیامک ارسالی، نرخ تحویل، امتیاز صادر/مصرف
-- **عملکرد پیامک‌ها** (موفق/خطا/نرسیده + تحلیل) • **ارسال هفتگی** • **گزارش ابزارها** • **قیف چرخه مشتری** (بازدید → لید → مشتری جدید → بازگشت → ریزش) + فروش کل و میانگین سفارش • ترند مشتریان
-- ورود: کارت داشبورد، دکمه «گزارش ارسال‌ها»، «گزارش کامل» امتیازها، «مشاهده گزارش کامل» جزئیات ارسال
+### 7.6 Reports
+- Date-range filter (today/month/3 months/year)
+- KPIs: SMS sent, delivery rate, points issued/spent
+- **SMS performance** (success/error/undelivered + analysis) • **weekly sends** • **tools report** • **customer lifecycle funnel** (visit → lead → new customer → return → churn) + total sales and average order • customer trend
+- Entries: dashboard card, "send report" button, "full report" for points, "view full report" for send details
 
-### ۷.۷ تنظیمات (۳ تب)
-- **امتیازها و قوانین:** خوش‌آمدگویی ۱۰۰، هر ۱۰ هزار تومان = ۱ امتیاز، ارزش هر ۱۰۰ امتیاز = ۱۰٬۰۰۰ تومان، حداقل تبدیل ۵۰۰، اعتبار ۱۲ ماه، گرد کردن + قالب‌های پیامک امتیاز
-- **پیامک‌های خودکار:** ۵ سوئیچ (خوش‌آمد، تولد، انقضا، سبد رهاشده، خبر VIP)
-- **عمومی:** خط پیش‌فرض، ساعات کاری (۹–۲۱)، امضای پیامک، اعلان ادمین
+### 7.7 Settings (3 tabs)
+- **Points and rules:** welcome 100, every 10,000 Toman = 1 point, every 100 points = 10,000 Toman, minimum redemption 500, 12-month validity, rounding + points message templates
+- **Automated SMS:** 5 switches (welcome, birthday, expiry, abandoned cart, VIP news)
+- **General:** default sender, business hours (9–21), SMS signature, admin notifications
 
-### ۷.۸ قالب‌های پیام (صفحه جدا)
-- ۹ دسته: تولد، خوش‌آمدگویی، انقضا، جشنواره، هدف‌گیری مجدد، گردونه شانس، نظرسنجی، رادار، عمومی
-- فیلتر دسته + «استفاده در کمپین» + «ویرایش» (نام/دسته/متن) + ساخت با «+»
-- متغیرهای مشترک: `{نام}` `{امتیاز}` `{کد تخفیف}` `{تاریخ}` `{اعتبار}` `{جایزه}` `{موجودی}` `{عنوان}` `{لینک}` `{روز}` `{منطقه}` `{ایتم}`
+### 7.8 Message Templates (separate page)
+- 9 categories: birthday, welcome, expiry, festival, retargeting, wheel of fortune, survey, radar, general
+- Category filter + "use in campaign" + "edit" (name/category/text) + create with "+"
+- Common variables: `{name}` `{points}` `{discount code}` `{date}` `{credit}` `{prize}` `{balance}` `{title}` `{link}` `{days}` `{zone}` `{item}`
 
-### ۷.۹ بخش‌بندی مشتریان
-- **بر اساس امتیاز:** برنز/نقره/طلایی/الماس
-- **RFM:** تحلیل R (آخرین خرید) / F (تعداد) / M (مبلغ) + دسته‌ها (قهرمانان، وفادار، در خطر، جدید، خفته) با هدف‌گیری
-- **برچسب‌های دلخواه:** محصول، درگاه پرداخت، کانال جذب — ساخت/حذف + مشتریان دارای برچسب
+### 7.9 Customer Segmentation
+- **By points:** Bronze/Silver/Gold/Diamond
+- **RFM:** R (last purchase) / F (frequency) / M (monetary) analysis + categories (champions, loyal, at risk, new, dormant) with targeting
+- **Custom labels:** product, payment gateway, acquisition channel — create/delete + customers with label
 
 ---
 
-## ۸. قوانین امتیازدهی (پیش‌فرض)
+## 8. Points Rules (default)
 
-| رویداد | امتیاز |
+| Event | Points |
 |---|---|
-| خوش‌آمدگویی | ۱۰۰ |
-| هر ۱۰٬۰۰۰ تومان خرید | ۱ |
-| هر چرخش گردونه | ۵ (مشارکت) |
-| پاسخ نظرسنجی | ۵۰ |
-| دعوت دوست (دعوت‌کننده / دعوت‌شونده) | ۵۰۰ / ۲۵۰ |
-| تکمیل فرم لیدمگنت | ۱۰۰ |
-| تبدیل لید به خرید | کد ۱۵٪ |
-| انقضا | بعد از ۱۲ ماه |
+| Welcome | 100 |
+| Every 10,000 Toman purchase | 1 |
+| Each wheel spin | 5 (participation) |
+| Survey response | 50 |
+| Invite a friend (inviter / invitee) | 500 / 250 |
+| Lead magnet form completion | 100 |
+| Lead-to-purchase conversion | 15% code |
+| Expiry | after 12 months |
 
 ---
 
-## ۹. قوانین پیامک و سهمیه‌ها
+## 9. SMS Rules and Quotas
 
-- حداکثر **۳۲۰ کاراکتر** هر پیامک • هزینه **۲۵۰ تومان/پیامک** (از اعتبار کسر می‌شود)
-- ارسال فقط در **ساعات کاری ۹–۲۱** (قابل تنظیم)
-- **حداکثر ۲ پیامک روزانه به هر مشتری** (پیامک گروهی)
-- رادار: حداکثر **یک پیامک در ۲۴ ساعت** به هر عبورکننده
-- یادآوری: حداکثر یک پیامک در بازه ۳۰ روزه
-- سهمیه منطقه‌ای: ارسال به N شماره از کل شماره‌های انتخاب‌شده (انتخاب تصادفی)
-- توقف ارسال به مشتریان غیرفعال (۶۰ روز) — قابل غیرفعال‌کردن
-
----
-
-## ۱۰. جریان‌های کلیدی کاربر
-
-### جریان A — بازگشت مشتری ریزشی
-داشبورد → «در خطر ریزش» → ساخت قانون یادآوری (۶۰ روز) → پیامک خودکار با کد تخفیف → رصد در تاریخچه/جزئیات ارسال
-
-### جریان B — راه‌اندازی کلاب
-کلاب → ساخت ایتم (تصویر، قیمت امتیاز، موجودی) → فعال‌سازی → پیش‌نمایش صفحه مشتری → پایش خرید اعضا
-
-### جریان C — کمپین با گردونه
-گردونه شانس → ساخت گردونه با ایتم‌های سفارشی → کمپین‌ها → کمپین جدید → انتخاب «ابزار متصل: گردونه» → اجرا → جزئیات گردونه (برندگان)
-
-### جریان D — پیامک منطقه‌ای هدفمند
-پیامک منطقه‌ای → استان (تهران) → شهر (گرگان) → محله‌ها → سهمیه (۱۰۰۰ از ۱۲٬۰۰۰) → ارسال → تاریخچه
+- Maximum **320 characters** per SMS • cost **250 Toman/SMS** (deducted from credit)
+- Sending only during **business hours 9–21** (configurable)
+- **Maximum 2 daily SMS per customer** (bulk SMS)
+- Radar: maximum **one SMS in 24 hours** to each passerby
+- Reminder: maximum one SMS per 30-day window
+- Regional quota: send to N numbers out of the total selected numbers (random selection)
+- Stop sending to inactive customers (60 days) — can be disabled
 
 ---
 
-## ۱۱. الزامات غیرعملکردی
+## 10. Key User Flows
 
-| حوزه | الزام |
+### Flow A — Win back a churned customer
+Dashboard → "at risk of churn" → create reminder rule (60 days) → automated SMS with discount code → track in history/send details
+
+### Flow B — Set up the Club
+Club → create item (image, points price, stock) → activate → preview customer page → monitor member purchases
+
+### Flow C — Campaign with wheel
+Wheel of fortune → create wheel with custom items → Campaigns → new campaign → select "linked tool: wheel" → run → wheel details (winners)
+
+### Flow D — Targeted regional SMS
+Regional SMS → province (Tehran) → city (Gorgan) → neighborhoods → quota (1,000 of 12,000) → send → history
+
+---
+
+## 11. Non-Functional Requirements
+
+| Domain | Requirement |
 |---|---|
-| **پلتفرم** | موبایل‌فرست (اولویت iOS/Android WebView) — ریسپانسیو تا ۳۹۰px |
-| **عملکرد** | تک‌فایل HTML بدون وابستگی؛ لود < ۲ ثانیه؛ فونت با `font-display:swap` |
-| **دسترس‌پذیری** | RTL، اعداد فارسی، کنتراست حداقل AA، اندازه لمسی ≥ ۴۰px |
-| **امنیت** | لینک‌ها/کدها با توکن یکتا؛ توقف ارسال به شماره‌های نامعتبر؛ محدودیت سهمیه ضد سوءاستفاده |
-| **خطا** | توست برای همه اقدامات؛ اعتبارسنجی فرم‌ها با پیام فارسی |
-| **لوکال‌استور** | دموی فعلی state را در حافظه نگه می‌دارد؛ نسخه تولید: API فروشگاه‌ساز |
+| **Platform** | Mobile-first (iOS/Android WebView priority) — responsive down to 390px |
+| **Performance** | Single-file HTML with no dependencies; load < 2 seconds; font with `font-display:swap` |
+| **Accessibility** | RTL, Persian numerals, at least AA contrast, touch size ≥ 40px |
+| **Security** | Links/codes with unique tokens; stop sending to invalid numbers; anti-abuse quota limits |
+| **Errors** | Toast for all actions; form validation with Persian messages |
+| **Local storage** | Current demo holds state in memory; production version: store builder API |
 
 ---
 
-## ۱۲. وابستگی‌ها و یکپارچه‌سازی‌ها
+## 12. Dependencies and Integrations
 
-- **موتور پیامک**: پنل اس‌ام‌اس (کسر از اعتبار، گزارش تحویل/خطا/نرسیده)
-- **فروشگاه‌ساز**: سفارش‌ها، مشتریان، کدهای تخفیف، درگاه (برای خرید اعتبار)
-- **موقعیت‌یاب**: اپ مشتری (برای رادار) + کد پستی/پروفایل (برای منطقه‌ای)
-- **لینک کوتاه‌ساز**: لینک نظرسنجی/ریفرال/لندینگ
-- **هوش مصنوعی**: سرویس تولید متن + پیشنهاد مخاطب/زمان (نسخه ۱: ماک‌آپ)
+- **SMS engine**: SMS panel (deduct from credit, delivery/error/undelivered report)
+- **Store builder**: orders, customers, discount codes, gateway (for buying credit)
+- **Location service**: customer app (for radar) + postal code/profile (for regional)
+- **Link shortener**: survey/referral/landing links
+- **AI**: text-generation service + audience/time suggestion (version 1: mock-up)
 
 ---
 
-## ۱۳. نقشه راه (فازبندی)
+## 13. Roadmap (phases)
 
-| فاز | محتوا |
+| Phase | Content |
 |---|---|
-| **فاز ۱ (MVP)** | امتیاز و قوانین، پیامک گروهی، کمپین‌های خودکار، قالب‌ها، مشتریان، تنظیمات |
-| **فاز ۲ (وفاداری)** | کلاب، گردونه شانس، هدف‌گیری مجدد + کش‌بک، نظرسنجی، مناسبت‌ها |
-| **فاز ۳ (جذب و هوشمندی)** | رفرال، لیدمگنت، کمپین هوشمند AI، بخش‌بندی RFM/برچسب |
-| **فاز ۴ (مکانی و مقیاس)** | رادار، پیامک منطقه‌ای (استان/شهر/محله + سهمیه)، گزارشات فروش |
-| **فاز ۵ (تولید)** | اتصال API، درگاه، اپ مشتری واقعی، آپلود تصویر به سرور، RFM مبتنی بر ML |
+| **Phase 1 (MVP)** | Points and rules, bulk SMS, automated campaigns, templates, customers, settings |
+| **Phase 2 (loyalty)** | Club, wheel of fortune, retargeting + cashback, survey, occasions |
+| **Phase 3 (acquisition and intelligence)** | Referral, lead magnet, AI smart campaign, RFM/label segmentation |
+| **Phase 4 (geographic and scale)** | Radar, regional SMS (province/city/neighborhood + quota), sales reports |
+| **Phase 5 (production)** | API integration, gateway, real customer app, image upload to server, ML-based RFM |
 
 ---
 
-## ۱۴. ریسک‌ها و نکات باز
+## 14. Risks and Open Points
 
-1. **رعایت قوانین اس‌ام‌اس**: نیاز به سازوکار انصراف (لغو ۵) و حداقل فاصله ارسال‌ها
-2. **سوءاستفاده ریفرال**: سقف پاداش روزانه + تأیید اولین خرید دعوت‌شونده
-3. **حجم تصاویر کلاب**: حداکثر ۲ مگابایت/تصویر + کش CDN
-4. **دقت RFM**: تعریف آستانه‌ها با مشتری (نسخه ۱ پیش‌فرض‌ها)
-5. **دقت سهمیه منطقه‌ای**: انتخاب تصادفی باید عادلانه و بدون تکرار در بازه باشد
-6. **فونت راوی**: نیاز به لایسنس؛ فالبک وزیرمتن برای توسعه
+1. **SMS regulations**: need an opt-out mechanism (reply 5) and a minimum interval between sends
+2. **Referral abuse**: daily reward cap + confirmation of the invitee's first purchase
+3. **Club image size**: max 2 MB/image + CDN caching
+4. **RFM accuracy**: define thresholds with the client (defaults in version 1)
+5. **Regional quota accuracy**: random selection must be fair and non-repeating within the window
+6. **Ravi font**: license required; Vazirmatn fallback for development
 
 ---
 
-## ۱۵. پیوست: واژه‌نامه
+## 15. Appendix: Glossary
 
-| واژه | تعریف |
+| Term | Definition |
 |---|---|
-| **کلاب** | فروشگاه ایتم‌های امتیازی که مشتری با امتیاز می‌خرد |
-| **هدف‌گیری مجدد** | اعتبار بازگشتی به ازای خرید (در خرید بعدی) + کش‌بک |
-| **رادار** | پیامک به عبورکنندگان از محدوده‌های مکانی تعریف‌شده |
-| **سهمیه ارسال** | تعداد مشخصی از کل شماره‌های یک انتخاب (منطقه‌ای) |
-| **کش‌بک** | اعتبار هدیه دستی برای مشتری خاص |
-| **لیدمگنت** | جذب بازدیدکننده با فرم/لندینگ و هدیه و تبدیل به مشتری |
-| **RFM** | تحلیل بر اساس Recency / Frequency / Monetary |
+| **Club** | Store of point-based items that the customer buys with points |
+| **Retargeting** | Return credit for a purchase (on the next purchase) + cashback |
+| **Radar** | SMS to passersby within defined geographic zones |
+| **Send quota** | A specified number out of the total numbers of a selection (regional) |
+| **Cashback** | Manual gift credit for a specific customer |
+| **Lead magnet** | Attracting a visitor with a form/landing and gift, converting to a customer |
+| **RFM** | Analysis based on Recency / Frequency / Monetary |
