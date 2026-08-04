@@ -1,273 +1,274 @@
-# PRD — منوچ: بخش سفارش‌گیری ویزیتور (موبایل)
+# PRD — Manouch: Visitor Ordering Module (Mobile)
 
 | | |
 |---|---|
-| **محصول** | فروشگاه‌ساز «منوچ» — ماژول سفارش‌گیری برای ویزیتورها |
-| **نسخه سند** | 1.0 |
-| **وضعیت** | در حال توسعه (نمونه اولیه کارا آماده است) |
-| **تاریخ** | ۱۱ مرداد ۱۴۰۵ (۲۰۲۶-۰۸-۰۲) |
-| **پلتفرم هدف** | موبایل‌فرست (Mobile-First) — مرورگر گوشی |
+| **Product** | "Manouch" store builder — Order-taking module for visitors |
+| **Document version** | 1.0 |
+| **Status** | In development (working prototype is ready) |
+| **Date** | Mordad 11, 1405 (2026-08-02) |
+| **Target platform** | Mobile-First — phone browser |
 
 ---
 
-## ۱. خلاصه اجرایی
+## 1. Executive Summary
 
-بخش سفارش‌گیری «منوچ» یک داشبورد موبایلی است که به **ویزیتور** (فروشندهٔ سیار) اجازه می‌دهد برای مشتری‌های حاضر در محل، سفارش ثبت کند. ویزیتور ممکن است هم‌زمان با **چند فروشگاه** همکاری کند؛ بنابراین داشبورد باید امکان **سوییچ بین فروشگاه‌ها** را فراهم کند و با هر سوییچ، **داده‌های کاملاً متفاوت** (محصولات، مشتری‌ها و آمار روز) را نمایش دهد.
+The "Manouch" ordering module is a mobile dashboard that allows a **visitor** (mobile salesperson) to register orders for customers present on-site. A visitor may work with **multiple stores** simultaneously; therefore the dashboard must support **switching between stores**, and with each switch it must display **completely different data** (products, customers, and daily stats).
 
-جریان اصلی: **انتخاب مشتری ← جستجو ← فیلتر ← افزودن به سبد ← مشاهدهٔ سبد ← نهایی‌سازی ← ثبت نهایی سفارش**.
-
----
-
-## ۲. اهداف و غیراهداف
-
-### اهداف (Goals)
-- ثبت سریع سفارش توسط ویزیتور در موبایل با کمترین تعداد ضربه.
-- نمایش هویت ویزیتور (نام + عکس) در بالای صفحه.
-- پشتیبانی از چند فروشگاه و سوییچ آسان بین آن‌ها.
-- نمایش آمار روز (تعداد سفارش و درآمد امروز) به‌تفکیک فروشگاه فعال.
-- جداسازی کامل داده‌ها (سبد، مشتری، آمار) بین فروشگاه‌ها.
-- طراحی کاملاً فارسی/راست‌چین با اعداد فارسی.
-
-### غیراهداف (Non-Goals)
-- مدیریت کاتالوگ محصولات (افزودن/ویرایش/حذف) در این ماژول.
-- پرداخت آنلاین واقعی (در نسخه فعلی فقط انتخاب روش پرداخت).
-- ماژول مدیریت سفارش‌های در انتظار/تاریخچه سفارش‌ها (نسخه آینده).
-- نسخه دسکتاپ/تبلت کامل.
+Main flow: **Select customer ← search ← filter ← add to cart ← view cart ← finalize ← final order registration**.
 
 ---
 
-## ۳. شخصیت کاربر (Persona)
+## 2. Goals and Non-Goals
 
-**ویزیتور (فروشنده سیار):**
-- کاربر موبایل‌محور، معمولاً در محل فروشگاه یا حین ملاقات با مشتری.
-- با چند فروشگاه تحت برند «منوچ» همکاری می‌کند (مثلاً کافه، رستوران، فست‌فود).
-- نیاز دارد در لحظه بداند برای هر فروشگاه چند سفارش و چه درآمدی داشته است.
-- انتظار دارد با انتخاب فروشگاه، منو، قیمت‌ها، مشتری‌ها و آمار همان فروشگاه را ببیند.
+### Goals
+- Rapid order registration by the visitor on mobile with the minimum number of taps.
+- Display the visitor's identity (name + photo) at the top of the page.
+- Support for multiple stores and easy switching between them.
+- Display daily stats (order count and today's income) per active store.
+- Complete data separation (cart, customer, stats) between stores.
+- Fully Persian/RTL design with Persian numerals.
+
+### Non-Goals
+- Product catalog management (add/edit/delete) in this module.
+- Real online payment (in the current version, only payment method selection).
+- Pending orders / order history management module (future version).
+- Full desktop/tablet version.
 
 ---
 
-## ۴. داستان‌های کاربری
+## 3. User Persona
 
-| # | داستان کاربری |
+**Visitor (mobile salesperson):**
+- Mobile-first user, usually at the store location or during a customer meeting.
+- Works with multiple stores under the "Manouch" brand (e.g., café, restaurant, fast food).
+- Needs to know in real time how many orders and what income they have for each store.
+- Expects that by selecting a store, they see that store's menu, prices, customers, and stats.
+
+---
+
+## 4. User Stories
+
+| # | User Story |
 |---|---|
-| US-1 | به‌عنوان ویزیتور، می‌خواهم نام و عکس خودم را بالای صفحه ببینم تا مطمئن شوم با حساب درست وارد شده‌ام. |
-| US-2 | به‌عنوان ویزیتور، می‌خواهم با منوی همبرگری (☰) لیست فروشگاه‌های خودم را با آمارشان ببینم و بین آن‌ها سوییچ کنم. |
-| US-3 | به‌عنوان ویزیتور، می‌خواهم تعداد سفارش و درآمد امروز خودم را **برای همان فروشگاه فعال** ببینم. |
-| US-4 | به‌عنوان ویزیتور، می‌خواهم با تغییر فروشگاه، منو، دسته‌بندی‌ها، مشتری‌ها و آمار متفاوت ببینم. |
-| US-5 | به‌عنوان ویزیتور، می‌خواهم مشتری را از دراپ‌داون انتخاب کنم یا مشتری جدید بسازم. |
-| US-6 | به‌عنوان ویزیتور، می‌خواهم محصولات را جستجو و بر اساس دسته فیلتر کنم و به سبد اضافه کنم. |
-| US-7 | به‌عنوان ویزیتور، می‌خواهم سبد را ببینم، تعداد را کم/زیاد کنم و به نهایی‌سازی بروم. |
-| US-8 | به‌عنوان ویزیتور، می‌خواهم فقط روش پرداخت و توضیحات را مشخص کنم (بدون نوع سفارش/شماره میز) و سفارش را نهایی ثبت کنم. |
-| US-9 | به‌عنوان ویزیتور، می‌خواهم بعد از ثبت، شماره سفارش و خلاصه آن را ببینم و بتوانم سفارش جدیدی شروع کنم. |
+| US-1 | As a visitor, I want to see my name and photo at the top of the page to make sure I'm logged in with the correct account. |
+| US-2 | As a visitor, I want to use the hamburger menu (☰) to see the list of my stores with their stats and switch between them. |
+| US-3 | As a visitor, I want to see the number of orders and my income today **for that same active store**. |
+| US-4 | As a visitor, I want to see a different menu, categories, customers, and stats when I change the store. |
+| US-5 | As a visitor, I want to select a customer from the dropdown or create a new customer. |
+| US-6 | As a visitor, I want to search products, filter by category, and add them to the cart. |
+| US-7 | As a visitor, I want to view the cart, increase/decrease quantities, and proceed to checkout. |
+| US-8 | As a visitor, I want to specify only the payment method and notes (no order type/table number) and finalize the order. |
+| US-9 | As a visitor, I want to see the order number and its summary after registration, and be able to start a new order. |
 
 ---
 
-## ۵. جریان کاربری اصلی
+## 5. Main User Flow
 
 ```
-ورود ویزیتور
+Visitor login
    │
    ▼
-هدر: ☰ + پروفایل ویزیتور (نام و عکس) + نام فروشگاه فعال + ساعت + وضعیت آنلاین
+Header: ☰ + Visitor profile (name and photo) + active store name + clock + online status
    │
    ▼
-آمار فروشگاه فعال: سفارش امروز | درآمد امروز | مشتری فعال
+Active store stats: today's orders | today's income | active customers
    │
    ▼
-انتخاب مشتری (دراپ‌داون + جستجو + افزودن مشتری جدید)
+Select customer (dropdown + search + add new customer)
    │
    ▼
-جستجوی محصول ← فیلتر دسته‌بندی (چیپ‌ها)
+Search products ← category filter (chips)
    │
    ▼
-لیست محصولات ← افزودن به سبد (+) / تغییر تعداد (+/−)
+Product list ← add to cart (+) / change quantity (+/−)
    │
    ▼
-نوار سبد چسبان ← مشاهده سبد (ویرایش اقلام)
+Sticky cart bar ← view cart (edit items)
    │
    ▼
-نهایی‌سازی: مشتری ← روش پرداخت ← توضیحات ← خلاصه فاکتور
+Checkout: customer ← payment method ← notes ← invoice summary
    │
    ▼
-ثبت نهایی ← صفحه موفقیت (شماره سفارش + خلاصه) ← سفارش جدید
+Final registration ← success page (order number + summary) ← new order
 ```
 
-**مسیر موازی (سوییچ فروشگاه):** در هر لحظه از طریق منوی همبرگری ☰ ← «فروشگاه‌های من» ← انتخاب فروشگاه؛ پس از سوییچ همهٔ داده‌ها (منو، مشتری‌ها، آمار، سبد) به فروشگاه جدید تغییر می‌کند.
+**Parallel path (store switching):** at any moment via the hamburger menu ☰ ← "My Stores" ← select store; after switching, all data (menu, customers, stats, cart) changes to the new store.
 
 ---
 
-## ۶. الزامات عملکردی (بخش‌بندی صفحه)
+## 6. Functional Requirements (Page Breakdown)
 
-### ۶.۱ هدر
-- **منوی همبرگری (☰):** بازکنندهٔ دراور سوییچ فروشگاه. **تنها نقطهٔ سوییچ فروشگاه** در کل برنامه.
-- **پروفایل ویزیتور:** عکس پروفایل (با فالبک حرف اول نام) + نام ویزیتور + نام فروشگاه فعال (با ایموجی فروشگاه).
-- ساعت زنده (شمسی) و نشان «آنلاین».
+### 6.1 Header
+- **Hamburger menu (☰):** opens the store-switching drawer. **The only store-switch point** in the entire app.
+- **Visitor profile:** profile photo (with first-letter fallback) + visitor's name + active store name (with store emoji).
+- Live (Shamsi/Jalali) clock and "Online" indicator.
 
-### ۶.۲ نوار آمار (وابسته به فروشگاه فعال)
-- تعداد سفارش امروز (پایه + جلسهٔ فعلی).
-- درآمد امروز (فرمت: میلیون/هزار با اعداد فارسی).
-- تعداد مشتری‌های فعال فروشگاه.
-- پس از ثبت هر سفارش، آمار همان فروشگاه به‌روزرسانی می‌شود.
+### 6.2 Stats Bar (dependent on active store)
+- Number of today's orders (base + current session).
+- Today's income (format: million/thousand with Persian numerals).
+- Number of active customers of the store.
+- After each order registration, that store's stats are updated.
 
-### ۶.۳ انتخاب مشتری
-- کنترل دراپ‌داون (شیت) با جستجوی نام.
-- نمایش آواتار (حرف اول)، نام و شماره تماس.
-- گزینه «افزودن مشتری جدید» (نام + موبایل) — مشتری جدید به فهرست همان فروشگاه اضافه می‌شود.
-- انتخاب مشتری پیش‌فرض: «مهمان».
+### 6.3 Customer Selection
+- Dropdown (sheet) control with name search.
+- Shows avatar (first letter), name, and phone number.
+- "Add new customer" option (name + mobile) — the new customer is added to that store's list.
+- Default customer selection: "Guest".
 
-### ۶.۴ جستجو و فیلتر
-- اینپوت جستجو با دکمهٔ پاک‌کردن (✕).
-- جستجو در نام و توضیحات محصولات فروشگاه فعال.
-- فیلتر دسته‌بندی به‌صورت چیپ‌های افقی (دسته‌ها از دادهٔ فروشگاه می‌آیند).
+### 6.4 Search and Filter
+- Search input with clear button (✕).
+- Searches in the name and description of the active store's products.
+- Category filter as horizontal chips (categories come from the store's data).
 
-### ۶.۵ لیست محصولات
-- کارت محصول: ایموجی/تیل، نام، توضیح، قیمت (تومان، اعداد فارسی).
-- دکمهٔ افزودن (+) که پس از افزودن به استپر (−/+ تعداد) تبدیل می‌شود.
-- حالت خالی/بدون نتیجه با پیام مناسب.
+### 6.5 Product List
+- Product card: emoji/tile, name, description, price (Toman, Persian numerals).
+- Add button (+) which turns into a stepper (−/+ quantity) after adding.
+- Empty/no-result state with an appropriate message.
 
-### ۶.۶ سبد خرید
-- نوار چسبان پایین صفحه (فقط وقتی سبد غیرخالی است): تعداد، مبلغ کل، دکمهٔ «مشاهده سبد».
-- شیت سبد: لیست اقلام با استپر و دکمهٔ حذف (🗑)، جمع اقلام، مبلغ قابل پرداخت.
-- سبد خرید **به‌ازای هر فروشگاه جدا** ذخیره می‌شود و پس از سوییچ/بازگشت حفظ می‌شود.
+### 6.6 Shopping Cart
+- Sticky bar at the bottom of the page (only when the cart is non-empty): count, total amount, "View Cart" button.
+- Cart sheet: item list with steppers and delete button (🗑), item total, payable amount.
+- The cart is **stored separately per store** and is preserved after switching/returning.
 
-### ۶.۷ نهایی‌سازی سفارش
-فقط سه بخش (طبق درخواست مشتری، **بدون نوع سفارش و شماره میز**):
-1. **سفارش از طرف** — نمایش/تغییر مشتری انتخاب‌شده.
-2. **روش پرداخت** — در محل / کارت‌خوان / آنلاین (انتخاب تکی).
-3. **توضیحات (اختیاری)** — فیلد متنی چندخطی.
-4. **خلاصه سفارش** — اقلام (نام × تعداد، قیمت)، جمع اقلام، مبلغ نهایی.
-- دکمهٔ «✅ ثبت نهایی سفارش».
+### 6.7 Order Checkout
+Only three sections (per the client's request, **without order type and table number**):
+1. **Order on behalf of** — display/change the selected customer.
+2. **Payment method** — on-site / card terminal / online (single selection).
+3. **Notes (optional)** — multi-line text field.
+4. **Order summary** — items (name × quantity, price), item total, final amount.
+- "✅ Finalize order" button.
 
-### ۶.۸ صفحهٔ موفقیت
-- انیمیشن تیک.
-- شماره سفارش (چهار رقمی).
-- خلاصه: فروشگاه، مشتری، روش پرداخت، تعداد اقلام، مبلغ نهایی.
-- دکمه‌های «بستن» و «سفارش جدید».
+### 6.8 Success Page
+- Checkmark animation.
+- Order number (four digits).
+- Summary: store, customer, payment method, item count, final amount.
+- "Close" and "New Order" buttons.
 
-### ۶.۹ منوی همبرگری (سوییچ فروشگاه)
-- کارت پروفایل کامل ویزیتور (عکس، نام، نقش، شماره تماس).
-- عنوان «فروشگاه‌های من» + لیست فروشگاه‌ها؛ هر ردیف: ایموجی فروشگاه، نام، شهر، سفارش امروز، درآمد امروز.
-- فروشگاه فعال با تیک ✓ و هایلایت مشخص است.
-- دکمهٔ «خروج از حساب» (غیرفعال در نمونه).
-- **سوییچ فروشگاه فقط از این منو انجام می‌شود؛ نوار فروشگاه در صفحه اصلی وجود ندارد.**
+### 6.9 Hamburger Menu (Store Switch)
+- Full visitor profile card (photo, name, role, phone number).
+- "My Stores" title + store list; each row: store emoji, name, city, today's orders, today's income.
+- The active store is marked with a ✓ checkmark and highlight.
+- "Log out" button (disabled in the prototype).
+- **Store switching is done only from this menu; there is no store bar on the main page.**
 
 ---
 
-## ۷. مدل داده (پیشنهادی برای اتصال به بک‌اند)
+## 7. Data Model (proposed for backend integration)
 
 ```js
-// ویزیتور
+// Visitor
 VISITOR = {
-  name: 'آرش کمالی', phone: '۰۹۱۲ ۱۲۳ ۴۵۶۷',
-  role: 'ویزیتور فروش · منوچ', avatar: 'assets/avatar.png'
+  name: 'Arash Kamali', phone: '0912 123 4567',
+  role: 'Sales visitor · Manouch', avatar: 'assets/avatar.png'
 }
 
-// فروشگاه (هر فروشگاه = یک دیتاست مستقل)
+// Store (each store = an independent dataset)
 STORES = [{
-  id: 's1', name: 'کافه منوچ مرکزی', city: 'تهران', emoji: '☕', tile: 't1',
-  orders: 12,          // سفارش امروز (پایه)
-  income: 8400000,     // درآمد امروز (پایه)
-  categories: ['همه', 'نوشیدنی گرم', ...],
+  id: 's1', name: 'Manouch Central Café', city: 'Tehran', emoji: '☕', tile: 't1',
+  orders: 12,          // today's orders (base)
+  income: 8400000,     // today's income (base)
+  categories: ['All', 'Hot drinks', ...],
   products: [{ id, name, desc, price, cat, emoji, tile }],
   customers: [{ id, name, phone }]
 }, ...]
 
-// وضعیت جلسه
+// Session state
 state = {
-  storeId, cart,          // سبد جاری فروشگاه فعال
-  carts: { sid: {pid: qty} },  // سبد مجزای هر فروشگاه
+  storeId, cart,            // current cart of the active store
+  carts: { sid: {pid: qty} },   // separate cart per store
   custSel: { sid: customerId },
   pay: 'cash', note: '',
-  sessionStats: { sid: { orders, income } }  // افزایش‌های جلسه
+  sessionStats: { sid: { orders, income } }  // session increments
 }
 
-// سفارش ثبت‌شده (پیشنهادی برای API)
+// Registered order (proposed for the API)
 ORDER = { storeId, customerId, items:[{pid, qty}], total,
           payMethod, note, createdAt, orderNo }
 ```
 
-**قوانین داده:**
-- سبد، مشتری انتخاب‌شده و آمار جلسه به‌ازای هر `storeId` جدا هستند.
-- با ثبت سفارش، `sessionStats[storeId]` افزایش می‌یابد و در آمار نمایش داده می‌شود.
+**Data rules:**
+- Cart, selected customer, and session stats are separate per `storeId`.
+- Upon order registration, `sessionStats[storeId]` is incremented and displayed in the stats.
 
 ---
 
-## ۸. سیستم طراحی
+## 8. Design System
 
-| المان | مشخصات |
+| Element | Specification |
 |---|---|
-| **جهت صفحه** | راست‌چین (RTL) |
-| **زبان/اعداد** | فارسی + اعداد فارسی با جداکننده هزارگان |
-| **فونت اصلی** | **راوی (Ravi)** — ⚠️ فونت تجاری، نیازمند لایسنس وب (فعلاً فالبک وزیرمتن) |
-| **تایتل اصلی** | وزن **SemiBold (600)** |
-| **تایتل دوم** | وزن **Medium (500)** |
-| **متن بدنه** | وزن **Regular (400)** |
-| **رنگ پرایمری** | **زغال سنگی** — `#37424C` (تیره: `#262E35`، ملایم: `#E9EDF0`) |
-| **رنگ‌های مکمل** | پس‌زمینه `#F4F3EE`، متن `#1C2433`، متن کم‌رنگ `#7A8194`، خط جداکننده `#ECEBE4`، خطا `#E5484D`، هشدار `#F59E0B` |
-| **اجزای تعاملی** | چیپ‌ها/دکمه‌ها/استپرها: Medium (500) |
-| **شکل ظاهری** | گوشه‌های گرد (۱۸px)، سایه ملایم، شیت‌های پایین‌محور (Bottom Sheet) |
+| **Page direction** | RTL |
+| **Language/Numerals** | Persian + Persian numerals with thousands separator |
+| **Primary font** | **Ravi** — ⚠️ Commercial font, requires web license (currently falls back to Vazirmatn) |
+| **Main title** | **SemiBold (600)** weight |
+| **Secondary title** | **Medium (500)** weight |
+| **Body text** | **Regular (400)** weight |
+| **Primary color** | **Stone charcoal** — `#37424C` (dark: `#262E35`, light: `#E9EDF0`) |
+| **Complementary colors** | Background `#F4F3EE`, text `#1C2433`, muted text `#7A8194`, divider `#ECEBE4`, error `#E5484D`, warning `#F59E0B` |
+| **Interactive components** | Chips/buttons/steppers: Medium (500) |
+| **Visual style** | Rounded corners (18px), soft shadow, bottom sheets |
 
-**توجه:** فونت راوی محصول «فونت‌ایران» (طراح: رضا بختیاری‌فرد) است و استفادهٔ تجاری/وب/فروشگاه‌ساز نیاز به خرید لایسنس دارد. تا زمان تهیهٔ فایل‌های دارای مجوز، از فونت رایگان «وزیرمتن» به‌عنوان فالبک استفاده می‌شود (CSS آماده است).
-
----
-
-## ۹. الزامات غیرعملکردی
-
-- **موبایل‌فرست:** حداکثر عرض قاب ۴۶۰px؛ در دسکتاپ وسط‌چین نمایش داده می‌شود.
-- **بدون وابستگی خارجی:** HTML/CSS/JS خالص؛ فونت‌ها محلی؛ کارکرد آفلاین.
-- **عملکرد:** رندر مجدد فقط بخش‌های درگیر؛ انیمیشن‌های سبک CSS.
-- **تجربه لمسی:** ناحیه‌های کلیک ≥ ۴۰px؛ فیدبک فشردن (`:active`).
-- **دسترس‌پذیری پایه:** برچسب‌های معنایی، فالبک تصویر، کنتراست مناسب.
-- **قابلیت اتصال به بک‌اند:** داده‌ها در دو آبجکت مرکزی `VISITOR` و `STORES` قرار دارند تا با API جایگزین شوند.
+**Note:** The Ravi font is a product of "FontIran" (designer: Reza Bakhtiari Fard) and commercial/web/store-builder use requires purchasing a license. Until licensed files are obtained, the free "Vazirmatn" font is used as a fallback (CSS is ready).
 
 ---
 
-## ۱۰. معیارهای پذیرش (Acceptance Criteria)
+## 9. Non-Functional Requirements
 
-| # | معیار |
+- **Mobile-first:** maximum frame width 460px; centered on desktop.
+- **No external dependencies:** pure HTML/CSS/JS; local fonts; offline operation.
+- **Performance:** re-render only the affected sections; light CSS animations.
+- **Touch experience:** click areas ≥ 40px; `:active` press feedback.
+- **Basic accessibility:** semantic labels, image fallback, adequate contrast.
+- **Backend integration readiness:** data sits in two central objects, `VISITOR` and `STORES`, to be replaced with an API.
+
+---
+
+## 10. Acceptance Criteria
+
+| # | Criterion |
 |---|---|
-| AC-1 | ویزیتور در بالای صفحه نام و عکس خودش را می‌بیند. |
-| AC-2 | آمار «سفارش امروز» و «درآمد امروز» برای فروشگاه فعال نمایش داده می‌شود. |
-| AC-3 | با ضربه روی ☰، منوی همبرگری با لیست فروشگاه‌ها و آمار هرکدام باز می‌شود. |
-| AC-4 | سوییچ فروشگاه فقط از منوی همبرگری ممکن است و در صفحه اصلی دکمه/نوار فروشگاه وجود ندارد. |
-| AC-5 | پس از سوییچ، منو، دسته‌بندی‌ها، مشتری‌ها و آمار به دادهٔ فروشگاه جدید تغییر می‌کند. |
-| AC-6 | سبد خرید هر فروشگاه مستقل است؛ با سوییچ و بازگشت حفظ می‌شود. |
-| AC-7 | مشتری از دراپ‌داون انتخاب یا «مشتری جدید» ساخته می‌شود (مربوط به همان فروشگاه). |
-| AC-8 | جریان کامل ثبت سفارش (مشتری ← جستجو ← فیلتر ← افزودن ← سبد ← نهایی‌سازی ← ثبت) بدون خطا کار می‌کند. |
-| AC-9 | در نهایی‌سازی فقط «مشتری، روش پرداخت، توضیحات، خلاصه» وجود دارد؛ هیچ فیلد نوع سفارش/شماره میز/آدرس نیست. |
-| AC-10 | پس از ثبت، شماره سفارش و خلاصه نمایش داده می‌شود و آمار فروشگاه فعال افزایش می‌یابد. |
-| AC-11 | فونت‌ها: تایتل اصلی ۶۰۰، تایتل دوم ۵۰۰، بدنه ۴۰۰؛ رنگ پرایمری زغال سنگی. |
+| AC-1 | The visitor sees their name and photo at the top of the page. |
+| AC-2 | "Today's orders" and "today's income" stats are shown for the active store. |
+| AC-3 | Tapping ☰ opens the hamburger menu with the list of stores and each one's stats. |
+| AC-4 | Store switching is possible only from the hamburger menu; there is no store button/bar on the main page. |
+| AC-5 | After switching, the menu, categories, customers, and stats change to the new store's data. |
+| AC-6 | Each store's cart is independent; it is preserved when switching and returning. |
+| AC-7 | A customer is selected from the dropdown or a "new customer" is created (relevant to that store). |
+| AC-8 | The full order registration flow (customer ← search ← filter ← add ← cart ← checkout ← register) works without errors. |
+| AC-9 | Checkout contains only "customer, payment method, notes, summary"; there is no order type/table number/address field. |
+| AC-10 | After registration, the order number and summary are shown, and the active store's stats increase. |
+| AC-11 | Fonts: main title 600, secondary title 500, body 400; primary color stone charcoal. |
 
 ---
 
-## ۱۱. خارج از محدوده / موارد آینده
+## 11. Out of Scope / Future Items
 
-- مدیریت سفارش‌های در انتظار و تاریخچه سفارش‌ها.
-- چاپ/اشتراک‌گذاری رسید.
-- پرداخت آنلاین واقعی (درگاه).
-- اتصال به API واقعی منوچ (ورود ویزیتور، لیست فروشگاه‌ها، ثبت سفارش).
-- پشتیبانی چند کاربر/نقش (مدیر فروشگاه).
-- نسخهٔ PWA و نصب روی گوشی.
-
----
-
-## ۱۲. وابستگی‌ها و سوالات باز
-
-1. **فونت راوی:** تهیهٔ لایسنس وب و فایل‌های `Ravi-Regular / Medium / SemiBold (woff2)` و قراردادن در `fonts/` — تا آن زمان فالبک وزیرمتن فعال است. *(سوال باز از مالک محصول)*
-2. **منبع داده:** آدرس API فروشگاه‌ساز منوچ برای جایگزینی داده‌های نمونه.
-3. **عکس پروفایل ویزیتور:** لینک واقعی آواتار از حساب کاربری.
-4. **قوانین قیمت/تخفیف:** در نسخه فعلی تخفیف صفر و هزینه ارسال حذف شده است؛ در صورت نیاز اضافه شود.
+- Management of pending orders and order history.
+- Receipt printing/sharing.
+- Real online payment (payment gateway).
+- Integration with the real Manouch API (visitor login, store list, order registration).
+- Multi-user/role support (store manager).
+- PWA version and installation on phone.
 
 ---
 
-## ۱۳. پیوست: وضعیت پیاده‌سازی نمونه
+## 12. Dependencies and Open Questions
 
-| فایل | توضیح |
+1. **Ravi font:** obtaining the web license and the `Ravi-Regular / Medium / SemiBold (woff2)` files and placing them in `fonts/` — until then the Vazirmatn fallback is active. *(Open question for the product owner)*
+2. **Data source:** the Manouch store-builder API address for replacing the sample data.
+3. **Visitor profile photo:** the real avatar link from the user account.
+4. **Pricing/discount rules:** in the current version, discounts are zero and delivery fees are removed; add if needed.
+
+---
+
+## 13. Appendix: Prototype Implementation Status
+
+| File | Description |
 |---|---|
-| `index.html` | کل برنامه (HTML + CSS + JS داخلی) — تک‌فایل |
-| `fonts/fonts.css` | تعریف فونت راوی (آماده) + فالبک وزیرمتن |
-| `fonts/vazir-*.woff2` | فونت وزیرمتن محلی (آفلاین) |
-| `assets/avatar.png` | عکس پروفایل نمونه ویزیتور |
+| `index.html` | The entire app (inline HTML + CSS + JS) — single file |
+| `fonts/fonts.css` | Ravi font definition (ready) + Vazirmatn fallback |
+| `fonts/vazir-*.woff2` | Local (offline) Vazirmatn font |
+| `assets/avatar.png` | Sample visitor profile photo |
 
-**داده نمونه:** ۳ فروشگاه (کافه منوچ مرکزی ☕، رستوران منوچ 🍽️، فست‌فود منوچ 🍟) با منو، مشتری و آمار مستقل.
-**وضعیت تست:** جریان اصلی ثبت سفارش، سوییچ فروشگاه، استقلال سبدها و آمار — همگی خودکار تست و تأیید شده‌اند.
+**Sample data:** 3 stores (Manouch Central Café ☕, Manouch Restaurant 🍽️, Manouch Fast Food 🍟) with independent menus, customers, and stats.
+
+**Test status:** the main order registration flow, store switching, cart independence, and stats — all automatically tested and verified.
