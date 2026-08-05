@@ -3,7 +3,7 @@
 > Edge: Caddy (`manooch-backend/Caddyfile`) — single reverse proxy in front of all services on `manooch_net`
 > Backend module: `manooch-backend/src/modules/store-domains/`
 > Storefront resolution: `manooch-fronts/apps/storefront/middleware.ts`
-> Status: Implemented (code) — operational enablement (DNS zone) required before go-live
+> Status: Implemented (code) — operational enablement (DNS record + firewall) required before go-live
 > Base Domain: `manooch.site`
 
 ---
@@ -16,61 +16,51 @@ A seller has:
 
 The seller wants: when anyone opens their custom domain, the site loads the same storefront that lives at `sellerName.manooch.site`.
 
-**Key point:** The seller does NOT want to redirect (`301/302`) the user. They want their domain to **serve** the same storefront content directly (white-label / custom domain experience). This is supported for **any TLD**, both **apex** (`sellerName.ir`) and **subdomain** (`shop.sellerName.ir`) forms.
+**Key point:** No HTTP redirect. The domain must **serve** the storefront directly. Supported for **any TLD**, both **apex** (`sellerName.ir`) and **subdomain** (`shop.sellerName.ir`) forms.
 
 ---
 
 ## 2. High-Level Concept
 
-There are three layers involved:
+1. **DNS Layer** — the seller adds **one DNS record** at their own registrar/DNS provider pointing at the platform. They keep control of the rest of their zone (email, other subdomains, etc.) — unlike a full nameserver handoff.
+2. **Edge Layer** — the Caddy origin, reached directly (not through ArvanCloud), issues an SSL cert on-demand the first time a verified domain is hit.
+3. **Application Layer** — `manooch-backend` maps the incoming domain to a store; the storefront app renders it.
 
-1. **DNS Layer** — the seller delegates their domain's nameservers to the platform.
-2. **Edge Layer** — Caddy, acting as reverse proxy + automatic HTTPS via on-demand TLS (Let's Encrypt).
-3. **Application / Server Layer** — `manooch-backend` maps the incoming domain to a store, and the storefront app renders it.
-
-> **Note on architecture history:** an earlier draft of this PRD proposed ArvanCloud as the CDN/DNS/SSL provider. That path was **not taken**. The implemented system is self-hosted: our own nameservers + Caddy's on-demand TLS. ArvanCloud (or any CDN) could still be placed in front of this origin later as a pure infrastructure choice, but no such integration exists in code today, and none is required for the feature to work.
+> **Architecture history:** two earlier drafts of this PRD were superseded. The first proposed ArvanCloud as the DNS/CDN/SSL provider — never built. The second proposed full nameserver (NS) delegation to platform nameservers — built, but discovered to be broken in production (see §7, Incident) and abandoned before go-live because it (a) hands us the seller's *entire* DNS zone, silently breaking their email/MX and other records unless we re-host everything, and (b) still required manual per-domain provisioning — not actually automatic. The current, implemented model is **CNAME/A to a fixed platform target + Caddy on-demand TLS**, which is genuinely zero-touch on the ops side and leaves the seller's own DNS otherwise untouched.
 
 ---
 
-## 3. DNS Strategy — Nameserver Delegation (not CNAME/ANAME)
+## 3. DNS Strategy — One Record, Not a Nameserver Handoff
 
-Unlike a typical CNAME/ANAME-based setup, this platform uses **full nameserver (NS) delegation**:
-
-- The platform exposes two nameserver hostnames, configured via backend env vars `PLATFORM_NS1` / `PLATFORM_NS2` (defaults: `manoch.321.b12.site`, `manoch.321.b11.site` — override with real production values).
-- The seller goes to their domain registrar and changes the **NS records** for their domain to point at `PLATFORM_NS1` / `PLATFORM_NS2`.
-- This makes the platform **authoritative** for the seller's domain — not just for a single record, but for the whole zone. This works uniformly for apex and subdomain, for any TLD, with no CNAME-at-apex limitation to work around.
-
-**Why this instead of CNAME/ANAME/TXT-token:** it sidesteps the "no CNAME at the apex" DNS restriction entirely (the classic reason ANAME/ALIAS records exist), and verification becomes a simple, forgeable-proof `NS` lookup — no file upload or TXT record for the seller to manage.
-
-**Trade-off / dependency this creates:** because we become authoritative, **we must serve a DNS zone for every verified custom domain** (see §7, Operational Enablement) — this is the one piece that is infrastructure, not application code.
+- **Subdomain** (`shop.sellerName.ir`): seller adds `CNAME shop → edge.manooch.site`.
+- **Apex** (`sellerName.ir`): seller adds `A @ → <origin IP>` (a CNAME can't be used at the apex per DNS rules — a raw IP is required, or an `ANAME`/`ALIAS` record if their provider supports one, pointed at `edge.manooch.site`).
+- `edge.manooch.site` is a **DNS-only** (non-proxied) `A` record pointing at the Caddy origin's public IP — a fixed target sellers CNAME to, so it can be repointed later without every seller re-configuring anything.
+- The seller's other DNS records (MX, TXT, other subdomains) are untouched.
 
 ---
 
 ## 4. Step-by-Step Flow (Implemented)
 
 **Step 1 — Seller registers the domain in the admin panel**
-`@manooch-fronts/apps/admin/app/domain` → `DomainForm` → `POST /admin/stores/:storeId/domain { domain }` (`admin-store-domains.controller.ts` → `StoreDomainsService.register`). Validates format, rejects platform-reserved hosts (`DOMAIN_RESERVED`) and domains already claimed by another store (`DOMAIN_TAKEN`). Row is created in `store_domains` with `status = PENDING`.
+`@manooch-fronts/apps/admin/app/domain` → `DomainForm` → `POST /admin/stores/:storeId/domain { domain }` (`admin-store-domains.controller.ts` → `StoreDomainsService.register`). Validates format, rejects platform-reserved hosts (`DOMAIN_RESERVED`) and domains already claimed by another store (`DOMAIN_TAKEN`). Row created in `store_domains`, `status = PENDING`.
 
-**Step 2 — Seller delegates NS at their registrar**
-The admin UI (`NameserverPanel`) shows the two platform nameservers (from `GET /admin/stores/:storeId/domain` → `getConfig`). The seller updates NS records at their `.ir`/`.com`/etc. registrar.
+**Step 2 — Seller adds the DNS record**
+The admin UI (`NameserverPanel`, showing CNAME + A-record fields) displays the CNAME target and the apex IP from `GET /admin/stores/:storeId/domain` → `getConfig`. The seller adds the appropriate record at their own DNS provider.
 
 **Step 3 — Seller clicks "verify"**
-`POST /admin/stores/:storeId/domain/verify` → `StoreDomainsService.verify`: does a live `NS` DNS lookup (`NsLookupService`, wraps `node:dns/promises.resolveNs`) against the seller's domain, checks both platform nameservers are present, and flips `status` to `VERIFIED` (or `FAILED`). 10-second cooldown between checks (`DOMAIN_VERIFY_TOO_SOON`). Dev/test bypass via `DOMAIN_VERIFY_FAKE=true`.
+`POST /admin/stores/:storeId/domain/verify` → `StoreDomainsService.verify`: resolves the domain's `A` records (`DnsLookupService.lookupA`, wraps `node:dns/promises.resolve4` — this single lookup transparently follows CNAME chains, so it validates both the subdomain-CNAME and apex-A cases) and checks whether any resolved IP is in the configured origin-IP set. Flips `status` to `VERIFIED` or `FAILED`. 10-second cooldown between checks (`DOMAIN_VERIFY_TOO_SOON`). Dev/test bypass via `DOMAIN_VERIFY_FAKE=true`.
 
-**Step 4 — DNS resolves to the platform edge**
-Once NS delegation has propagated, DNS queries for the seller's domain resolve using our nameservers, which must answer with an `A` record for the domain pointing at the Caddy edge's public IP (see §7 — this is the operational step still required per-domain today).
+**Step 4 — Request reaches the Caddy origin directly**
+Once the record resolves, the browser's HTTPS request for the seller's domain goes straight to the Caddy origin's IP (not through ArvanCloud, since ArvanCloud only proxies `*.manooch.site`).
 
-**Step 5 — Request reaches Caddy**
-Caddy receives the HTTPS request for the seller's domain, `Host` header intact.
+**Step 5 — On-demand TLS cert issuance, gated**
+Caddy has no static site block for an arbitrary seller domain, so it falls back to **on-demand TLS**, asking its internal oracle (`GET http://localhost:9000/check?domain=<host>`, unpublished — reachable only from Caddy itself). The oracle proxies the check to the backend's public `GET /domains/resolve?domain=<host>` endpoint, which only returns 200 when the domain's `store_domains` row is `VERIFIED` **and** the store is `ACTIVE`. This prevents an unregistered domain from ever triggering a Let's Encrypt request against our rate limit. Once authorized, Caddy obtains and caches a Let's Encrypt cert for that exact host — automatically, no manual provisioning step.
 
-**Step 6 — On-demand TLS cert issuance, gated**
-Caddy has no static site block for an arbitrary seller domain, so it falls back to **on-demand TLS**, asking its internal oracle (`GET http://localhost:9000/check?domain=<host>`, unpublished — reachable only from Caddy itself). The oracle proxies the check to the backend's existing public `GET /domains/resolve?domain=<host>` endpoint, which only returns 200 when the domain's `store_domains` row is `VERIFIED` **and** the store is `ACTIVE`. This prevents a random/unregistered domain from ever triggering a Let's Encrypt request against our rate limit. Once authorized, Caddy obtains and caches a Let's Encrypt cert for that exact host.
+**Step 6 — Caddy proxies to the storefront app**
+`reverse_proxy storefront:3700`, `Host` header unmodified.
 
-**Step 7 — Caddy proxies to the storefront app**
-`reverse_proxy storefront:3700`, `Host` header unmodified — the storefront app decides what to render based on `Host`, not based on which Caddy site block matched.
-
-**Step 8 — Storefront middleware resolves Host → store slug**
-`manooch-fronts/apps/storefront/middleware.ts`: for a host that isn't a platform host and isn't a `<slug>.manooch.site` subdomain, calls the same `GET /domains/resolve?domain=` endpoint, gets back `{ storeId, slug }`, and does `NextResponse.rewrite('/<slug>' + pathname)`. The browser's address bar is untouched — this is the "serve, don't redirect" requirement. Resolution results are cached in-memory (60s for hits, 10s for misses) and **fail open** on network error (never 500s the request).
+**Step 7 — Storefront middleware resolves Host → store slug**
+`manooch-fronts/apps/storefront/middleware.ts`: for a host that isn't a platform host and isn't a `<slug>.manooch.site` subdomain, calls the same `GET /domains/resolve?domain=` endpoint, gets `{ storeId, slug }`, and does `NextResponse.rewrite('/<slug>' + pathname)`. Address bar unchanged — serve, not redirect. Results cached in-memory (60s hits / 10s misses), fails open on network error.
 
 ---
 
@@ -82,80 +72,86 @@ Caddy has no static site block for an arbitrary seller domain, so it falls back 
 |---|---|
 | `id` | uuid PK |
 | `storeId` | FK → `stores.id`, cascade delete |
-| `domain` | the seller's domain, normalized (lowercased, punycode, scheme/path stripped) |
+| `domain` | normalized (lowercased, punycode, scheme/path stripped) |
 | `status` | `pending \| verified \| failed` |
-| `ns1Verified` / `ns2Verified` | booleans from the last check |
+| `ns1Verified` / `ns2Verified` | historical pair from the earlier NS-delegation model; both are now always written together from the single A-record check and collapsed into one `verified` boolean at the API layer — kept as-is to avoid a migration |
 | `lastCheckedAt` / `verifiedAt` | timestamps |
 | soft-delete | standard `deletedAt` convention |
 
-Partial unique indexes (scoped to non-deleted rows) enforce: a domain is claimed by at most one store, and a store has at most one active custom domain.
-
-`Store` itself has no `customDomain` column by design — the platform subdomain (`Store.slug`) and the custom domain are modeled as separate concerns; `store_domains` is the join.
+Partial unique indexes (non-deleted rows) enforce one store per domain, one active domain per store.
 
 ---
 
 ## 6. Endpoints
 
-**Admin (owner-scoped, `CustomerAuthGuard` + ownership check)** — `@Controller('admin/stores/:storeId/domain')`:
-- `GET /admin/stores/:storeId/domain` — current domain + platform nameservers to display.
-- `POST /admin/stores/:storeId/domain` — register (`{ domain }`).
-- `POST /admin/stores/:storeId/domain/verify` — trigger NS verification.
-- `DELETE /admin/stores/:storeId/domain` — remove (soft delete).
+**Admin (owner-scoped)** — `@Controller('admin/stores/:storeId/domain')`:
+- `GET` — current domain + `{ cnameTarget, apexIp }` to display.
+- `POST` — register (`{ domain }`).
+- `POST /verify` — trigger verification.
+- `DELETE` — remove (soft delete).
 
 **Public** — `@Controller('domains')`:
 - `GET /domains/resolve?domain=` — `{ storeId, slug }` for a `VERIFIED` domain of an `ACTIVE` store, 404 otherwise. Consumed by both the storefront middleware and the Caddy on-demand-TLS oracle.
 
 ---
 
-## 7. Operational Enablement (the real "not enabled")
+## 7. Incident — `tajmahl.ir` (why the NS-delegation model was abandoned)
 
-The code path above is complete. What makes the feature "not enabled" in practice is entirely **DNS infrastructure**, not a code flag:
+A seller delegated `tajmahl.ir`'s nameservers exactly as instructed by the admin panel, to `manoch.321.b12.site` / `manoch.321.b11.site`. Live DNS investigation found:
+- Those two nameserver hostnames **had no A record anywhere** — they were the backend's hardcoded placeholder defaults (`DEFAULT_PLATFORM_NS1`/`NS2`), never overridden by a real production `PLATFORM_NS1`/`NS2` env value.
+- `tajmahl.ir`'s delegation was therefore pointed at nameservers that don't exist — an SOA/any-record query for the domain timed out on both 8.8.8.8 and 1.1.1.1. Not a propagation delay; the domain was permanently unresolvable.
+- Even with correct nameservers, nothing in the system **provisioned** a seller's zone once verified — a verified domain still required a human to manually create a DNS zone and SSL cert for it. Not actually automatic.
 
-1. **Authoritative DNS zone provisioning.** `PLATFORM_NS1` / `PLATFORM_NS2` must be real, reachable authoritative nameservers. When a seller's domain reaches `VERIFIED`, that domain needs a zone served by our nameservers with (at minimum) an apex `A` record pointing at the Caddy edge's public IP — otherwise the delegated domain resolves to NXDOMAIN and nothing loads, even though our app thinks it's verified.
-   - **Today:** manual — ops creates the zone/A-record when a domain reaches `VERIFIED`.
-   - **Planned follow-up:** automate zone creation via the DNS provider's API, triggered from `StoreDomainsService.verify()` on success.
-2. **Caddy edge reachable** on public `80`/`443` with a stable IP (port 80 required for Let's Encrypt HTTP-01 on-demand challenges).
-3. **Production env values set:** `PLATFORM_NS1`/`PLATFORM_NS2` = the real nameserver hostnames shown to sellers; `DOMAIN_VERIFY_FAKE` unset/false in production.
+This is why the model changed to **CNAME/A + Caddy on-demand TLS**: it removes the platform's need to host a DNS zone per seller at all, and cert issuance is genuinely automatic (Caddy does it on first request, gated by the existing `/domains/resolve` check) — no per-domain ops step, no risk of an unresolvable hardcoded placeholder.
 
 ---
 
 ## 8. Security & Operational Considerations
 
-- **Domain ownership verification:** enforced via NS delegation (§3) — a seller cannot claim a domain without control over its registrar NS settings.
+- **Domain ownership verification:** the seller must control DNS for their domain to add the CNAME/A record we check for — equivalent proof-of-control to any other DNS-based verification scheme.
 - **SSL Enforcement:** Caddy's `auto_https` redirects HTTP → HTTPS by default.
-- **Cert-issuance abuse protection:** the `:9000` on-demand-TLS oracle only authorizes a cert for a domain that is `VERIFIED` and belongs to an `ACTIVE` store — an attacker pointing a random domain at our IP cannot trigger unlimited Let's Encrypt requests against our account's rate limit.
+- **Cert-issuance abuse protection:** the `:9000` on-demand-TLS oracle only authorizes a cert for a domain that is `VERIFIED` and belongs to an `ACTIVE` store.
 - **Domain squatting prevention:** `DOMAIN_TAKEN` / `DOMAIN_RESERVED` checks in `register()`; `PLATFORM_BLOCKED_HOSTS` env excludes platform-owned hosts.
-- **Rate limiting:** custom domains are served by the same storefront app instance as platform subdomains, so they inherit the same app-level rate limits.
-- **DNS propagation:** NS changes can take up to 24-48h depending on the seller's previous registrar TTL. The admin UI should set expectations that verification may not succeed immediately after the seller makes the change.
-- **No re-verification cron (known gap):** if a seller later removes our NS delegation, their `store_domains` row stays `VERIFIED` and traffic keeps being served under stale trust until someone notices. A scheduled re-check is a recommended follow-up, not yet implemented.
+- **DNS propagation:** record changes typically take minutes to a few hours; up to 24h for slower registrars/TLDs. The admin UI should set this expectation.
+- **No re-verification cron (known gap):** if a seller later removes the record, their `store_domains` row stays `VERIFIED` until someone notices. A scheduled re-check is a recommended follow-up.
+- **No stale hardcoded infra defaults:** `PLATFORM_CUSTOM_DOMAIN_A_IPS` has **no non-empty default** — if ops forgets to set it, verification fails safely (nothing to match against) instead of silently succeeding against a wrong/dead value, which is what caused the `tajmahl.ir` incident.
 
 ---
 
-## 9. Summary of Recommendations
+## 9. Operational Enablement Checklist
+
+1. Publish `edge.manooch.site` → Caddy origin public IP, **DNS-only** (not proxied) in the DNS provider hosting `manooch.site`.
+2. Confirm the Caddy origin is publicly reachable on `80`/`443` by its own IP — custom-domain traffic bypasses ArvanCloud and hits it directly, so it cannot be firewalled to ArvanCloud IPs only. Port 80 is required for Let's Encrypt HTTP-01 on-demand challenges.
+3. Set production env: `PLATFORM_CUSTOM_DOMAIN_CNAME_TARGET=edge.manooch.site`, `PLATFORM_CUSTOM_DOMAIN_A_IPS=<comma-separated origin IPs>`. Unset `DOMAIN_VERIFY_FAKE`.
+
+---
+
+## 10. Summary of Recommendations
 
 | Component | Status |
 |---|---|
-| **Admin registration/verify/remove UI** | Implemented — `apps/admin/app/domain` |
-| **Backend domain mapping + verification** | Implemented — `store-domains` module |
+| **Admin registration/verify/remove UI (CNAME/A copy)** | Implemented — `apps/admin/app/domain` |
+| **Backend domain mapping + A-record verification** | Implemented — `store-domains` module |
 | **Storefront Host→slug resolution (serve, not redirect)** | Implemented — `middleware.ts` |
 | **Edge TLS for custom domains (any TLD, apex + subdomain)** | Implemented — Caddy catch-all `https://` block + `:9000` oracle gate |
-| **DNS zone hosting for verified domains** | **Manual today** — automate as follow-up |
+| **`edge.manooch.site` DNS record + origin firewall opened** | Ops — one-time setup |
 | **Scheduled re-verification** | Not implemented — follow-up |
-| **ArvanCloud integration** | Not implemented, not required — superseded by self-hosted Caddy + NS delegation |
+| **NS-delegation model** | Superseded — abandoned after the `tajmahl.ir` incident |
+| **ArvanCloud integration for custom domains** | Not implemented, not required |
 
 ---
 
-## 10. Direct Answers
+## 11. Direct Answers
 
 **Q: How does a custom domain end up loading the same storefront as `sellerName.manooch.site`?**
-> The seller registers the domain in admin and delegates their NS to our platform nameservers. Once our live NS lookup confirms the delegation, the domain is `VERIFIED`. Our nameservers then need to answer for that domain with an `A` record pointing at the Caddy edge (operational step). Caddy obtains a cert on demand — gated by checking `VERIFIED` status through the same `/domains/resolve` endpoint the storefront middleware uses — and proxies to the storefront app, which rewrites the request internally to the store's slug-based route without changing the browser URL.
+> The seller registers the domain in admin and adds one DNS record (CNAME for a subdomain, A for the apex) pointing at the platform. Once our A-record lookup confirms it resolves to our origin, the domain is `VERIFIED`. The first HTTPS request to that domain reaches the Caddy origin directly, which — gated by a check against the same `VERIFIED` status through `/domains/resolve` — automatically obtains a Let's Encrypt cert and proxies to the storefront app, which rewrites the request internally to the store's slug-based route without changing the browser URL.
 
 **Q: Does this work for apex domains, subdomains, and any TLD?**
-> Yes. NS delegation avoids the "no CNAME at the apex" restriction, so both `sellerName.ir` and `shop.sellerName.ir` work identically, for any TLD, without special-casing.
+> Yes — CNAME for subdomains, A (or ANAME/ALIAS where supported) for apex, for any TLD, with no special-casing.
 
-**Q: Is ArvanCloud used?**
-> No. This document previously specified ArvanCloud; the implemented system uses self-hosted nameservers and Caddy's on-demand TLS instead. ArvanCloud is not integrated anywhere in the codebase.
+**Q: Is this automatic end-to-end?**
+> Yes, on both sides now. Seller side: register → add one record → verify, all via the admin UI. Platform side: cert issuance is on-demand via Caddy, gated by the existing verified-domain check — no manual zone/cert provisioning step, unlike the abandoned NS-delegation model.
 
 ---
 
-*This document reflects the implemented architecture as of the `wire-custom-domain` branch. It replaces an earlier draft that specified ArvanCloud as the DNS/CDN provider.*
+*This document reflects the implemented architecture as of the `wire-custom-domain` branch, after the `tajmahl.ir` incident led to abandoning the NS-delegation model in favor of CNAME/A + Caddy on-demand TLS.*
