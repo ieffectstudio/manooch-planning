@@ -12,17 +12,17 @@ Enamad's verification bot is notorious for failing if your SSL certificate is no
 You provided this snippet:
 ```caddy
 header Content-Type "text/plain; charset=utf-8"
-respond "۳۹۳۲۱۳۵۳" 200
+respond "۶۲۸۵۵۹۶۶" 200
 ```
-**The Problem:** You are using Persian digits `۳۹۳۲۱۳۵۳`. Enamad usually expects standard English digits `39321353` unless specifically stated otherwise. Furthermore, ensure this block is inside the correct site block in your `Caddyfile`.
+**The Problem:** You are using Persian digits `۶۲۸۵۵۹۶۶`. Enamad usually expects standard English digits `62855966` unless specifically stated otherwise. Furthermore, ensure this block is inside the correct site block in your `Caddyfile`.
 
 **Try this exact block in your Caddyfile:**
 ```caddy
 manooch.site {
     # Ensure this is at the top of your site block
-    handle /39321353.txt {
+    handle /62855966.txt {
         header Content-Type "text/plain; charset=utf-8"
-        respond "39321353" 200
+        respond "62855966" 200
     }
 
     # ... your other config (reverse_proxy, etc)
@@ -36,15 +36,15 @@ If your domain has an **IPv6 (AAAA record)** set in your DNS (like Cloudflare or
 ### 4. Cloudflare / Firewall Blocking
 If you are using **Cloudflare**, **ArvanCloud**, or a **WAF**:
 *   The Enamad bot is often flagged as a "Crawler" or "Bot."
-*   Go to your Firewall logs. Look for blocked requests to `/39321353.txt`.
+*   Go to your Firewall logs. Look for blocked requests to `/62855966.txt`.
 *   **Try this:** Temporarily "Pause" Cloudflare (Development Mode) and try the Enamad verification again.
 
 ### How to verify it yourself before clicking the button:
 Open your phone (using mobile data, not Wi-Fi) and go to:
-`https://manooch.site/39321353.txt`
+`https://manooch.site/62855966.txt`
 
 1.  Does it load instantly?
 2.  Does the browser show a "Not Secure" warning? (If yes, Enamad will fail).
 3.  Does it download a file or show the text? (It should show the text).
 
-**Recommendation:** Change the Persian numbers `۳۹۳۲۱۳۵۳` to English `39321353` in your `respond` command and restart Caddy (`caddy reload`). Enamad's system is very old and often doesn't recognize UTF-8 Persian digits in the verification string.
+**Recommendation:** Change the Persian numbers `۶۲۸۵۵۹۶۶` to English `62855966` in your `respond` command and restart Caddy (`caddy reload`). Enamad's system is very old and often doesn't recognize UTF-8 Persian digits in the verification string.
