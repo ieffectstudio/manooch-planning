@@ -2,6 +2,9 @@
 
 > **Verified against:** `manooch-backend` and `manooch-fronts` (portal + admin apps), 2026-08-06.
 > Every claim below is traceable to a file cited inline.
+> **Updated 2026-08-06:** the three gaps from §7 v1 (search parity, portal sub-category creation,
+> stale `categoryId`) are fixed on branches `fix-taxonomy` in `manooch-backend`/`manooch-fronts`.
+> One new gap was found while wiring the `categoryId` fix — see §7 item 4.
 
 ## Overview
 
@@ -85,13 +88,13 @@ The **Portal** (`manooch-fronts/apps/portal`, route `/taxonomy`,
 | **Code** (groups only) | Typed by the admin, auto-uppercased on input, validated client-side against `^[A-Z0-9_]+$` before the Save button enables (`TaxonomyFormModal.tsx:24`). |
 | **Name / Label (`title`)** | Manually entered, required. |
 | **English name (`nameEn`)** | Optional. |
-| **Parent** | Not selectable in the UI. `PageClient.tsx` only ever opens the form with target `create-group` — there is **no "add sub-category" action wired up in the portal**, even though the backend endpoint for it exists and works (see §7, gap 1). |
+| **Parent** | Not selectable in the UI. A sub-category's parent is fixed by which action created it: a "+" button on each group row (`CategoryGroupRow.tsx`) opens the form with target `{ kind: 'create-field', group }`, which posts to that group's sub-category endpoint. |
 
 Create paths (backend):
 - `POST /admin/store-categories` — new group, `CreateStoreCategoryDto` (`code` required).
 - `POST /admin/store-categories/:id/sub-categories` — new field under group `:id`,
-  `CreateStoreSubCategoryDto` (no `code`). Reachable via the API/Swagger, not via the current
-  portal UI.
+  `CreateStoreSubCategoryDto` (no `code`). Reachable via the API/Swagger **and** the portal UI's
+  per-group "+" action (`TaxonomyFormModal.tsx`).
 
 ### 2.2 Reading / Viewing Taxonomy
 
@@ -143,33 +146,30 @@ its category.
   (`InfoTab.tsx`) use the **same** `Dropdown` component (`@/ui`) — there are not two different
   component types ("bottom sheet" vs. "dropdown button sheet"). The only functional difference is
   which props each call site passes.
-- Both build their options the same way: `workGroups.flatMap(g => g.fields.map(f => ({ value:
-  f.title, label: f.title })))` — the picker lists sub-categories (`WorkField.title`) only, never
-  top-level groups (`InfoTab.tsx:39-41`, `business-info/page.tsx:50-52`).
+- Both list sub-categories (`WorkField`) only, never top-level groups, but their option **values**
+  now differ: registration still builds `{ value: f.title, label: f.title }`
+  (`business-info/page.tsx:50-52`, unchanged — it only ever writes the free-text `category` field,
+  see §7 item 4), while the Info tab builds `{ value: f.id, label: f.title }`
+  (`InfoTab.tsx:39-41`) so its selection can drive the `categoryId` FK. A legacy store with only
+  `settings.category` (no `categoryId`) has its title resolved back to an id client-side via
+  `InfoTab.utils.ts#resolveLegacyCategoryId`, matching on `WorkField.title` (globally unique, see
+  §1.2/`WorkFieldsService.createSubCategory`'s `STORE_SUB_CATEGORY_TITLE_TAKEN` check).
 
-### 3.3 Known Issue — Missing `searchable` Prop
-
-> **The Info tab's `Dropdown` omits the `searchable` / `searchPlaceholder` props that registration
-> passes.**
+### 3.3 Fixed — `searchable` Prop Parity (was missing)
 
 - Registration: `<Dropdown ... searchable searchPlaceholder={fa.auth.businessInfo
   .categorySearchPlaceholder} ... />` (`business-info/page.tsx:159-170`).
-- Info tab: `<Dropdown ... />` with no `searchable` prop (`InfoTab.tsx:93-102`).
-- Net effect matches the original observation — sellers editing an existing store must scroll the
-  full unfiltered list — but the fix is a one-line prop addition to an existing shared component,
-  not new search functionality to build from scratch.
+- Info tab now passes the same props (`InfoTab.tsx:93-104`) — sellers editing an existing store can
+  filter the category list instead of scrolling the full unfiltered set.
 
 ### 3.4 Comparison: Registration vs. Admin Business Info
 
 | Feature | Registration Business Info | Admin Business Info Tab |
 |---|---|---|
 | **Component** | `Dropdown` (`@/ui`) | Same `Dropdown` (`@/ui`) |
-| **`searchable` prop** | ✅ passed | ❌ not passed |
+| **`searchable` prop** | ✅ passed | ✅ passed (fixed) |
 | **User** | New business registering | Existing seller editing their store |
-| **Options source** | `WorkField.title` list (identical query/shape) | Same |
-
-**Recommendation:** Add `searchable` + `searchPlaceholder` to the `Dropdown` call in `InfoTab.tsx`
-to match registration — this is the fix, not a larger UX redesign.
+| **Option value** | `WorkField.title` | `WorkField.id` (drives `categoryId` PATCH) |
 
 ---
 
@@ -182,10 +182,11 @@ to match registration — this is the fix, not a larger UX redesign.
 | **Sub-categories have no code** | `WorkField` carries no `code` column or DTO field. |
 | **Two-table nesting** | `WorkGroup` → `WorkField` via a required `workGroupId` FK. No self-referencing parent column exists, so no deeper nesting is representable. |
 | **No re-parenting** | A field's `workGroupId` is fixed at creation (by which route created it) and cannot be changed via the update DTO. |
-| **Portal can't create sub-categories** | The creation UI only supports groups; the working sub-category endpoint has no portal entry point. |
+| **Portal can create sub-categories** (fixed) | Each group row has a "+" action that opens the form targeting that group's `POST .../sub-categories` endpoint. |
 | **Soft delete only, no usage guard** | Deleting a group cascades a soft-delete to its fields; any store referencing an affected field has its `categoryId` set to `NULL` automatically — deletion is never blocked. |
-| **Seller field lags the FK** | The Info tab's category `Dropdown` writes `settings.category` only; it never sends `categoryId`, so `Store.categoryId` is not updated when a seller changes category post-registration (see §7, gap 2). |
-| **Missing search prop** | The Info tab's `Dropdown` doesn't pass `searchable`, unlike the registration flow's identical component. |
+| **Seller field matches the FK** (fixed) | The Info tab's category `Dropdown` now selects a `WorkField.id`; on save, `StoresService.update` resolves it, sets `Store.categoryId`, and mirrors the title into `settings.category` in the same write — the two can no longer diverge from this path. |
+| **Search prop parity** (fixed) | The Info tab's `Dropdown` now passes `searchable`, matching the registration flow. |
+| **Self-serve registration still FK-less** (new, see §7 item 4) | The registration wizard (`working/page.tsx`) posts `category` (free text) only, never `categoryId` — `Store.categoryId` starts `NULL` for every self-serve signup regardless of this fix. |
 
 ---
 
@@ -206,9 +207,9 @@ to match registration — this is the fix, not a larger UX redesign.
 │                                                                 │
 │  1. Admin creates a WorkGroup (category)                       │
 │     → code typed by hand, validated, unique among live rows    │
-│  2. Sub-category (WorkField) creation is API-only               │
-│     → POST /admin/store-categories/:id/sub-categories works    │
-│       but has no button in the portal UI                       │
+│  2. Sub-category (WorkField) creation — API and portal UI       │
+│     → POST /admin/store-categories/:id/sub-categories,          │
+│       now also reachable via each group row's "+" button        │
 │  3. Admin can view/edit (incl. code)/soft-delete groups & fields│
 │     → deletion never blocked by stores referencing the field    │
 └──────────────────────────┬──────────────────────────────────────┘
@@ -217,12 +218,15 @@ to match registration — this is the fix, not a larger UX redesign.
 ┌───────────────────────────────────────────────────────────────┐
 │              ADMIN — Business Info Tab (Seller)                 │
 │                                                                 │
-│  1. Registration: resolves categoryId → WorkField                │
-│     → sets Store.categoryId (FK) AND mirrors title into          │
-│       Store.settings.category                                   │
-│  2. Info tab edit: Dropdown (no `searchable`) writes ONLY        │
-│       Store.settings.category — Store.categoryId is never sent   │
-│     → ⚠ FK can go stale after a post-registration category change│
+│  1. Self-serve registration: submits `category` (free text)     │
+│       only — no `categoryId` sent                                │
+│     → Store.categoryId starts NULL; settings.category set        │
+│     → ⚠ still open, see §7 item 4                                │
+│  2. Info tab edit: Dropdown (now `searchable`) selects a          │
+│       WorkField.id, PATCHes `categoryId`                         │
+│     → StoresService.update resolves it, sets Store.categoryId    │
+│       AND mirrors the title into Store.settings.category          │
+│     → FK and mirror can no longer diverge from this path (fixed) │
 └───────────────────────────────────────────────────────────────┘
 ```
 
@@ -230,18 +234,36 @@ to match registration — this is the fix, not a larger UX redesign.
 
 ## 7. Open Issues / Action Items
 
-1. **Add `searchable` to the Info Tab's category `Dropdown`.** One-prop fix in
-   `manooch-fronts/apps/admin/app/business/_common/InfoTab/InfoTab.tsx` to match
-   `app/(auth)/business-info/page.tsx`, restoring search parity for sellers editing an existing
-   store.
+1. ~~Add `searchable` to the Info Tab's category `Dropdown`.~~ **Fixed** (`fix-taxonomy`,
+   `manooch-fronts`). `InfoTab.tsx` now passes `searchable` + `searchPlaceholder`, matching
+   `app/(auth)/business-info/page.tsx`.
 
-2. **Portal has no UI to create sub-categories.** The backend endpoint (`POST
-   /admin/store-categories/:id/sub-categories`) is fully implemented and tested but unreachable
-   from `PageClient.tsx` — decide whether to add the "add sub-category" action to the portal, or
-   whether sub-categories are intentionally seed-only (`WORK_FIELDS_DATA`).
+2. ~~Portal has no UI to create sub-categories.~~ **Fixed** (`fix-taxonomy`, `manooch-fronts`).
+   Each group row (`CategoryGroupRow.tsx`) now has a "+" action opening `TaxonomyFormModal` with
+   target `{ kind: 'create-field', group }`, which posts to
+   `POST /admin/store-categories/:id/sub-categories` (no backend change needed — the endpoint
+   already worked).
 
-3. **Seller-side category edits don't update `Store.categoryId`.** Only `settings.category`
-   (a title string) is written by the Info tab; the FK to `WorkField` is left pointing at
-   whatever was set during registration (or `NULL` if never set). Decide whether the Info tab's
-   save path should resolve the selected title back to a `WorkField.id` and include `categoryId`
-   in the PATCH, mirroring what `businesses.service.ts`'s onboarding path already does.
+3. ~~Seller-side category edits don't update `Store.categoryId`.~~ **Fixed**
+   (`fix-taxonomy`, `manooch-backend` + `manooch-fronts`). `UpdateStoreDto` gained an optional
+   `categoryId`; `StoresService.update` resolves it to a `WorkField`, sets `store.categoryId`, and
+   mirrors `field.title` into `settings.category` — same pattern as
+   `BusinessesService.createOnboarding`. The Info tab's `Dropdown` now selects a `WorkField.id`
+   (falling back to resolving a legacy title-only `settings.category` via
+   `InfoTab.utils.ts#resolveLegacyCategoryId`) and `Container.tsx`'s `handleSave` sends
+   `categoryId` in the store PATCH — including on a category-only change, which previously never
+   triggered a store PATCH at all. The settings PATCH (`updateSettings`) no longer sends `category`
+   from the client, so it can't race the FK-resolving PATCH and clobber the mirrored title.
+
+4. **New — self-serve registration never sends `categoryId`.** Found while implementing item 3:
+   the registration wizard's final step (`manooch-fronts/apps/admin/app/(auth)/working/page.tsx`)
+   posts `{ category: data.category }` (free text only) to `POST /admin/onboarding`. In
+   `BusinessesService.createOnboarding`, `dto.categoryId` is therefore always `undefined`, so
+   `store.categoryId = dto.categoryId ?? null` sets the FK to `NULL` on every self-serve signup —
+   only `settings.category` gets populated (via the `dto.category` fallback branch,
+   `businesses.service.ts:96-107`). This means a brand-new store already needs the Info tab's
+   (now-fixed) `categoryId` PATCH before its FK is populated at all. The admin-driven
+   `createStoreForOwner` path (`CreateStoreOnboardingDto`) is unaffected — it has no free-text
+   fallback and only accepts `categoryId`. Not fixed here (out of scope for this pass) — would
+   need `business-info/page.tsx`'s `categoryOptions` changed to `{ value: f.id, ... }` and
+   `working/page.tsx` to send `categoryId` instead of/alongside `category`.
