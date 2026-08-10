@@ -1,0 +1,1 @@
+in dev mode only when i run backend & front localy the pdp page redirect to 404 but on prod its ok

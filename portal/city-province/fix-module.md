@@ -1,1 +1,0 @@
-give me plan to excute this manooch-planings\portal\city-province\prd-api.md & replace existing city & state strcuture every where we use on all fronts apps 
