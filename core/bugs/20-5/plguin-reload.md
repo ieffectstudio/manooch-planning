@@ -1,1 +1,0 @@
-i have problem on admin when i go to plugin mange page and toggles plugin when i click back and back to dashboard the plugin i enabled or disabled still work like before until i refresh
