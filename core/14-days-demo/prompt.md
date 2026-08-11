@@ -1,3 +1,16 @@
+> **Status: Shipped** on branch `feat-2-week-demo` (all three repos). New `seller_subscriptions`
+> table (base + overlay windows, resolved with pure date math) replaces the previous hardcoded
+> `/subscriptions/me` stub. 14-day Economy trial fires on `createOnboarding`; the referral gift
+> (3 days Pro per completed invite, stacking, pause-and-extend on a `source='purchase'` base only)
+> is granted post-commit with a daily reconciliation cron; existing sellers were backfilled a
+> 90-day purchase window before the guard went live. Gate enforced server-side via a global
+> `PlanEntitlementGuard` (`403 PLAN_REQUIRED`) and client-side via `apps/admin/lib/api/client.ts`
+> + the `PlanGate` component. Out of scope for this pass (see the PR description): real payment
+> (Zarinpal), per-tier feature gating, storefront blocking, and a storeless referrer's gift days
+> burning with nothing to spend them on.
+>
+> — updated 2026-08-11
+
 # PRD — Manooch Subscription / Plan Logic for New Sellers (compact)
 
 You are a senior engineer on **Manooch**, a multi-store SaaS e-commerce platform ("Powered by Manooch"). I need you to design and implement the **plan/subscription logic** for new seller (admin) signups, including a **referral incentive**. Please analyze the requirements below and give a concrete implementation plan (+ illustrative code) to build and test end-to-end.
