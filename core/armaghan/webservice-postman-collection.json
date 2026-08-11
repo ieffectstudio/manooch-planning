@@ -1,0 +1,774 @@
+{
+	"info": {
+		"_postman_id": "968c13ab-7108-464a-85fc-c1ccbcc8785a",
+		"name": "webservice",
+		"description": "<h4>error codes:</h4>\n\n<ul>\n    <li><b><i>0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i></b> => <b><i>success</i></b></li>\n    <li><b><i>-101</i></b> => <b><i>authentication error</i></b></li>\n    <li><b><i>-103</i></b> => <b><i>invalid originator</i></b></li>\n    <li><b><i>-104</i></b> => <b><i>low credit</i></b></li>\n    <li><b><i>-105</i></b> => <b><i>malformed request</i></b></li>\n    <li><b><i>-107</i></b> => <b><i>invalid destination</i></b></li>\n    <li><b><i>-110</i></b> => <b><i>invalid ip</i></b></li>\n    <li><b><i>-119</i></b> => <b><i>service not active</i></b></li>\n    <li><b><i>-201</i></b> => <b><i>internal error</i></b></li>\n</ul>",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Send Messages",
+			"item": [
+				{
+					"name": "SendOneToManyMessage",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\":\"{{username}}\",\r\n    \"password\":\"{{password}}\",\r\n    \"originator\": \"{{originator}}\",\r\n    \"content\": \"{{sample_text}}\",\r\n    \"destinations\": [\"{{sample_destination}}\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/webservice/rest/sendMessageOneToMany",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webservice",
+								"rest",
+								"sendMessageOneToMany"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\":\"{{username}}\",\r\n    \"password\":\"{{password}}\",\r\n    \"originator\": \"{{originator}}\",\r\n    \"content\": \"{{sample_text}}\",\r\n    \"destinations\": [\"{{sample_destination}}\"]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/webservice/rest/sendMessageOneToMany",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"webservice",
+										"rest",
+										"sendMessageOneToMany"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"errorModel\": {\n        \"errorCode\": 0,\n        \"message\": null,\n        \"timestamp\": null\n    },\n    \"references\": [\n        987654321123456789\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "SendManyToManyMessage",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\":\"{{username}}\",\r\n    \"password\":\"{{password}}\",\r\n    \"originator\": \"{{originator}}\",\r\n    \"contents\": [\"{{sample_text}}\"],\r\n    \"destinations\": [\"{{sample_destination}}\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/webservice/rest/sendMessageManyToMany",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webservice",
+								"rest",
+								"sendMessageManyToMany"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\":\"{{username}}\",\r\n    \"password\":\"{{password}}\",\r\n    \"originator\": \"{{originator}}\",\r\n    \"contents\": [\"{{sample_text}}\"],\r\n    \"destinations\": [\"{{sample_destination}}\"]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/webservice/rest/sendMessageManyToMany",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"webservice",
+										"rest",
+										"sendMessageManyToMany"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"errorModel\": {\n        \"errorCode\": 0,\n        \"message\": null,\n        \"timestamp\": null\n    },\n    \"references\": [\n        987654321123456789\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "SendOneToOneMessage",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/webservice/rest/sendOneToOne?username={{username}}&password={{password}}&from={{originator}}&to={{sample_destination}}&message={{sample_text}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webservice",
+								"rest",
+								"sendOneToOne"
+							],
+							"query": [
+								{
+									"key": "username",
+									"value": "{{username}}"
+								},
+								{
+									"key": "password",
+									"value": "{{password}}"
+								},
+								{
+									"key": "from",
+									"value": "{{originator}}"
+								},
+								{
+									"key": "to",
+									"value": "{{sample_destination}}"
+								},
+								{
+									"key": "message",
+									"value": "{{sample_text}}"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/webservice/rest/sendOneToOne?username={{username}}&password={{password}}&from={{originator}}&to={{sample_destination}}&message={{sample_text}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"webservice",
+										"rest",
+										"sendOneToOne"
+									],
+									"query": [
+										{
+											"key": "username",
+											"value": "{{username}}"
+										},
+										{
+											"key": "password",
+											"value": "{{password}}"
+										},
+										{
+											"key": "from",
+											"value": "{{originator}}"
+										},
+										{
+											"key": "to",
+											"value": "{{sample_destination}}"
+										},
+										{
+											"key": "message",
+											"value": "{{sample_text}}"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"errorModel\": {\n        \"errorCode\": 0,\n        \"message\": null,\n        \"timestamp\": null\n    },\n    \"references\": [\n        987654321123456789\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "SendParameterizedMessage",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\":\"{{username}}\",\r\n    \"password\":\"{{password}}\",\r\n    \"template\": \"\",\r\n    \"parameters\": [\"{{sample_text}}\"],\r\n    \"destinations\": [\"{{sample_destination}}\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/webservice/rest/sendParameterizedMessage",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webservice",
+								"rest",
+								"sendParameterizedMessage"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\":\"{{username}}\",\r\n    \"password\":\"{{password}}\",\r\n    \"template\": \"\",\r\n    \"parameters\": [\"{{sample_text}}\"],\r\n    \"destinations\": [\"{{sample_destination}}\"]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/webservice/rest/sendParameterizedMessage",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"webservice",
+										"rest",
+										"sendParameterizedMessage"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"errorModel\": {\n        \"errorCode\": 0,\n        \"message\": null,\n        \"timestamp\": null\n    },\n    \"references\": [\n        987654321123456789\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "SendParameterizedMessage",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/webservice/rest/v2/sendParameterizedMessage?username={{username}}&password={{password}}&template=&destinations={{sample_destination}}&parameters={{sample_text}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webservice",
+								"rest",
+								"v2",
+								"sendParameterizedMessage"
+							],
+							"query": [
+								{
+									"key": "username",
+									"value": "{{username}}"
+								},
+								{
+									"key": "password",
+									"value": "{{password}}"
+								},
+								{
+									"key": "template",
+									"value": ""
+								},
+								{
+									"key": "destinations",
+									"value": "{{sample_destination}}",
+									"description": "seperated with comma"
+								},
+								{
+									"key": "parameters",
+									"value": "{{sample_text}}",
+									"description": "seperated with caret (^)"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/webservice/rest/v2/sendParameterizedMessage?username={{username}}&password={{password}}&template=&destinations={{sample_destination}}&parameters={{sample_text}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"webservice",
+										"rest",
+										"v2",
+										"sendParameterizedMessage"
+									],
+									"query": [
+										{
+											"key": "username",
+											"value": "{{username}}"
+										},
+										{
+											"key": "password",
+											"value": "{{password}}"
+										},
+										{
+											"key": "template",
+											"value": ""
+										},
+										{
+											"key": "destinations",
+											"value": "{{sample_destination}}",
+											"description": "seperated with comma"
+										},
+										{
+											"key": "parameters",
+											"value": "{{sample_text}}",
+											"description": "seperated with caret (^)"
+										}
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": null,
+							"cookie": [],
+							"body": "{\n    \"errorModel\": {\n        \"errorCode\": 0,\n        \"message\": null,\n        \"timestamp\": null\n    },\n    \"references\": [\n        987654321123456789\n    ]\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Receive Messages",
+			"item": [
+				{
+					"name": "ReceiveIncomingMessages",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\":\"{{username}}\",\r\n    \"password\":\"{{password}}\",\r\n    \"page\": 0,\r\n    \"size\": 100,\r\n    \"afterId\": 0,\r\n    \"from\": 0,\r\n    \"to\": 0,\r\n    \"destination\": {{originator}},\r\n    \"originator\": {{sample_destination}},\r\n    \"content\": \"{{sample_text}}\",\r\n    \"serviceTag\": \"12345\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/webservice/rest/getReceivedMessages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webservice",
+								"rest",
+								"getReceivedMessages"
+							]
+						},
+						"description": "<ul>\n    <li>The only required input variables are <b><i>username</i></b> and <b><i>password</i></b>.</li>\n    <li>Variables <b><i>from</i></b> and <b><i>to</i></b> are unix timestamp in milli seconds.</li>\n    <li>This list API is paginated. <b><i>page</i></b> is zero-based and defaulted to 0. <b><i>size</i></b> is the length of the result and defaulted to 100.</li>\n    <li>when setting <b><i>afterId</i></b> in request, results are after the specified id.</li>\n    <li><b><i>originator</i></b> is the mobile number the message is sent from.</li>\n    <li><b><i>destination</i></b> is the number the message is sent to. for example it may start with 50004.</li>\n    <li>you can also search messages based on <b><i>content</i></b>. Be aware that the search is not based on words. For example, if you search \"ab\", messages containing \"xxabxx\" are also shown.</li>\n    <li>if you want to get incoming messages for a specific service, you can add its tag to <b><i>serviceTag</i></b>.</li>\n</ul>"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\":\"sample_user\",\r\n    \"password\":\"password_1234\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/webservice/rest/getReceivedMessages",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"webservice",
+										"rest",
+										"getReceivedMessages"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\r\n    \"errorModel\": {\r\n        \"errorCode\": 0,\r\n        \"message\": null,\r\n        \"timestamp\": null\r\n    },\r\n    \"result\": {\r\n        \"recordsTotal\": 1,\r\n        \"recordsFiltered\": 1,\r\n        \"data\": [\r\n            {\r\n                \"id\": 1,\r\n                \"content\": \"test message\",\r\n                \"destination\": 50004123456789,\r\n                \"originator\": 9112223344,\r\n                \"insertDate\": 0\r\n            }\r\n        ]\r\n    }\r\n}"
+						}
+					]
+				},
+				{
+					"name": "ReceiveIncomingMessages",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/webservice/rest/getReceivedMessages?username={{username}}&password={{password}}&page&size&from&to&afterId&destination&originator&content&serviceTag",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webservice",
+								"rest",
+								"getReceivedMessages"
+							],
+							"query": [
+								{
+									"key": "username",
+									"value": "{{username}}"
+								},
+								{
+									"key": "password",
+									"value": "{{password}}"
+								},
+								{
+									"key": "page",
+									"value": null
+								},
+								{
+									"key": "size",
+									"value": null
+								},
+								{
+									"key": "from",
+									"value": null,
+									"description": "unix timestamp"
+								},
+								{
+									"key": "to",
+									"value": null,
+									"description": "unix timestamp"
+								},
+								{
+									"key": "afterId",
+									"value": null
+								},
+								{
+									"key": "destination",
+									"value": null
+								},
+								{
+									"key": "originator",
+									"value": null
+								},
+								{
+									"key": "content",
+									"value": null
+								},
+								{
+									"key": "serviceTag",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Get States",
+			"item": [
+				{
+					"name": "UserInfo",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\":\"{{username}}\",\r\n    \"password\":\"{{password}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/webservice/rest/getUserInfo",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webservice",
+								"rest",
+								"getUserInfo"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\":\"{{username}}\",\r\n    \"password\":\"{{password}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/webservice/rest/getUserInfo",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"webservice",
+										"rest",
+										"getUserInfo"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"errorModel\": {\n        \"errorCode\": 0,\n        \"message\": null,\n        \"timestamp\": null\n    },\n    \"userInfo\": {\n        \"credit\": 12345\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "MessageState",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\":\"{{username}}\",\r\n    \"password\":\"{{password}}\",\r\n    \"ids\": [123456789123456789]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/webservice/rest/getMessageState",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webservice",
+								"rest",
+								"getMessageState"
+							]
+						},
+						"description": "<p><b>NOTE: </b><span>if the referenceId is <b>NULL</b>, you will get <b>NULL</b>.</span></p>\n<p><b>NOTE: </b><span>if the referenceId is <b>not found</b>, you will get <b>-100</b> in state.</span></p>\n<h4>Message States:</h4>\n<ul>\n    <li><b><i>0</i></b> => <b><i>scheduled</i></b></li>\n    <li><b><i>1</i></b> => <b><i>sent</i></b></li>\n    <li><b><i>2</i></b> => <b><i>delivered</i></b></li>\n    <li><b><i>3</i></b> => <b><i>not delivered</i></b></li>\n    <li><b><i>4</i></b> => <b><i>unknown</i></b></li>\n    <li><b><i>5</i></b> => <b><i>ready</i></b></li>\n    <li><b><i>6</i></b> => <b><i>canceled</i></b></li>\n</ul>"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\":\"{{username}}\",\r\n    \"password\":\"{{password}}\",\r\n    \"ids\": [123456789123456789]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/webservice/rest/getMessageState",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"webservice",
+										"rest",
+										"getMessageState"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\r\n    \"errorModel\": {\r\n        \"errorCode\": 0,\r\n        \"message\": null,\r\n        \"timestamp\": null\r\n    },\r\n    \"states\": [\r\n        {\r\n            \"id\": 123456789123456789,\r\n            \"state\": 1\r\n        }\r\n    ]\r\n}"
+						},
+						{
+							"name": "InvalidReference",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\":\"{{username}}\",\r\n    \"password\":\"{{password}}\",\r\n    \"ids\": [123456789123456789]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/webservice/rest/getMessageState",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"webservice",
+										"rest",
+										"getMessageState"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\r\n    \"errorModel\": {\r\n        \"errorCode\": 0,\r\n        \"message\": null,\r\n        \"timestamp\": null\r\n    },\r\n    \"states\": [\r\n        {\r\n            \"id\": 123456789123456789,\r\n            \"state\": -100\r\n        }\r\n    ]\r\n}"
+						}
+					]
+				},
+				{
+					"name": "UserInfo",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/webservice/rest/getUserInfo?username={{username}}&password={{password}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"webservice",
+								"rest",
+								"getUserInfo"
+							],
+							"query": [
+								{
+									"key": "username",
+									"value": "{{username}}"
+								},
+								{
+									"key": "password",
+									"value": "{{password}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "default"
+		},
+		{
+			"key": "username",
+			"value": "sample_user",
+			"type": "default"
+		},
+		{
+			"key": "password",
+			"value": "password_1234",
+			"type": "default"
+		},
+		{
+			"key": "originator",
+			"value": "50004",
+			"type": "default"
+		},
+		{
+			"key": "sample_text",
+			"value": "webservice test",
+			"type": "default"
+		},
+		{
+			"key": "sample_destination",
+			"value": "09aabbbccdd",
+			"type": "default"
+		}
+	]
+}
