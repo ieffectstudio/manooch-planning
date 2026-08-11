@@ -1,0 +1,5 @@
+base on this prd manooch-planings\core\fino-teck-verfiy-phone-nId\fino-teck-verfiy-phone-nId.md
+
+- i should change regsiter method for all users (customer & sellers(manooch users)) to enter the phone number only match to national code input on register pages and add hint to phone number input to enter only match phone with natinal code
+
+give me plan to excute this and push on feat-match-phone-ncode
