@@ -30,7 +30,7 @@ Remove all `MELIPAYAMAK_*` environment variables and replace them with the follo
 
 | Variable Name | Required | Default / Example Value | Description |
 | :--- | :--- | :--- | :--- |
-| `ARMAGHAN_BASE_URL` | Yes | `https://panel.armaghan.net` (or assigned host) | Base URL for Armaghan REST API |
+| `ARMAGHAN_BASE_URL` | Yes | `https://panel.hisms.ir` | Base URL for Armaghan REST API. **Not** `panel.armaghan.net` — that host refuses all connections; `armaghan.net` and `hisms.ir` are the same platform under two brands, and only the HiSMS panel serves `/webservice/*`. The host firewalls TCP 443 to whitelisted IPs, so the caller's public IP must be registered in the panel or requests time out with no `errorCode` at all (the network-level form of `-110`). |
 | `ARMAGHAN_USERNAME` | Yes | `<your_username>` | Account username for API authentication |
 | `ARMAGHAN_PASSWORD` | Yes | `<your_password>` | Account password for API authentication |
 | `ARMAGHAN_ORIGINATOR` | Yes | `50002062088` | Active SMS sender line number |
