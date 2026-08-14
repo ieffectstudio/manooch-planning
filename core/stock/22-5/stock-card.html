@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>کارت موجودی محصول</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --text: #2b2b2b;
+      --muted: #9aa0a6;
+      --line: #ececec;
+      --in: #1f9d55;
+      --in-bg: #e8f8ee;
+      --out: #c0392b;
+      --out-bg: #fdecea;
+      --card: #fff;
+      --edit: #1a1a1a;
+      --edit-hover: #000;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Vazirmatn", Tahoma, sans-serif;
+      background: #f4f5f7;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+      color: var(--text);
+    }
+
+    .card {
+      width: min(920px, 100%);
+      background: var(--card);
+      border-radius: 8px;
+      padding: 22px 26px 22px;
+      box-shadow: 0 1px 0 rgba(0,0,0,.04);
+    }
+
+    .head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .meta { flex: 1; min-width: 0; }
+
+    .title {
+      font-size: 26px;
+      font-weight: 700;
+      text-align: right;
+      line-height: 1.4;
+      color: #2a2a2a;
+    }
+
+    .desc {
+      margin-top: 8px;
+      font-size: 16px;
+      color: #a3a8ae;
+      text-align: right;
+      line-height: 1.7;
+    }
+
+    .thumb {
+      width: 132px;
+      height: 132px;
+      border-radius: 10px;
+      object-fit: cover;
+      flex-shrink: 0;
+      display: block;
+    }
+
+    .variant {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 0 20px;
+    }
+
+    .variant + .variant {
+      border-top: 1px solid var(--line);
+    }
+
+    .info {
+      text-align: right;
+    }
+
+    .discount {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #e91e8c;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      height: 28px;
+      padding: 0 12px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+      letter-spacing: 0;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: auto;
+      min-width: 0;
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .status.in {
+      background: var(--in-bg);
+      color: var(--in);
+    }
+
+    .status.out {
+      background: var(--out-bg);
+      color: var(--out);
+    }
+
+    .size-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .size {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .stock-count {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--out);
+      white-space: nowrap;
+    }
+
+    .stock-count.is-hidden {
+      display: none;
+    }
+
+    .price {
+      font-size: 20px;
+      font-weight: 700;
+      direction: rtl;
+    }
+
+    .price .currency {
+      font-weight: 600;
+      margin-right: 6px;
+    }
+
+    .edit-btn {
+      display: block;
+      width: 100%;
+      margin-top: 8px;
+      border: none;
+      border-radius: 12px;
+      background: var(--edit);
+      color: #fff;
+      font-family: inherit;
+      font-size: 18px;
+      font-weight: 700;
+      height: 52px;
+      cursor: pointer;
+    }
+
+    .edit-btn:hover {
+      background: var(--edit-hover);
+    }
+  </style>
+</head>
+<body>
+  <article class="card">
+    <div class="head">
+      <div class="meta">
+        <h1 class="title">مرغ سوخاری نرمال</h1>
+        <p class="desc">تکه های مختلف مرغ سوخاری شده با ادویه نرمال، سس کچاپ</p>
+      </div>
+      <img class="thumb" alt="مرغ سوخاری نرمال" src="fried-chicken.jpg" />
+    </div>
+
+    <div class="variant">
+      <div class="info">
+        <div class="discount">٪۲۰</div>
+        <div class="size-row">
+          <div class="size">یک کیلوگرم</div>
+          <span class="stock-count" data-count="24">۲۴ عدد</span>
+        </div>
+        <div class="price">۱,۶۲۰,۰۰۰<span class="currency">تومان</span></div>
+      </div>
+      <div class="status in">موجود</div>
+    </div>
+
+    <div class="variant">
+      <div class="info">
+        <div class="size-row">
+          <div class="size">۵۰۰ گرم</div>
+          <span class="stock-count" data-count="4">۴ عدد</span>
+        </div>
+        <div class="price">۸۵۰,۰۰۰<span class="currency">تومان</span></div>
+      </div>
+      <div class="status out">ناموجود</div>
+    </div>
+
+    <button type="button" class="edit-btn">ویرایش</button>
+  </article>
+  <script>
+    document.querySelectorAll(".stock-count").forEach((el) => {
+      const count = Number(el.dataset.count);
+      el.classList.toggle("is-hidden", count >= 10);
+    });
+  </script>
+</body>
+</html>
