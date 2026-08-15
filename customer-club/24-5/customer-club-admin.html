@@ -725,6 +725,45 @@
   .sheet-actions .btn{flex:1;padding:12px;}
   .sheet-note{font-size:10.5px;color:var(--muted);text-align:center;margin-top:12px;line-height:1.8;}
 
+  /* ─────── شیت خرید پیامک ─────── */
+  .sms-bal{background:linear-gradient(135deg,#4B45E6 0%,#6C5CE7 100%);border-radius:14px;padding:14px 16px;color:#fff;margin-bottom:12px;position:relative;overflow:hidden;}
+  .sms-bal::after{content:"";position:absolute;left:-26px;top:-26px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.09);}
+  .sms-bal-l{font-size:10.5px;opacity:.85;line-height:1.6;}
+  .sms-bal-n{font-size:22px;font-weight:600;margin-top:2px;line-height:1.4;}
+  .sms-bal-n small{font-size:11px;font-weight:400;opacity:.85;}
+  .sms-plans{display:flex;flex-direction:column;gap:8px;}
+  .sms-plan{display:flex;align-items:center;gap:10px;background:#FAFBFD;border:1px solid #ECEEF5;border-radius:13px;padding:11px 12px;text-align:right;transition:.15s;position:relative;width:100%;cursor:pointer;font-family:inherit;}
+  .sms-plan:active{transform:scale(.985);}
+  .sms-plan.active{border-color:#4B45E6;background:rgba(75,69,230,.05);}
+  .sms-radio{width:17px;height:17px;border-radius:50%;border:2px solid #C2C6CE;flex:none;position:relative;transition:.15s;}
+  .sms-plan.active .sms-radio{border-color:#4B45E6;}
+  .sms-plan.active .sms-radio::after{content:"";position:absolute;inset:3px;border-radius:50%;background:#4B45E6;}
+  .sms-mid{flex:1;min-width:0;display:flex;flex-direction:column;}
+  .sms-count{font-size:14px;font-weight:600;color:#16161D;line-height:1.5;}
+  .sms-count small{font-size:10.5px;font-weight:400;color:#737377;}
+  .sms-unit{font-size:10px;color:#A3A9B6;line-height:1.6;}
+  .sms-price{text-align:left;display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+  .sms-price-v{font-size:13px;font-weight:600;color:#16161D;line-height:1.5;}
+  .sms-price-v small{font-size:9.5px;font-weight:400;color:#737377;}
+  .sms-off{font-size:9.5px;font-weight:600;color:#0B7A48;background:#E6F7EE;border-radius:99px;padding:2px 8px;line-height:1.6;}
+  .sms-custom{background:#F7F8FC;border:1px solid #ECEEF5;border-radius:13px;padding:11px 12px;margin-bottom:6px;}
+  .sms-custom-t{font-size:12px;font-weight:600;color:#16161D;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;line-height:1.6;}
+  .sms-custom-badge{font-size:9.5px;font-weight:600;color:#4B45E6;background:rgba(75,69,230,.07);border:1px solid #D8D3F8;border-radius:99px;padding:2px 9px;line-height:1.7;}
+  .sms-custom-row{display:flex;gap:8px;align-items:center;}
+  .sms-custom-row .f-input{margin:0;padding:10px 12px;font-size:12.5px;}
+  .sms-custom-out{display:none;margin-top:8px;font-size:11.5px;color:#0B7A48;background:#E6F7EE;border:1px solid #B9E8CF;border-radius:10px;padding:8px 12px;line-height:1.7;}
+  .sms-custom-out.show{display:block;}
+  .sms-divider{display:flex;align-items:center;gap:10px;margin:10px 0;color:#A3A9B6;font-size:10.5px;}
+  .sms-divider::before,.sms-divider::after{content:"";flex:1;height:1px;background:#ECEEF5;}
+  .sms-badge{position:absolute;top:-7px;right:12px;font-size:9px;font-weight:600;color:#fff;background:#4B45E6;border-radius:99px;padding:2px 9px;line-height:1.6;box-shadow:0 3px 8px -2px rgba(75,69,230,.5);}
+  .sms-badge.green{background:#12B76A;box-shadow:0 3px 8px -2px rgba(18,183,106,.5);}
+  .sms-badge.gold{background:#E8A500;box-shadow:0 3px 8px -2px rgba(232,165,0,.5);}
+  .sms-pay-row{display:flex;align-items:center;gap:12px;margin-top:14px;background:#F7F8FC;border:1px solid #ECEEF5;border-radius:14px;padding:10px 14px;}
+  .sms-pay-mid{flex:1;display:flex;flex-direction:column;}
+  .sms-pay-l{font-size:10px;color:#737377;line-height:1.6;}
+  .sms-pay-v{font-size:14px;font-weight:600;color:#16161D;line-height:1.5;}
+  .sms-pay-v small{font-size:10px;font-weight:400;color:#737377;}
+
   /* ─────── توست ─────── */
   .toast{
     position:absolute;bottom:94px;left:50%;transform:translateX(-50%) translateY(12px);z-index:90;
@@ -1006,7 +1045,7 @@
         <div class="ab-icon" id="ab-icon"></div>
         <div class="ab-title" id="ab-title" style="display:none">
           <span class="ab-title-t" id="ab-title-t">باشگاه مشتریان</span>
-          <span class="ab-title-s" id="ab-title-s">فروشگاه دیجی‌استایل • پلن حرفه‌ای</span>
+          <span class="ab-title-s" id="ab-title-s">فروشگاه دیجی‌استایل • پلن باشگاه</span>
         </div>
         <button class="icon-btn" id="back-btn" style="display:none" aria-label="بازگشت">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.5182 6.42521C8.83565 6.15914 9.3087 6.2008 9.57477 6.51825C9.84084 6.83571 9.79918 7.30876 9.48172 7.57483L5.09673 11.25H20C20.4142 11.25 20.75 11.5858 20.75 12C20.75 12.4142 20.4142 12.75 20 12.75H5.09803L9.48181 16.4253C9.79922 16.6914 9.84081 17.1644 9.5747 17.4819C9.30858 17.7993 8.83553 17.8409 8.51811 17.5748L4.1248 13.8915C2.95843 12.9138 2.95837 11.0851 4.1248 10.1074L8.5182 6.42521Z" fill="#16161D"/></svg>
@@ -1019,13 +1058,13 @@
       <!-- تایتل صفحه — زیر منوی بالا -->
       <div class="page-title-block" id="page-title-block">
         <h1 class="page-title-below" id="page-title-below">باشگاه مشتریان</h1>
-        <p class="page-sub-below" id="page-title-sub">فروشگاه دیجی‌استایل • پلن حرفه‌ای</p>
+        <p class="page-sub-below" id="page-title-sub">فروشگاه دیجی‌استایل • پلن باشگاه</p>
       </div>
 
         <div class="hero" id="dash-hero">
           <div class="hero-top">
             <span class="hero-label">اعتبار پیامک</span>
-            <span class="hero-chip">پلن حرفه‌ای</span>
+            <span class="hero-chip">پلن باشگاه</span>
           </div>
           <div class="hero-num"><span data-count="2450">۰</span><small>پیامک باقی‌مانده</small></div>
           <div class="hero-prog">
@@ -1404,32 +1443,22 @@
               <div class="setup-t">پلن باشگاه مشتریان را انتخاب کنید</div>
               <div class="setup-d">پروفایل فروشگاه شما تکمیل شد. حالا پلن مناسب کسب‌وکارتان را انتخاب کنید.</div>
 
-              <!-- کارت‌های قیمت -->
+              <!-- کارت قیمت — فقط یک پلن -->
               <div class="plans">
-                <button class="plan" data-plan="رایگان">
-                  <span class="plan-name">رایگان</span>
-                  <span class="plan-price">۰ <small>تومان</small></span>
-                  <span class="plan-feat">۵۰۰ پیامک در ماه</span>
-                  <span class="plan-feat">ابزارهای پایه وفاداری</span>
-                </button>
-                <button class="plan" data-plan="پایه">
-                  <span class="plan-name">پایه</span>
+                <button class="plan active" data-plan="باشگاه">
+                  <span class="plan-badge">پیشنهادی</span>
+                  <span class="plan-name">باشگاه مشتریان</span>
                   <span class="plan-price">۲۹۰٬۰۰۰ <small>تومان/ماه</small></span>
-                  <span class="plan-feat">۵٬۰۰۰ پیامک در ماه</span>
+                  <span class="plan-feat">پیامک قابل شارژ — جداگانه شارژ می‌شود</span>
                   <span class="plan-feat">همه ابزارهای وفاداری</span>
                 </button>
-                <button class="plan active" data-plan="حرفه‌ای">
-                  <span class="plan-badge">پیشنهادی</span>
-                  <span class="plan-name">حرفه‌ای</span>
-                  <span class="plan-price">۵۹۰٬۰۰۰ <small>تومان/ماه</small></span>
-                  <span class="plan-feat">پیامک نامحدود</span>
-                  <span class="plan-feat">باشگاه + همه ابزارها</span>
-                </button>
+              </div>
+              <div class="setup-note" style="font-size:11px;color:#737377;text-align:center;margin-top:8px;line-height:1.7;">
+                پیامک به‌صورت سبد شارژی خریداری می‌شود — پلن نامحدود نداریم. قیمت باشگاه ماهانه ۲۹۰٬۰۰۰ تومان است.
               </div>
 
               <div class="setup-actions">
                 <button class="btn btn-solid" id="setup-pay-btn">پرداخت و فعال‌سازی باشگاه</button>
-                <button class="btn btn-soft" id="setup-free-btn">شروع با پلن رایگان</button>
               </div>
             </div>
 
@@ -3459,18 +3488,57 @@
         </div>
       </div>
 
+      <!-- ─────────── شیت خرید پیامک ─────────── -->
+      <div class="modal" id="sms-sheet">
+        <div class="sheet">
+          <div class="sheet-head">
+            <h2 class="sheet-title">خرید پیامک</h2>
+            <button class="icon-btn close" id="sms-close" aria-label="بستن">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+
+          <div class="sms-bal">
+            <div class="sms-bal-l">موجودی فعلی پیامک</div>
+            <div class="sms-bal-n">۲٬۴۵۰ <small>پیامک</small></div>
+          </div>
+
+          <!-- خرید با مبلغ دلخواه (زیر ۱۰۰۰ پیامک) -->
+          <div class="sms-custom">
+            <div class="sms-custom-t">خرید با مبلغ دلخواه <span class="sms-custom-badge">هر پیامک ۴۰۰ تومان</span></div>
+            <div class="sms-custom-row">
+              <input class="f-input" id="sms-amount" placeholder="مبلغ به تومان — مثلاً ۲۰۰٬۰۰۰" inputmode="numeric" style="flex:1;text-align:right;">
+              <button class="btn btn-soft" id="sms-apply" type="button" style="flex:none;">محاسبه</button>
+            </div>
+            <div class="sms-custom-out" id="sms-custom-out"></div>
+          </div>
+
+          <div class="sms-divider"><span>یا از پکیج‌های آماده</span></div>
+
+          <div class="sms-plans" id="sms-plans"></div>
+
+          <div class="sms-pay-row">
+            <div class="sms-pay-mid">
+              <span class="sms-pay-l">پلن انتخاب‌شده</span>
+              <span class="sms-pay-v" id="sms-total">—</span>
+            </div>
+            <button class="btn btn-solid" id="sms-pay" style="flex:none;width:auto;padding:12px 20px;">پرداخت</button>
+          </div>
+        </div>
+      </div>
+
       <!-- ─────────── مودال پرداخت ─────────── -->
       <div class="modal" id="modal-pay">
         <div class="sheet">
           <div class="sheet-head">
-            <h2 class="sheet-title">پرداخت پلن <span id="pay-plan-name">حرفه‌ای</span></h2>
+            <h2 class="sheet-title">پرداخت پلن <span id="pay-plan-name">باشگاه</span></h2>
             <button class="icon-btn close" id="pay-close" aria-label="بستن">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
           <div class="pay-sum">
             <span class="pay-sum-l">مبلغ قابل پرداخت</span>
-            <span class="pay-sum-v" id="pay-amount">۵۹۰٬۰۰۰ تومان</span>
+            <span class="pay-sum-v" id="pay-amount">۲۹۰٬۰۰۰ تومان</span>
           </div>
           <label class="f-label" for="pay-card">شماره کارت</label>
           <input class="f-input" id="pay-card" placeholder="0000 0000 0000 0000" dir="ltr" style="text-align:center;letter-spacing:1px">
@@ -4183,7 +4251,7 @@ const fa = n => Number(n).toLocaleString('fa-IR');
 
 /* ═══════════ ناوبری (تب + زیرصفحه) ═══════════ */
 const TITLES = {
-  dashboard:{t:'باشگاه مشتریان', s:'فروشگاه دیجی‌استایل • پلن حرفه‌ای'},
+  dashboard:{t:'باشگاه مشتریان', s:'فروشگاه دیجی‌استایل • پلن باشگاه'},
   setup:{t:'راه‌اندازی باشگاه', s:'پروفایل فروشگاه و فعال‌سازی'},
   campaigns:{t:'کمپین‌ها و ساختار باشگاه', s:'پیکربندی از این بخش'},
   tools:{t:'ابزارهای وفاداری', s:'تنظیمات و تاریخچه'},
@@ -5753,7 +5821,92 @@ $('#pt-save').addEventListener('click', () => {
 });
 
 /* ═══════════ اکشن‌های ساده ═══════════ */
-$('#btn-credit').addEventListener('click', () => toast('در حال اتصال به درگاه پرداخت…'));
+  // ─────── شیت خرید پیامک ───────
+  const SMS_BASE = 400; // هر پیامک خرید با مبلغ دلخواه
+  const SMS_PLANS = [
+    { count: 1000,   unit: 350, badge: null },
+    { count: 5000,   unit: 340, badge: { t: 'پرمصرف', c: 'green' } },
+    { count: 10000,  unit: 330, badge: { t: 'پیشنهادی', c: '' } },
+    { count: 25000,  unit: 320, badge: null },
+    { count: 50000,  unit: 310, badge: { t: 'پرفروش', c: 'gold' } },
+    { count: 100000, unit: 300, badge: { t: 'ارزشمندترین', c: 'green' } }
+  ];
+  const faIR = n => new Intl.NumberFormat('fa-IR').format(n);
+  let smsCur = 2;
+  let smsCustom = 0; // مبلغ دلخواه (تومان) — ۰ یعنی فعال نیست
+
+  function renderSmsPlans(){
+    $('#sms-plans').innerHTML = SMS_PLANS.map((p, i) => {
+      const price = p.count * p.unit;
+      return '<button class="sms-plan' + (i === smsCur && !smsCustom ? ' active' : '') + '" data-i="' + i + '">'
+        + (p.badge ? '<span class="sms-badge ' + p.badge.c + '">' + p.badge.t + '</span>' : '')
+        + '<span class="sms-radio"></span>'
+        + '<span class="sms-mid"><span class="sms-count">' + faIR(p.count) + ' <small>پیامک</small></span>'
+        + '<span class="sms-unit">هر پیامک ' + faIR(p.unit) + ' تومان</span></span>'
+        + '<span class="sms-price"><span class="sms-price-v">' + faIR(price) + ' <small>تومان</small></span>'
+        + '<span class="sms-off">' + faIR(Math.round((SMS_BASE - p.unit) * 100 / SMS_BASE)) + '٪ ارزان‌تر</span>'
+        + '</span></button>';
+    }).join('');
+    $$('#sms-plans .sms-plan').forEach(b => b.addEventListener('click', () => {
+      smsCur = +b.dataset.i;
+      smsCustom = 0;
+      $('#sms-amount').value = '';
+      $('#sms-custom-out').classList.remove('show');
+      renderSmsPlans();
+    }));
+    updateSmsTotal();
+  }
+
+  function updateSmsTotal(){
+    $$('#sms-plans .sms-plan').forEach(b => b.classList.toggle('active', !smsCustom && +b.dataset.i === smsCur));
+    if (smsCustom > 0){
+      const count = Math.floor(smsCustom / SMS_BASE);
+      $('#sms-total').innerHTML = faIR(count) + ' پیامک — ' + faIR(smsCustom) + ' <small>تومان</small>';
+    } else {
+      const p = SMS_PLANS[smsCur];
+      $('#sms-total').innerHTML = faIR(p.count) + ' پیامک — ' + faIR(p.count * p.unit) + ' <small>تومان</small>';
+    }
+  }
+
+  // محاسبه مبلغ دلخواه
+  function applyCustom(){
+    const raw = $('#sms-amount').value.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٬,،\s]/g, '');
+    const amt = parseInt(raw, 10) || 0;
+    const out = $('#sms-custom-out');
+    if (amt < SMS_BASE){
+      out.textContent = 'حداقل مبلغ برای خرید پیامک، ' + faIR(SMS_BASE) + ' تومان است.';
+      out.style.color = '#C20000';
+      out.style.background = '#FFF0F0';
+      out.style.borderColor = '#FFD5D5';
+      out.classList.add('show');
+      smsCustom = 0;
+      updateSmsTotal();
+      return;
+    }
+    const count = Math.floor(amt / SMS_BASE);
+    out.textContent = 'با مبلغ ' + faIR(amt) + ' تومان، ' + faIR(count) + ' پیامک (هر پیامک ' + faIR(SMS_BASE) + ' تومان) دریافت می‌کنید.';
+    out.style.color = '#0B7A48';
+    out.style.background = '#E6F7EE';
+    out.style.borderColor = '#B9E8CF';
+    out.classList.add('show');
+    smsCustom = amt;
+    updateSmsTotal();
+  }
+  $('#sms-amount').addEventListener('input', applyCustom);
+  $('#sms-apply').addEventListener('click', applyCustom);
+
+  $('#btn-credit').addEventListener('click', () => { renderSmsPlans(); $('#sms-sheet').classList.add('open'); });
+  $('#sms-close').addEventListener('click', () => { $('#sms-sheet').classList.remove('open'); });
+  $('#sms-pay').addEventListener('click', () => {
+    $('#sms-sheet').classList.remove('open');
+    if (smsCustom > 0){
+      const count = Math.floor(smsCustom / SMS_BASE);
+      toast('اتصال به درگاه پرداخت — ' + faIR(count) + ' پیامک (' + faIR(smsCustom) + ' تومان)');
+    } else {
+      const p = SMS_PLANS[smsCur];
+      toast('اتصال به درگاه پرداخت — ' + faIR(p.count) + ' پیامک (' + faIR(p.count * p.unit) + ' تومان)');
+    }
+  });
 $('#btn-report').addEventListener('click', () => nav('reports'));
 $('#save-settings').addEventListener('click', () => toast('تنظیمات باشگاه ذخیره شد ✓'));
 
@@ -6126,8 +6279,8 @@ document.addEventListener('DOMContentLoaded', function(){
     toast('پروفایل فروشگاه تکمیل شد ✓');
   });
   $('#setup-skip-btn').addEventListener('click', () => nav('dashboard'));
-  const PLANS = { 'رایگان': 0, 'پایه': 290000, 'حرفه‌ای': 590000 };
-  let curPlan = 'حرفه‌ای';
+  const PLANS = { 'باشگاه': 290000 };
+  let curPlan = 'باشگاه';
   document.querySelectorAll('.plan').forEach(pl => pl.addEventListener('click', () => {
     document.querySelectorAll('.plan').forEach(x => x.classList.remove('active'));
     pl.classList.add('active');
@@ -6135,16 +6288,13 @@ document.addEventListener('DOMContentLoaded', function(){
   }));
   $('#setup-pay-btn').addEventListener('click', () => {
     $('#pay-plan-name').textContent = curPlan;
-    $('#pay-amount').textContent = (curPlan === 'رایگان' ? '۰ تومان' : new Intl.NumberFormat('fa-IR').format(PLANS[curPlan]) + ' تومان');
+    $('#pay-amount').textContent = new Intl.NumberFormat('fa-IR').format(PLANS[curPlan]) + ' تومان';
     $('#modal-pay').classList.add('open');
-  });
-  $('#setup-free-btn').addEventListener('click', () => {
-    setSetup(2); renderSetup(); renderSetupLines(); setupLine=null; $('#setup-line-sel').textContent='— انتخاب نشده —';
   });
   $('#pay-close').addEventListener('click', () => { $('#modal-pay').classList.remove('open'); });
   $('#pay-done').addEventListener('click', () => {
     $('#modal-pay').classList.remove('open');
-    setSetup(2); renderSetup(); renderSetupLines(); setupLine=null; $('#setup-line-sel').textContent='— انتخاب نشده —';
+    setSetup(2); renderSetup(); renderSetupLines(); setupLine=null; var _sls=$('#setup-line-sel'); if(_sls) _sls.textContent='— انتخاب نشده —';
   });
   $('#setup-enter-btn').addEventListener('click', () => nav('dashboard'));
   $('#setup-lines-btn').addEventListener('click', () => {
@@ -6225,7 +6375,7 @@ $('#ai-cancel').addEventListener('click', () => { clearInterval(aiTimer); $('#mo
 $('#ai-finish').addEventListener('click', () => {
   clearInterval(aiTimer);
   $('#modal-ai').classList.remove('open');
-  setSetup(2); renderSetup(); renderSetupLines(); setupLine=null; $('#setup-line-sel').textContent='— انتخاب نشده —';
+  setSetup(2); renderSetup(); renderSetupLines(); setupLine=null; var _sls=$('#setup-line-sel'); if(_sls) _sls.textContent='— انتخاب نشده —';
   nav('setup');
   toast('باشگاه مشتریان با هوش مصنوعی تنظیم شد — سرخط را انتخاب کنید');
 });
