@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>منوچ — افزودن کالای ارزی</title>
+<meta name="description" content="افزودن کالای ارزی — طلا یا ارز با فرم داینامیک">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{font-family:'Ravi','Vazirmatn',Tahoma,sans-serif;color:#16161D;-webkit-font-smoothing:antialiased;background:#EFF0F6;}
+  button{font:inherit;border:0;background:none;cursor:pointer;color:inherit;}
+  img{display:block;}
+
+  .stage{min-height:100vh;display:flex;align-items:center;justify-content:center;gap:56px;padding:40px 24px;
+    background:radial-gradient(900px 500px at 12% 8%, #E9E4FF 0%, transparent 60%),radial-gradient(800px 450px at 92% 92%, #DDF0FF 0%, transparent 55%),#EFF0F6;}
+  .side{max-width:330px;background:rgba(255,255,255,.85);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.9);border-radius:24px;padding:30px 28px;box-shadow:0 8px 20px -10px rgba(20,23,38,.10);}
+  .side-chip{display:inline-flex;align-items:center;gap:6px;background:#EFEBFE;color:#6C4DF6;font-size:12px;font-weight:500;padding:5px 12px;border-radius:999px;margin-bottom:16px;}
+  .side h1{font-size:30px;font-weight:600;line-height:1.5;margin-bottom:8px;}
+  .side h2{font-size:16px;font-weight:500;margin-bottom:14px;color:#7B8194;}
+  .side p{font-size:13.5px;color:#4A5063;margin-bottom:18px;}
+  .side ul{list-style:none;display:flex;flex-direction:column;gap:10px;}
+  .side li{display:flex;align-items:center;gap:10px;font-size:13px;color:#3E4456;}
+  .side li svg{flex:none;color:#6C4DF6;}
+  .side-note{margin-top:20px;font-size:11.5px;color:#7B8194;background:#FAFBFD;border:1px dashed #ECEEF5;border-radius:12px;padding:10px 12px;}
+
+  .phone{width:413px;height:892px;flex:none;position:relative;background:#101218;border-radius:52px;padding:10px;box-shadow:0 48px 90px -30px rgba(35,40,70,.45),0 0 0 1px rgba(20,22,35,.06);}
+  .phone-inner{position:relative;width:100%;height:100%;overflow:hidden;background:#FEFEFE;border-radius:42px;display:flex;flex-direction:column;}
+  .island{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:112px;height:30px;background:#101218;border-radius:16px;z-index:60;}
+
+  .statusbar{height:50px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 6px;font-size:12px;font-weight:600;color:#16161D;z-index:55;direction:rtl;}
+  .st-icons{display:flex;align-items:center;gap:5px;}
+
+  .appbar{flex:none;display:flex;align-items:center;justify-content:flex-start;gap:12px;background:#FEFEFE;height:52px;padding:6px 14px;direction:rtl;}
+  .back-btn{width:24px;height:24px;flex:none;display:grid;place-items:center;margin-right:auto;}
+  .back-btn img{width:24px;height:24px;}
+  .ab-icon{width:32px;height:32px;flex:none;display:grid;place-items:center;color:#16161D;}
+  .ab-icon img{width:32px;height:32px;}
+  .ab-title{flex:0 1 auto;display:flex;flex-direction:column;align-items:flex-start;text-align:right;min-width:0;margin-right:10px;}
+  .ab-title-t{font-size:16px;font-weight:700;color:#16161D;line-height:1.4;white-space:nowrap;}
+  .ab-title-s{font-size:11px;color:#737377;line-height:1.4;white-space:nowrap;}
+
+  .screens{flex:1;overflow-y:auto;padding:16px;scrollbar-width:none;}
+  .screens::-webkit-scrollbar{display:none;}
+
+  /* تب‌ها */
+  .tabs{display:flex;background:#F1F2F7;border-radius:12px;padding:4px;gap:4px;margin-bottom:16px;}
+  .tabs button{flex:1;border:none;background:transparent;border-radius:9px;padding:10px 6px;font-size:13px;font-weight:500;color:#6B7180;transition:.15s;cursor:pointer;}
+  .tabs button.active{background:#fff;color:#4B45E6;box-shadow:0 2px 6px rgba(20,23,38,.08);}
+
+  /* فرم */
+  .form-card{background:#fff;border:1px solid #ECEEF5;border-radius:16px;padding:14px;margin-bottom:12px;}
+  .f-label{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:500;color:#3E4456;margin:12px 2px 6px;}
+  .f-label:first-child{margin-top:0;}
+  .f-input{width:100%;border:1px solid #ECEEF5;border-radius:12px;padding:10px 12px;font-size:13px;outline:none;background:#FAFBFD;font-family:inherit;color:#181B26;transition:.15s;}
+  .f-input:focus{border-color:#4B45E6;background:#fff;}
+  .f-help{font-size:11px;color:#737377;margin-top:4px;line-height:1.6;}
+  .f-row{display:flex;gap:10px;}
+  .f-row > div{flex:1;min-width:0;}
+  .f-row .f-input{width:100%;}
+  .up-area{border:1.5px dashed #D9D3FA;background:rgba(75,69,230,.04);border-radius:14px;padding:22px 14px;text-align:center;color:#4B45E6;font-size:12px;cursor:pointer;transition:.15s;margin-top:6px;}
+  .up-area:active{transform:scale(.98);}
+  .up-area svg{width:26px;height:26px;margin:0 auto 6px;display:block;}
+  .up-note{font-size:10px;color:#7B8194;margin-top:4px;}
+  .save-btn{width:100%;background:#4B45E6;color:#fff;border:none;border-radius:12px;padding:12px;font-size:13.5px;font-weight:500;cursor:pointer;margin-top:4px;transition:.15s;}
+  .save-btn:active{transform:scale(.98);}
+  .sec-title{font-size:13px;font-weight:600;color:#16161D;margin-bottom:2px;line-height:1.6;}
+
+  /* سوییچ‌ها */
+  .sw-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;}
+  .sw-text{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;}
+  .sw-name{font-size:13px;font-weight:600;color:#16161D;line-height:1.6;}
+  .sw-desc{font-size:11px;color:#737377;line-height:1.6;}
+  .switch{width:36px;height:20px;border-radius:99px;background:#C2C6CE;position:relative;flex:none;transition:.2s;cursor:pointer;}
+  .switch::after{content:"";position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:#FEFEFE;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.15);}
+  .switch.on{background:#4B45E6;}
+  .switch.on::after{right:18px;}
+
+  /* ویژگی‌ها — کارت نمایشی */
+  .feat-box{display:none;margin-top:12px;}
+  .disp-card{border:1px solid #ECEEF5;background:#FBFBFD;border-radius:12px;padding:12px;}
+  .disp-edit{width:26px;height:26px;border-radius:8px;background:#EFEBFE;color:#4B45E6;display:grid;place-items:center;flex:none;transition:.15s;}
+  .disp-edit:active{transform:scale(.94);}
+  .disp-row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px dashed #ECEEF5;}
+  .disp-row:first-child{padding-top:0;}
+  .disp-row:last-child{border-bottom:0;padding-bottom:0;}
+  .disp-row-name{flex:1;min-width:0;font-size:13px;font-weight:600;color:#16161D;line-height:1.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .disp-row-count{flex:none;font-size:10.5px;color:#737377;background:#fff;border:1px solid #ECEEF5;border-radius:99px;padding:4px 10px;line-height:1.6;white-space:nowrap;}
+
+  /* محاسبه خودکار */
+  .calc-badge{display:inline-block;font-size:10px;font-weight:500;color:#4B45E6;background:rgba(75,69,230,.08);border-radius:99px;padding:2px 8px;vertical-align:2px;margin-right:6px;}
+  .calc-total{display:flex;align-items:baseline;justify-content:center;gap:6px;background:rgba(75,69,230,.05);border:1px solid #E4E0FB;border-radius:12px;padding:12px;margin:8px 0 10px;}
+  .calc-total-v{font-size:20px;font-weight:600;color:#4B45E6;}
+  .calc-total-l{font-size:11px;color:#737377;}
+  .calc-rows{display:flex;flex-direction:column;gap:2px;}
+  .calc-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#3E4456;padding:6px 2px;border-bottom:1px dashed #ECEEF5;}
+  .calc-row:last-child{border-bottom:0;}
+  .calc-v{font-weight:600;color:#16161D;}
+  .calc-hint{font-size:10.5px;color:#A3A9B6;margin-top:8px;text-align:center;line-height:1.6;}
+
+  /* نوار قیمت لحظه‌ای — کوچک */
+  .price-live{padding:10px 12px;border:1px solid #E4E0FB;background:rgba(75,69,230,.04);}
+  .price-live-row{display:flex;align-items:center;gap:8px;}
+  .price-live-title{font-size:12px;font-weight:600;color:#16161D;white-space:nowrap;line-height:1.6;}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:#12B76A;flex:none;animation:livepulse 1.6s infinite;}
+  @keyframes livepulse{0%,100%{box-shadow:0 0 0 0 rgba(18,183,106,.35);}50%{box-shadow:0 0 0 5px rgba(18,183,106,0);}}
+  .price-live-inp{flex:1;min-width:0;padding:8px 10px;font-size:12px;}
+  .price-unit{flex:none;font-size:10px;color:#565C6E;background:#fff;border:1px solid #ECEEF5;border-radius:8px;padding:6px 8px;white-space:nowrap;line-height:1.6;}
+
+  /* هزینه ارزی */
+  .cost-row{display:flex;gap:8px;align-items:center;}
+  .cost-row .f-input{flex:1;min-width:0;}
+
+  /* وضعیت محصول */
+  .st-box{display:none;margin-top:10px;border:1px solid #FFE0E0;background:#FFF7F7;border-radius:12px;padding:10px 12px;color:#C20000;}
+  .st-box .f-help{color:#C20000;margin-top:0;}
+
+  /* موجودی نامحدود */
+  .inv-wrap{margin-top:10px;}
+  .inv-wrap .f-label{margin:0 2px 6px;}
+  .unl-box{display:none;margin-top:10px;border:1px solid #D7F0E3;background:#F3FBF7;border-radius:12px;padding:10px 12px;font-size:12px;color:#0B7A48;text-align:center;line-height:1.7;}
+
+  /* تکمیل توضیحات با AI */
+  .ai-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;}
+  .ai-row .f-label{margin-bottom:0;}
+  .ai-btn{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;color:#4B45E6;background:rgba(75,69,230,.07);border:1px solid #D8D3F8;border-radius:99px;padding:5px 10px;cursor:pointer;transition:.15s;font-family:inherit;white-space:nowrap;}
+  .ai-btn:active{transform:scale(.96);}
+  .ai-btn.loading{color:#7B8194;background:#F1F2F7;border-color:#ECEEF5;cursor:default;}
+  .ai-btn svg{flex:none;}
+  /* حذف پس زمینه — برای هر تصویر */
+  .wand-btn{position:absolute;bottom:6px;left:6px;width:24px;height:24px;border-radius:50%;background:#fff;border:1px solid #ECEEF5;color:#4B45E6;display:grid;place-items:center;z-index:3;box-shadow:0 2px 6px rgba(20,23,38,.14);transition:.15s;}
+  .wand-btn.loading{color:#7B8194;}
+  .wand-btn:active{transform:scale(.9);}
+  .up-area{position:relative;}
+  .up-area.bg-done{border-color:#B9E8CF;box-shadow:0 0 0 2px rgba(18,183,106,.22);background:#fff;}
+  .up-img.bg-done{background:#fff;border-color:#B9E8CF;box-shadow:0 0 0 2px rgba(18,183,106,.22);}
+  .up-img .bg-badge{display:none;}
+  .up-img.bg-done .bg-badge{display:grid;position:absolute;bottom:4px;left:4px;width:16px;height:16px;border-radius:50%;background:#12B76A;color:#fff;place-items:center;z-index:2;}
+  .up-img.bg-done .del{background:#E6F7EE;color:#0B7A48;}
+  .up-area .real-img{width:100%;height:100%;object-fit:cover;border-radius:10px;display:block;}
+  @media (max-width:940px){.side{display:none;}}
+  @media (max-width:440px){
+    .stage{padding:0;display:block;}
+    .phone{width:100vw;height:100dvh;border-radius:0;padding:0;}
+    .phone-inner{border-radius:0;}
+    .island{display:none;}
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <aside class="side">
+    <span class="side-chip">پنل ادمین • فروشگاه‌ساز</span>
+    <h1>افزودن کالای ارزی</h1>
+    <h2>تب‌ها: طلا / ارز</h2>
+    <p>با تب بین طلا و ارز جابه‌جا شوید. برای طلا: گرم، اجرت، سود و محاسبه خودکار قیمت. برای ارز: نرخ روز خودکار، هزینه ارزی، کارمزد. بخش «ویژگی‌ها» در هر دو تب مثل بخش کالا است.</p>
+    <ul>
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>تب طلا: قیمت لحظه‌ای + محاسبه خودکار</li>
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>تب ارز: نرخ خودکار + هزینه ارزی</li>
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>وضعیت محصول + موجودی نامحدود</li>
+    </ul>
+    <div class="side-note">قیمت لحظه‌ای طلا و ارز زیر تب‌هاست و قیمت محصول به‌صورت خودکار محاسبه می‌شود.</div>
+  </aside>
+
+  <div class="phone">
+    <div class="phone-inner">
+      <div class="island"></div>
+
+      <div class="statusbar">
+        <span>۵:۱۳</span>
+        <span class="st-icons">
+          <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="4.5" y="5.5" width="3" height="6.5" rx="1"/><rect x="9" y="3" width="3" height="9" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1" opacity=".4"/></svg>
+          <svg width="15" height="11" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M1.5 4.5a9.5 9.5 0 0 1 13 0"/><path d="M4 7a6 6 0 0 1 8 0"/><path d="M6.5 9.5a2.5 2.5 0 0 1 3 0"/></svg>
+          <svg width="22" height="11" viewBox="0 0 24 12" fill="none"><rect x="0.5" y="0.5" width="19" height="11" rx="3" stroke="currentColor" opacity=".5"/><rect x="2" y="2" width="13" height="8" rx="1.6" fill="currentColor"/><path d="M21.5 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity=".5"/></svg>
+        </span>
+      </div>
+
+      <header class="appbar">
+<span class="ab-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjkiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iOSIvPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjUuNSIgb3BhY2l0eT0iLjM1Ii8+PHBhdGggZD0iTTEyIDguNGwxLjA2IDIuMjggMi40NC4zNC0xLjc4IDEuNy40NCAyLjQ0LTIuMTYtMS4yLTIuMTYgMS4yLjQ0LTIuNDQtMS43OC0xLjcgMi40NC0uMzR6Ii8+PC9zdmc+" alt=""></span>
+<div class="ab-title">
+          <span class="ab-title-t">افزودن کالای ارزی</span>
+          <span class="ab-title-s">طلا یا ارز را انتخاب کنید</span>
+        </div>
+<button class="back-btn" id="back-btn" aria-label="بازگشت">
+          <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTguNTE4MiA2LjQyNTIxQzguODM1NjUgNi4xNTkxNCA5LjMwODcgNi4yMDA4IDkuNTc0NzcgNi41MTgyNUM5Ljg0MDg0IDYuODM1NzEgOS43OTkxOCA3LjMwODc2IDkuNDgxNzIgNy41NzQ4M0w1LjA5NjczIDExLjI1SDIwQzIwLjQxNDIgMTEuMjUgMjAuNzUgMTEuNTg1OCAyMC43NSAxMkMyMC43NSAxMi40MTQyIDIwLjQxNDIgMTIuNzUgMjAgMTIuNzVINS4wOTgwM0w5LjQ4MTgxIDE2LjQyNTNDOS43OTkyMiAxNi42OTE0IDkuODQwODEgMTcuMTY0NCA5LjU3NDcgMTcuNDgxOUM5LjMwODU4IDE3Ljc5OTMgOC44MzU1MyAxNy44NDA5IDguNTE4MTEgMTcuNTc0OEw0LjEyNDggMTMuODkxNUMyLjk1ODQzIDEyLjkxMzggMi45NTgzNyAxMS4wODUxIDQuMTI0OCAxMC4xMDc0TDguNTE4MiA2LjQyNTIxWiIgZmlsbD0iIzE2MTYxRCIvPgo8L3N2Zz4K" alt="">
+        </button>
+</header>
+
+      <main class="screens">
+        <!-- تب‌ها -->
+        <div class="tabs">
+          <button class="active" data-tab="gold" id="tab-gold">طلا</button>
+          <button data-tab="dollar" id="tab-dollar">ارز</button>
+        </div>
+
+        <!-- فرم طلا -->
+        <div id="form-gold">
+          <!-- وضعیت محصول -->
+          <div class="form-card">
+            <div class="sec-title">وضعیت محصول</div>
+            <div class="sw-row" style="margin-bottom:0;">
+              <div class="sw-text"><span class="sw-desc">کالا در فروشگاه نمایش داده نمیشود</span></div>
+              <span class="switch" data-target="st-gold"></span>
+            </div>
+            <div class="st-box" id="st-gold">
+              <div class="f-help" style="margin-top:6px">با فعال‌سازی، محصول به‌صورت موقت غیرفعال می‌شود.</div>
+            </div>
+          </div>
+
+          <!-- قیمت لحظه‌ای طلا -->
+          <div class="form-card price-live">
+            <div class="price-live-row">
+              <span class="live-dot"></span>
+              <span class="price-live-title">قیمت لحظه‌ای طلا</span>
+              <input class="f-input price-live-inp" id="w-price" value="۶٬۵۰۰٬۰۰۰" dir="ltr" style="text-align:right">
+              <span class="price-unit">تومان بر گرم</span>
+            </div>
+          </div>
+
+          <!-- اطلاعات پایه -->
+          <div class="form-card">
+            <div class="sec-title">اطلاعات پایه</div>
+            <label class="f-label">نام محصول</label>
+            <input class="f-input" placeholder="مثلاً: سکه امامی / نیم‌سکه / طلای آب‌شده">
+                        <div class="ai-row" style="margin:12px 2px 6px;">
+              <label class="f-label" style="margin:0;">توضیحات محصول</label>
+              <button class="ai-btn" id="ai-gold" type="button">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5h6L9 22l8.5-11.5h-6L13 2z"/></svg>
+                <span class="ai-txt">تکمیل با AI</span>
+              </button>
+            </div>
+            <input class="f-input" id="gold-desc" placeholder="توضیح کوتاهی درباره محصول بنویسید">
+            <label class="f-label">وزن (گرم)</label>
+            <input class="f-input" id="w-wazn" value="۸.۱۳" dir="ltr" style="text-align:right">
+            <div class="f-row">
+              <div>
+                <label class="f-label">درصد اجرت</label>
+                <input class="f-input" id="w-ajrat" value="۷" dir="ltr" style="text-align:right">
+              </div>
+              <div>
+                <label class="f-label">درصد سود</label>
+                <input class="f-input" id="w-sood" value="۵" dir="ltr" style="text-align:right">
+              </div>
+            </div>
+          </div>
+
+          <!-- قیمت محصول — محاسبه خودکار -->
+          <div class="form-card">
+            <div class="sec-title">قیمت محصول <span class="calc-badge">محاسبه خودکار</span></div>
+            <div class="calc-total">
+              <span class="calc-total-v" id="w-total">۰</span>
+              <span class="calc-total-l">تومان</span>
+            </div>
+            <div class="calc-rows">
+              <div class="calc-row"><span>قیمت خام (وزن × قیمت لحظه‌ای)</span><span class="calc-v" id="w-raw">۰</span></div>
+              <div class="calc-row"><span>اجرت (<span id="w-ajrat-pct">۰</span>٪)</span><span class="calc-v" id="w-ajrat-val">۰</span></div>
+              <div class="calc-row"><span>سود (<span id="w-sood-pct">۰</span>٪)</span><span class="calc-v" id="w-sood-val">۰</span></div>
+            </div>
+            <div class="calc-hint">با تغییر وزن، قیمت لحظه‌ای، اجرت و سود، قیمت محصول بالا و پایین می‌شود.</div>
+          </div>
+
+          <!-- دسته‌بندی -->
+          <div class="form-card">
+            <div class="sec-title">دسته‌بندی</div>
+            <select class="f-input">
+              <option>طلای آب‌شده</option>
+              <option>سکه</option>
+              <option>شمش طلا</option>
+              <option>جواهرات</option>
+            </select>
+          </div>
+
+          <!-- ویژگی‌ها -->
+          <div class="form-card">
+            <div class="sec-title">ویژگی ها</div>
+            <div class="sw-row" style="margin-bottom:0;">
+              <div class="sw-text"><span class="sw-desc">فعاسازی ویژگی های کالا</span></div>
+              <span class="switch" data-target="feat-gold"></span>
+            </div>
+            <div class="feat-box" id="feat-gold">
+              <div class="disp-card">
+                <div class="disp-row">
+                  <span class="disp-row-name">عیار</span>
+                  <span class="disp-row-count">۴ آیتم</span>
+                  <button class="disp-edit" aria-label="ویرایش ویژگی">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                  </button>
+                </div>
+                <div class="disp-row">
+                  <span class="disp-row-name">وضعیت</span>
+                  <span class="disp-row-count">۳ آیتم</span>
+                  <button class="disp-edit" aria-label="ویرایش ویژگی">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- موجودی -->
+          <div class="form-card">
+            <div class="sec-title">موجودی</div>
+            <div class="sw-row" style="margin-bottom:0;">
+              <div class="sw-text"><span class="sw-name">موجودی نامحدود</span><span class="sw-desc">بدون محدودیت در تعداد فروش</span></div>
+              <span class="switch" data-target="unl-gold" data-hide="inv-gold"></span>
+            </div>
+            <div class="inv-wrap" id="inv-gold">
+              <label class="f-label">موجودی (گرم)</label>
+              <input class="f-input" placeholder="مثلاً: ۱۲۰" dir="ltr" style="text-align:right">
+            </div>
+            <div class="unl-box" id="unl-gold">این محصول بدون محدودیت موجودی است</div>
+          </div>
+
+          <!-- تصویر -->
+          <div class="form-card">
+            <div class="sec-title">تصویر محصول</div>
+            <div class="up-area">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+              بارگذاری تصویر طلا
+              <div class="up-note">PNG یا JPG — حداکثر ۲ مگابایت</div>
+            </div>
+          </div>
+
+          <button class="save-btn">افزودن محصول طلا</button>
+        </div>
+
+        <!-- فرم ارز -->
+        <div id="form-dollar" style="display:none">
+          <!-- وضعیت محصول -->
+          <div class="form-card">
+            <div class="sec-title">وضعیت محصول</div>
+            <div class="sw-row" style="margin-bottom:0;">
+              <div class="sw-text"><span class="sw-desc">کالا در فروشگاه نمایش داده نمیشود</span></div>
+              <span class="switch" data-target="st-dollar"></span>
+            </div>
+            <div class="st-box" id="st-dollar">
+              <div class="f-help" style="margin-top:6px">با فعال‌سازی، محصول به‌صورت موقت غیرفعال می‌شود.</div>
+            </div>
+          </div>
+
+          <!-- ارز مبدأ -->
+          <div class="form-card">
+            <div class="sec-title">ارز مبدأ</div>
+            <select class="f-input" id="d-cur">
+              <option value="usd">دلار آمریکا (USD)</option>
+              <option value="eur">یورو (EUR)</option>
+              <option value="aed">درهم (AED)</option>
+              <option value="gbp">پوند (GBP)</option>
+            </select>
+          </div>
+
+          <!-- قیمت لحظه‌ای ارز -->
+          <div class="form-card price-live">
+            <div class="price-live-row">
+              <span class="live-dot"></span>
+              <span class="price-live-title">قیمت لحظه‌ای <span id="d-live-name">دلار</span></span>
+              <input class="f-input price-live-inp" id="d-rate" readonly dir="ltr" style="text-align:right;background:#F3F4F9;color:#565C6E;">
+              <span class="price-unit">تومان</span>
+            </div>
+            <div style="font-size:10.5px;color:#A3A9B6;margin-top:6px;">نرخ به‌صورت خودکار با انتخاب ارز محاسبه می‌شود</div>
+          </div>
+
+          <!-- اطلاعات پایه -->
+          <div class="form-card">
+            <div class="sec-title">اطلاعات پایه</div>
+            <label class="f-label">نام محصول</label>
+            <input class="f-input" placeholder="مثلاً: دلار آمریکا / یورو">
+                        <div class="ai-row" style="margin:12px 2px 6px;">
+              <label class="f-label" style="margin:0;">توضیحات محصول</label>
+              <button class="ai-btn" id="ai-arz" type="button">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5h6L9 22l8.5-11.5h-6L13 2z"/></svg>
+                <span class="ai-txt">تکمیل با AI</span>
+              </button>
+            </div>
+            <input class="f-input" id="arz-desc" placeholder="توضیح کوتاهی درباره محصول بنویسید">
+            <label class="f-label">کارمزد (٪)</label>
+            <input class="f-input" id="d-fee" value="۱.۵" dir="ltr" style="text-align:right">
+          </div>
+
+          <!-- دسته‌بندی -->
+          <div class="form-card">
+            <div class="sec-title">دسته‌بندی</div>
+            <select class="f-input">
+              <option>دلار آمریکا</option>
+              <option>یورو</option>
+              <option>درهم</option>
+              <option>سایر ارزها</option>
+            </select>
+          </div>
+
+          <!-- ویژگی‌ها -->
+          <div class="form-card">
+            <div class="sec-title">ویژگی ها</div>
+            <div class="sw-row" style="margin-bottom:0;">
+              <div class="sw-text"><span class="sw-desc">فعاسازی ویژگی های کالا</span></div>
+              <span class="switch" data-target="feat-dollar"></span>
+            </div>
+            <div class="feat-box" id="feat-dollar">
+              <div class="disp-card">
+                <div class="disp-row">
+                  <span class="disp-row-name">نوع اسکناس</span>
+                  <span class="disp-row-count">۳ آیتم</span>
+                  <button class="disp-edit" aria-label="ویرایش ویژگی">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                  </button>
+                </div>
+                <div class="disp-row">
+                  <span class="disp-row-name">تحویل</span>
+                  <span class="disp-row-count">۲ آیتم</span>
+                  <button class="disp-edit" aria-label="ویرایش ویژگی">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- هزینه و موجودی -->
+          <div class="form-card">
+            <div class="sec-title">هزینه و موجودی</div>
+            <label class="f-label">هزینه ارزی</label>
+            <div class="cost-row">
+              <input class="f-input" id="d-cost" value="۱۰۰" dir="ltr" style="text-align:right">
+              <span class="price-unit" id="d-cost-unit">دلار</span>
+            </div>
+            <div class="sw-row" style="margin:8px 0 0;">
+              <div class="sw-text"><span class="sw-name">موجودی نامحدود</span><span class="sw-desc">بدون محدودیت در تعداد فروش</span></div>
+              <span class="switch" data-target="unl-dollar" data-hide="inv-dollar"></span>
+            </div>
+            <div class="inv-wrap" id="inv-dollar">
+              <label class="f-label">موجودی (تعداد)</label>
+              <input class="f-input" placeholder="مثلاً: ۵۰۰" dir="ltr" style="text-align:right">
+            </div>
+            <div class="unl-box" id="unl-dollar">این محصول بدون محدودیت موجودی است</div>
+          </div>
+
+          <!-- قیمت محصول — محاسبه خودکار -->
+          <div class="form-card">
+            <div class="sec-title">قیمت محصول <span class="calc-badge">محاسبه خودکار</span></div>
+            <div class="calc-total">
+              <span class="calc-total-v" id="d-total">۰</span>
+              <span class="calc-total-l">تومان</span>
+            </div>
+            <div class="calc-rows">
+              <div class="calc-row"><span>مبلغ پایه (هزینه ارزی × نرخ روز)</span><span class="calc-v" id="d-base">۰</span></div>
+              <div class="calc-row"><span>کارمزد (<span id="d-fee-pct">۰</span>٪)</span><span class="calc-v" id="d-fee-val">۰</span></div>
+            </div>
+            <div class="calc-hint">با تغییر هزینه ارزی، نرخ روز و کارمزد، قیمت محصول بالا و پایین می‌شود.</div>
+          </div>
+
+          <!-- تصویر -->
+          <div class="form-card">
+            <div class="sec-title">تصویر محصول</div>
+            <div class="up-area">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+              بارگذاری تصویر ارز
+              <div class="up-note">PNG یا JPG — حداکثر ۲ مگابایت</div>
+            </div>
+          </div>
+
+          <button class="save-btn">افزودن محصول ارز</button>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toast(msg){
+    var t = document.createElement('div');
+    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#181B26;color:#fff;font-size:12px;padding:11px 18px;border-radius:13px;z-index:99;box-shadow:0 14px 30px -8px rgba(16,18,24,.5);transition:.3s;opacity:0;white-space:nowrap;';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    requestAnimationFrame(function(){ t.style.opacity = '1'; });
+    setTimeout(function(){ t.style.opacity = '0'; setTimeout(function(){ t.remove(); }, 400); }, 2200);
+  }
+
+  // تب‌ها
+  document.querySelectorAll('.tabs button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tabs button').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      var tab = btn.dataset.tab;
+      document.getElementById('form-gold').style.display = tab === 'gold' ? '' : 'none';
+      document.getElementById('form-dollar').style.display = tab === 'dollar' ? '' : 'none';
+    });
+  });
+
+  // سوییچ‌ها — نمایش باکس هدف و مخفی کردن باکس data-hide
+  document.querySelectorAll('.switch').forEach(function(s){
+    s.addEventListener('click', function(){
+      s.classList.toggle('on');
+      var on = s.classList.contains('on');
+      var t = s.getAttribute('data-target');
+      if (t) { var el = document.getElementById(t); if (el) el.style.display = on ? 'block' : 'none'; }
+      var h = s.getAttribute('data-hide');
+      if (h) { var el2 = document.getElementById(h); if (el2) el2.style.display = on ? 'none' : 'block'; }
+    });
+  });
+
+  // آیکن‌های ویرایش
+  document.querySelectorAll('.disp-edit').forEach(function(b){
+    b.addEventListener('click', function(){ toast(b.getAttribute('aria-label') || 'ویرایش'); });
+  });
+
+
+  // ===== تکمیل توضیحات با AI =====
+  function aiType(input, text, btn){
+    if (btn.classList.contains('loading')) return;
+    btn.classList.add('loading');
+    btn.querySelector('.ai-txt').textContent = 'در حال نوشتن…';
+    input.value = '';
+    var i = 0;
+    var timer = setInterval(function(){
+      i += 3;
+      input.value = text.slice(0, i);
+      if (i >= text.length) {
+        clearInterval(timer);
+        btn.classList.remove('loading');
+        btn.querySelector('.ai-txt').textContent = 'تکمیل با AI';
+        toast('توضیحات با هوش مصنوعی تکمیل شد ✓');
+      }
+    }, 15);
+  }
+
+  document.getElementById('ai-gold').addEventListener('click', function(){
+    aiType(
+      document.getElementById('gold-desc'),
+      'سکه امامی و طلای آب‌شده با عیار ۹۰۰؛ مناسب برای سرمایه‌گذاری و هدیه. قیمت لحظه‌ای، با فاکتور رسمی و امکان تحویل در محل.',
+      this
+    );
+  });
+  document.getElementById('ai-arz').addEventListener('click', function(){
+    aiType(
+      document.getElementById('arz-desc'),
+      'دلار آمریکا و ارزهای معتبر با ضمانت اصالت؛ تحویل فوری و کارت به کارت. مناسب برای سرمایه‌گذاری و حواله — با نرخ روز به‌صورت خودکار.',
+      this
+    );
+  });
+
+
+  // ===== حذف پس زمینه — برای هر تصویر جدا =====
+  function addWand(container){
+    var wand = document.createElement('button');
+    wand.type = 'button';
+    wand.className = 'wand-btn';
+    wand.setAttribute('aria-label', 'حذف پس زمینه تصویر');
+    wand.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></svg>';
+    container.appendChild(wand);
+    wand.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      if (wand.classList.contains('loading')) return;
+      wand.classList.add('loading');
+      setTimeout(function(){
+        container.classList.add('bg-done');
+        wand.classList.remove('loading');
+        wand.style.display = 'none';
+        toast('پس زمینه تصویر حذف شد ✓');
+      }, 1000);
+    });
+  }
+
+  // ===== آپلود واقعی تصویر =====
+  document.querySelectorAll('.up-area').forEach(function(area){
+    var inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = 'image/*';
+    inp.style.display = 'none';
+    area.appendChild(inp);
+    area.addEventListener('click', function(){ inp.click(); });
+    inp.addEventListener('change', function(){
+      if (!inp.files || !inp.files[0]) return;
+      var url = URL.createObjectURL(inp.files[0]);
+      var img = document.createElement('img');
+      img.className = 'real-img';
+      img.src = url;
+      area.innerHTML = '';
+      area.style.padding = '0';
+      area.appendChild(img);
+      addWand(area);
+    });
+  });
+
+
+  // ذخیره
+  document.querySelectorAll('.save-btn').forEach(function(b){
+    b.addEventListener('click', function(){ toast('محصول با موفقیت اضافه شد ✓'); });
+  });
+
+  // توابع کمکی اعداد
+  function toEn(s){ return String(s || '').replace(/[۰-۹]/g, function(d){ return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d); }).replace(/[٬,،\s]/g, ''); }
+  function num(s){ return parseFloat(toEn(s)) || 0; }
+  function faNum(n){ return Math.round(n).toLocaleString('fa-IR'); }
+
+  // ===== نرخ روز — خودکار بر اساس ارز انتخابی =====
+  var RATES = { usd: 89500, eur: 97200, aed: 24350, gbp: 114800 };
+  var CURR_FA = { usd: 'دلار', eur: 'یورو', aed: 'درهم', gbp: 'پوند' };
+  function setRate(){
+    var cur = document.getElementById('d-cur').value;
+    document.getElementById('d-rate').value = (RATES[cur] || 0).toLocaleString('fa-IR');
+    var u = document.getElementById('d-cost-unit');
+    if (u) u.textContent = CURR_FA[cur] || '';
+    var t = document.getElementById('d-live-name');
+    if (t) t.textContent = CURR_FA[cur] || '';
+  }
+  document.getElementById('d-cur').addEventListener('change', setRate);
+  setRate();
+
+  // ===== محاسبه خودکار قیمت محصول ارزی =====
+  function calcArz(){
+    var cost = num(document.getElementById('d-cost').value);
+    var rate = num(document.getElementById('d-rate').value);
+    var fee  = num(document.getElementById('d-fee').value);
+    var base = cost * rate;
+    var fv   = base * fee / 100;
+    var total = base + fv;
+    document.getElementById('d-base').textContent = faNum(base);
+    document.getElementById('d-fee-val').textContent = faNum(fv);
+    document.getElementById('d-total').textContent = faNum(total);
+    document.getElementById('d-fee-pct').textContent = faNum(fee);
+  }
+  ['d-cost','d-fee'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', calcArz);
+  });
+  document.getElementById('d-cur').addEventListener('change', calcArz);
+  calcArz();
+
+  // ===== محاسبه خودکار قیمت طلا =====
+  function calcGold(){
+    var wazn = num(document.getElementById('w-wazn').value);
+    var price = num(document.getElementById('w-price').value);
+    var ajrat = num(document.getElementById('w-ajrat').value);
+    var sood = num(document.getElementById('w-sood').value);
+    var raw = wazn * price;
+    var ajv = raw * ajrat / 100;
+    var sdv = raw * sood / 100;
+    var total = raw + ajv + sdv;
+    document.getElementById('w-raw').textContent = faNum(raw);
+    document.getElementById('w-ajrat-val').textContent = faNum(ajv);
+    document.getElementById('w-sood-val').textContent = faNum(sdv);
+    document.getElementById('w-total').textContent = faNum(total);
+    document.getElementById('w-ajrat-pct').textContent = faNum(ajrat);
+    document.getElementById('w-sood-pct').textContent = faNum(sood);
+  }
+  ['w-wazn','w-price','w-ajrat','w-sood'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', calcGold);
+  });
+  calcGold();
+
+  document.getElementById('back-btn').addEventListener('click', function(){ window.location.href = 'manooch-dashboard.html'; });
+</script>
+</body>
+</html>
