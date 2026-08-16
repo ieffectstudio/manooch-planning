@@ -1,0 +1,10 @@
+here is plan for plugin manooch-planings\core\planning-system\plugin\PRD_Plugin_Management_and_Refactor.md
+
+and these are portotypes 
+manooch-planings\core\planning-system\plugin\plugin-page.html
+
+and change portal /plugin to be table view and remove cards and plugin dose not have create form remove create also
+
+but its should fully match with seller desgin system
+
+give me plan for excuting this and push on feat-plugin

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>منوچ — مدیریت افزونه‌ها در پلن</title>
+<meta name="description" content="صفحه مدیریت افزونه‌ها در پلن — ماتریس پلن × افزونه (بازسازی از سیستم طراحی)">
+<!--
+  صفحه: مدیریت افزونه‌ها در پلن (پرتوتایپ کاربردی)
+  - ماتریس: ستون = پلن، ردیف = افزونه
+  - هر سلول: سوییچ فعال/غیرفعال + قیمت و تخفیف قابل ویرایش
+  - مدل قیمت سه‌سطحی: قیمت پایه (سوپرادمین) → قیمت پلن (ارث‌بری یا اختصاصی) → تخفیف پلن
+  فونت: وزیرمتن (CDN) با فالبک Tahoma — در پیش‌نمایش بدون شبکه، Tahoma نمایش داده می‌شود.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  :root{
+    --purple:#4B45E6; --purple-2:#6C4DF6; --purple-soft:#EFEBFE; --purple-tint:rgba(75,69,230,.08);
+    --green:#12B76A; --green-soft:rgba(18,183,106,.10);
+    --red:#E5484D; --red-soft:rgba(240,68,56,.08);
+    --bg:#EFF0F6; --card:#fff; --border:#ECEEF5; --border2:#E3E5EF;
+    --text:#16161D; --muted:#737377; --muted2:#7B8194;
+    --radius:16px; --radius-s:10px;
+  }
+  html,body{height:100%;}
+  body{
+    font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;color:var(--text);
+    background:radial-gradient(900px 500px at 12% 0%, #E9E4FF 0%, transparent 60%),
+               radial-gradient(800px 450px at 92% 100%, #DDF0FF 0%, transparent 55%), var(--bg);
+    -webkit-font-smoothing:antialiased; line-height:1.6; overflow:hidden;
+  }
+  button{font:inherit;border:0;background:none;cursor:pointer;color:inherit;}
+  input{font:inherit;}
+
+  /* ===== App shell ===== */
+  .app{max-width:1160px;margin:0 auto;padding:20px 20px 16px;height:100vh;display:flex;flex-direction:column;gap:14px;}
+
+  /* ===== Header ===== */
+  .topbar{
+    flex:none;display:flex;align-items:center;gap:14px;
+    background:rgba(255,255,255,.9);backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.9);border-radius:var(--radius);
+    padding:12px 16px;box-shadow:0 8px 20px -14px rgba(20,23,38,.25);
+  }
+  .back-btn{width:38px;height:38px;flex:none;border-radius:12px;display:grid;place-items:center;background:var(--purple-tint);color:var(--purple);transition:.15s;}
+  .back-btn:hover{background:var(--purple-soft);}
+  .top-title{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;}
+  .top-title h1{font-size:17px;font-weight:700;line-height:1.5;}
+  .top-title span{font-size:12px;color:var(--muted);line-height:1.5;}
+  .save-btn{
+    flex:none;display:inline-flex;align-items:center;gap:8px;background:var(--purple);color:#fff;
+    border-radius:12px;padding:10px 18px;font-size:13px;font-weight:600;transition:.15s;box-shadow:0 8px 18px -8px rgba(75,69,230,.7);
+  }
+  .save-btn:hover{transform:translateY(-1px);}
+  .save-btn:active{transform:scale(.97);}
+
+  /* ===== Toolbar ===== */
+  .toolbar{flex:none;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .search{
+    flex:1;min-width:220px;display:flex;align-items:center;gap:8px;background:var(--card);
+    border:1px solid var(--border);border-radius:12px;padding:9px 14px;
+  }
+  .search input{border:0;background:none;outline:none;width:100%;font-size:13px;color:var(--text);}
+  .search input::placeholder{color:var(--muted2);}
+  .search svg{flex:none;color:var(--muted2);}
+  .legend{display:flex;align-items:center;gap:14px;font-size:12px;color:var(--muted);}
+  .legend .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-inline-end:5px;}
+  .legend .on .dot{background:var(--green);}
+  .legend .off .dot{background:var(--muted2);}
+
+  /* ===== Summary chips ===== */
+  .chips{flex:none;display:flex;gap:10px;flex-wrap:wrap;}
+  .chip{background:var(--card);border:1px solid var(--border);border-radius:999px;padding:7px 14px;font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:8px;}
+  .chip b{color:var(--text);font-weight:700;}
+  .chip .c-dot{width:8px;height:8px;border-radius:50%;}
+  .chip[data-plan="basic"] .c-dot{background:#8A7CFF;}
+  .chip[data-plan="pro"] .c-dot{background:#2BB7E0;}
+  .chip[data-plan="enterprise"] .c-dot{background:#F5A623;}
+
+  /* ===== Matrix table ===== */
+  .table-wrap{
+    flex:1;min-height:0;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    overflow:auto;box-shadow:0 10px 30px -20px rgba(20,23,38,.35);
+  }
+  .table-scroll{min-width:100%;}
+  table{border-collapse:separate;border-spacing:0;width:100%;min-width:820px;}
+  th,td{border-bottom:1px solid var(--border);}
+
+  /* header */
+  thead th{position:sticky;top:0;z-index:5;background:#FBFBFE;vertical-align:top;transition:padding .18s ease,box-shadow .18s ease;}
+  thead th.corner{min-width:240px;right:0;z-index:6;text-align:right;padding:16px 18px;font-size:12px;color:var(--muted);font-weight:600;box-shadow:inset -1px 0 0 var(--border);}
+  thead th.plan-col{border-right:1px solid var(--border);min-width:210px;padding:14px 16px;text-align:right;}
+  .plan-head{display:flex;flex-direction:column;gap:6px;}
+  .plan-head-top{display:flex;align-items:center;gap:8px;}
+  .plan-badge{font-size:10px;font-weight:600;border-radius:999px;padding:3px 9px;line-height:1.6;}
+  .plan-badge.basic{background:rgba(138,124,255,.14);color:#6A5BEE;}
+  .plan-badge.pro{background:rgba(43,183,224,.14);color:#1E9BC0;}
+  .plan-badge.enterprise{background:rgba(245,166,35,.16);color:#C9861A;}
+  .plan-name{font-size:14px;font-weight:700;transition:font-size .18s ease;}
+  .plan-sub{font-size:11px;color:var(--muted);line-height:1.5;}
+  .plan-tools{display:flex;align-items:center;gap:8px;margin-top:8px;transition:margin .18s ease;}
+  .toggle-all{
+    font-size:11px;font-weight:600;color:var(--purple);background:var(--purple-tint);
+    border-radius:999px;padding:4px 11px;transition:.15s;
+  }
+  .toggle-all:hover{background:var(--purple-soft);}
+  .plan-count{font-size:11px;color:var(--muted2);}
+
+  /* حالت جمع‌وجور هدر هنگام اسکرول */
+  body.scrolled thead th{padding-top:8px;padding-bottom:8px;box-shadow:0 8px 16px -12px rgba(20,23,38,.35);}
+  body.scrolled thead th.corner{padding-top:8px;padding-bottom:8px;font-size:11px;}
+  body.scrolled .plan-sub,
+  body.scrolled .plan-head-top{display:none;}
+  body.scrolled .plan-head{gap:2px;}
+  body.scrolled .plan-name{font-size:13px;line-height:1.4;}
+  body.scrolled .plan-tools{margin-top:2px;}
+  body.scrolled .toggle-all{padding:2px 9px;font-size:10px;}
+  body.scrolled .plan-count{font-size:10px;}
+  body.scrolled .plan-totals{margin-top:6px;padding-top:6px;gap:1px;}
+  body.scrolled .tot-cost{font-size:12.5px;}
+  body.scrolled .tot-disc{font-size:10px;}
+
+  /* body */
+  tbody tr:hover td{background:#FAFAFE;}
+  td.plugin-cell{position:sticky;right:0;z-index:3;background:var(--card);text-align:right;padding:14px 18px;vertical-align:top;}
+  tbody tr:hover td.plugin-cell{background:#FAFAFE;}
+  .pg-row{display:flex;flex-direction:column;gap:4px;}
+  .pg-name{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;}
+  .pg-icon{width:30px;height:30px;border-radius:9px;background:var(--purple-soft);color:var(--purple-2);display:grid;place-items:center;flex:none;}
+  .pg-type{font-size:9px;font-weight:600;border-radius:999px;padding:2px 8px;line-height:1.6;flex:none;}
+  .pg-new{font-size:9px;font-weight:600;border-radius:999px;padding:2px 8px;line-height:1.6;flex:none;background:var(--green-soft);color:var(--green);}
+  .pg-desc{font-size:11.5px;color:var(--muted);line-height:1.5;}
+  .pg-base{font-size:11px;color:var(--muted2);margin-top:2px;}
+  .pg-base b{color:var(--muted);font-weight:600;}
+
+  td.pcell{text-align:right;padding:12px 16px;vertical-align:top;transition:opacity .2s;}
+  td.pcell.off{opacity:.45;}
+  .pcell-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .switch{width:44px;height:24px;border-radius:99px;background:#C2C6CE;position:relative;flex:none;transition:.2s;cursor:pointer;flex-shrink:0;}
+  .switch::after{content:"";position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:#FEFEFE;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.15);}
+  .switch.on{background:var(--purple);}
+  .switch.on::after{right:22px;}
+  .cell-tag{font-size:9.5px;font-weight:500;border-radius:999px;padding:2px 8px;line-height:1.6;}
+  .cell-tag.inherit{background:var(--purple-soft);color:var(--purple-2);}
+  .cell-tag.custom{background:var(--green-soft);color:var(--green);}
+  .pcell-fields{display:flex;flex-direction:column;gap:5px;}
+  .field{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .field .lbl{font-size:10.5px;color:var(--muted2);flex:none;}
+  .val{font-size:12.5px;font-weight:600;color:var(--text);cursor:pointer;border-radius:8px;padding:2px 8px;transition:.15s;display:inline-flex;align-items:center;gap:5px;max-width:100%;}
+  .val:hover{background:var(--purple-tint);}
+  .val small{font-weight:400;color:var(--muted2);}
+  .val.muted{color:var(--muted2);font-weight:500;}
+  .val.strike{text-decoration:line-through;color:var(--muted2);font-weight:500;}
+  .edit-input{
+    width:110px;border:1.5px solid var(--purple);border-radius:8px;padding:3px 8px;font-size:12.5px;
+    color:var(--text);outline:none;background:#fff;direction:ltr;text-align:center;font-weight:600;
+  }
+  .reset-link{font-size:10px;color:var(--purple-2);cursor:pointer;text-decoration:none;display:none;}
+  .reset-link:hover{text-decoration:underline;}
+  .pcell-final{font-size:11px;color:var(--purple-2);font-weight:600;margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);display:flex;align-items:center;gap:5px;}
+
+  /* ===== جمع هر پلن (در هدر ستون) ===== */
+  .plan-totals{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:3px;}
+  .tot-cost{font-size:14px;font-weight:700;color:var(--purple);display:flex;align-items:baseline;gap:4px;}
+  .tot-cost small{font-weight:400;color:var(--muted2);font-size:10px;}
+  .tot-disc{font-size:11px;color:var(--green);display:flex;align-items:baseline;gap:4px;}
+  .tot-disc small{color:var(--muted2);font-size:10px;}
+  .tot-disc.zero{color:var(--muted2);}
+  .tot-disc.zero .v{color:var(--muted2);font-weight:500;}
+
+  /* ===== Toast ===== */
+  .toast{
+    position:fixed;bottom:24px;right:50%;transform:translate(50%,120px);z-index:100;
+    background:var(--text);color:#fff;border-radius:12px;padding:12px 20px;font-size:13px;
+    display:flex;align-items:center;gap:8px;transition:transform .3s cubic-bezier(.2,.9,.3,1.2);box-shadow:0 16px 40px -12px rgba(0,0,0,.4);
+  }
+  .toast.show{transform:translate(50%,0);}
+  .toast svg{color:var(--green);}
+
+  @media (max-width:640px){
+    .app{padding:14px 10px 70px;}
+    .top-title span{display:none;}
+    .legend{display:none;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header class="topbar">
+    <button class="back-btn" aria-label="بازگشت" onclick="history.length>1?history.back():location.reload()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+    <div class="top-title">
+      <h1>مدیریت افزونه‌ها در پلن</h1>
+      <span>افزونه‌های هر پلن را فعال/غیرفعال کنید و قیمت و تخفیف اختصاصی تعیین کنید.</span>
+    </div>
+    <button class="save-btn" id="saveBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      ذخیره تغییرات
+    </button>
+  </header>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <label class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="searchInput" type="text" placeholder="جستجوی افزونه…">
+    </label>
+    <div class="legend">
+      <span class="on"><span class="dot"></span>در پلن فعال</span>
+      <span class="off"><span class="dot"></span>غیرفعال</span>
+    </div>
+  </div>
+
+  <!-- Summary chips -->
+  <div class="chips" id="chips"></div>
+
+  <!-- Matrix -->
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table id="matrix">
+        <thead id="thead"></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="toastMsg">تغییرات ذخیره شد</span>
+  </div>
+
+</div>
+
+<script>
+/* ================= Data (پلاگین‌های واقعی) =================
+   قیمت‌های پایه (base) فعلاً نمونه هستند — تا زمانی که سوپرادمین از صفحه پلاگین قیمت تعیین کند.
+   type: core_sales | helper | content   →  ترتیب و دسته‌بندی
+   new: افزونه‌های جدید (صدا در محصول، حذف پس‌زمینه)   outOfScope: افزودن کالای ارزی (فقط PRD)
+*/
+const TYPE_FA = { core_sales:'فروش', helper:'کمکی', content:'محتوا' };
+const TYPE_COLOR = { core_sales:'#EFEBFE', helper:'#E6F4FF', content:'#EAF7EF' };
+const TYPE_TXT  = { core_sales:'#6C4DF6', helper:'#1E8FCE', content:'#0B7A48' };
+
+const PLUGINS = [
+  { id:'product',        name:'فروشگاه',          desc:'فعال‌سازی افزونه فروشگاه', type:'core_sales', install:6, base:0 },
+  { id:'categories',     name:'دسته بندی',        desc:'دسته بندی کالا هایتان را مشخص کنید.', type:'core_sales', install:5, base:99000 },
+  { id:'attributes',     name:'ویژگی ها',         desc:'ویژگی های کالاهایتان را تعیین کنید.', type:'helper', install:6, base:149000 },
+  { id:'units',          name:'واحدها',           desc:'واحدهای فروش کالاهایتان را تعریف کنید.', type:'helper', install:6, base:49000 },
+  { id:'customers',      name:'مشتریان',          desc:'مشتریان فروشگاه خود را مدیریت کنید.', type:'core_sales', install:6, base:0 },
+  { id:'discounts',      name:'تخفیف‌ها',          desc:'کدها و کمپین‌های تخفیف را مدیریت کنید.', type:'core_sales', install:6, base:99000 },
+  { id:'notifications',  name:'اخبار',            desc:'اخبار و اطلاع‌رسانی‌های فروشگاه را منتشر کنید.', type:'content', install:6, base:0 },
+  { id:'reviews',        name:'نظرات',            desc:'نظرات مشتریان درباره کالاها را مدیریت کنید.', type:'content', install:6, base:0 },
+  { id:'banner',         name:'افزونه بنر',       desc:'بنرهای تبلیغاتی فروشگاه خود را مدیریت کنید', type:'content', install:4, base:99000 },
+  { id:'gallery',        name:'گالری',            desc:'گالری تصاویر فروشگاه خود را بسازید', type:'content', install:2, base:49000 },
+  { id:'faq',            name:'سوالات پر تکرار',   desc:'سوالات متداول مشتریان را پاسخ دهید', type:'content', install:2, base:149000 },
+  { id:'team',           name:'تیم ما',           desc:'اعضای تیم فروشگاه خود را معرفی کنید', type:'content', install:2, base:49000 },
+  { id:'card',           name:'کارت بانکی',       desc:'کارت های بانکی خودتان را برای نمایش به کاربر وارد کنید', type:'content', install:3, base:0 },
+  { id:'order-intake',   name:'سفارش‌گیر',        desc:'برای ویزیتورها؛ ثبت سریع سفارش حضوری برای مشتریان', type:'core_sales', install:4, base:99000 },
+  { id:'customer-club',  name:'باشگاه مشتریان',   desc:'وفاداری، امتیاز و پیامک بازاریابی برای مشتریان فروشگاه', type:'core_sales', install:3, base:249000 },
+  { id:'voice-in-product',    name:'صدا در محصول',  desc:'افزودن صدا / نریشن به صفحه محصول', type:'content', install:0, base:199000, new:true },
+  { id:'background-remover',  name:'حذف پس‌زمینه',  desc:'حذف خودکار پس‌زمینه تصاویر محصول', type:'helper', install:0, base:149000, new:true },
+  { id:'add-arz-product',     name:'افزودن کالای ارزی', desc:'افزودن طلا و ارز با قیمت لحظه‌ای و محاسبه خودکار', type:'core_sales', install:0, base:299000, outOfScope:true },
+];
+
+const PLANS = [
+  { id:'basic',      name:'پلن پایه',    sub:'مناسب تازه‌کارها',          badge:'basic',      color:'#8A7CFF' },
+  { id:'pro',        name:'پلن حرفه‌ای',  sub:'پرفروش‌ترین انتخاب',         badge:'pro',        color:'#2BB7E0' },
+  { id:'enterprise', name:'پلن سازمانی', sub:'برای کسب‌وکارهای بزرگ',       badge:'enterprise', color:'#F5A623' },
+];
+
+/* state: enabled[planId][pluginId]=bool
+   priceOverride[planId][pluginId]=number|null (null=inherit base)
+   discount[planId][pluginId]=number|null (percent) */
+const S = {
+  enabled:{}, priceOverride:{}, discount:{}
+};
+PLANS.forEach(p=>{
+  S.enabled[p.id]={}; S.priceOverride[p.id]={}; S.discount[p.id]={};
+  PLUGINS.forEach(pl=>{
+    // حالت اولیه نمونه: پایه=هسته‌ای، حرفه‌ای=همه جز جدیدها، سازمانی=همه
+    const CORE_BASIC = ['product','categories','attributes','units','customers','discounts','notifications'];
+    const PREMIUM = ['voice-in-product','background-remover','add-arz-product','customer-club'];
+    const defaultOn = p.id==='enterprise' || (p.id==='pro' && !PREMIUM.includes(pl.id)) || (p.id==='basic' && CORE_BASIC.includes(pl.id));
+    S.enabled[p.id][pl.id]=defaultOn;
+    S.priceOverride[p.id][pl.id]=null;
+    S.discount[p.id][pl.id]= (p.id==='pro' && ['banner','faq','gallery'].includes(pl.id)) ? 10 : null;
+  });
+});
+
+/* ================= Helpers ================= */
+const FA='۰۱۲۳۴۵۶۷۸۹';
+const fa=n=>String(n).replace(/\d/g,d=>FA[d]);
+const fmt=n=>fa(Number(n).toLocaleString('en-US'));
+const finalPrice=(planId,pid)=>{
+  const price = S.priceOverride[planId][pid] ?? getPlugin(pid).base;
+  const d = S.discount[planId][pid];
+  return d ? Math.round(price*(1-d/100)) : price;
+};
+const getPlugin=id=>PLUGINS.find(p=>p.id===id);
+const getPlan=id=>PLANS.find(p=>p.id===id);
+
+/* جمع هزینه و تخفیف یک پلن (فقط پلاگین‌های فعال) */
+function planTotals(pid){
+  let cost=0, disc=0;
+  PLUGINS.forEach(pl=>{
+    if(!S.enabled[pid][pl.id]) return;
+    const price = S.priceOverride[pid][pl.id] ?? pl.base;
+    const d = S.discount[pid][pl.id];
+    const final = d ? Math.round(price*(1-d/100)) : price;
+    cost += final;
+    disc += d ? (price - final) : 0;
+  });
+  return {cost, disc};
+}
+
+/* چیپ نوع + نشان جدید/خارج از اسکوپ */
+function typeChip(pl){
+  const t = TYPE_FA[pl.type] ? `<span class="pg-type" style="background:${TYPE_COLOR[pl.type]};color:${TYPE_TXT[pl.type]}">${TYPE_FA[pl.type]}</span>` : '';
+  const n = pl.new ? `<span class="pg-new">جدید</span>` : '';
+  const o = pl.outOfScope ? `<span class="pg-new" style="background:#FFF3E0;color:#C9861A">فقط PRD</span>` : '';
+  return t+n+o;
+}
+
+/* ================= Render ================= */
+function renderHead(){
+  const th=document.getElementById('thead');
+  let h='<tr><th class="corner">افزونه‌ها</th>';
+  PLANS.forEach(p=>{
+    const {cost, disc}=planTotals(p.id);
+    const discCls = disc>0 ? '' : ' zero';
+    h+=`<th class="plan-col" data-plan="${p.id}">
+      <div class="plan-head">
+        <div class="plan-head-top"><span class="plan-badge ${p.badge}">${p.name}</span></div>
+        <div class="plan-name">${p.name}</div>
+        <div class="plan-sub">${p.sub}</div>
+        <div class="plan-tools">
+          <button class="toggle-all" data-plan="${p.id}">فعال‌سازی همه</button>
+          <span class="plan-count" data-count="${p.id}"></span>
+        </div>
+        <div class="plan-totals">
+          <div class="tot-cost">${fmt(cost)} <small>تومان</small></div>
+          <div class="tot-disc${discCls}">تخفیف: <span class="v">${fmt(disc)}</span> <small>تومان</small></div>
+        </div>
+      </div>
+    </th>`;
+  });
+  h+='</tr>';
+  th.innerHTML=h;
+}
+
+function renderBody(){
+  const tb=document.getElementById('tbody');
+  tb.innerHTML=PLUGINS.map(pl=>{
+    let cells='';
+    PLANS.forEach(p=>{
+      const on=S.enabled[p.id][pl.id];
+      const over=S.priceOverride[p.id][pl.id];
+      const disc=S.discount[p.id][pl.id];
+      const price=over??pl.base;
+      const final=finalPrice(p.id,pl.id);
+      const tag= over===null ? '<span class="cell-tag inherit">مطابق پایه</span>' : '<span class="cell-tag custom">اختصاصی</span>';
+      const discTxt = disc ? `${fa(disc)}٪ تخفیف` : 'بدون تخفیف';
+      const strike = disc ? `<span class="val strike">${fmt(price)} <small>تومان</small></span>` : '';
+      cells+=`
+      <td class="pcell ${on?'':'off'}" data-plan="${p.id}" data-plugin="${pl.id}">
+        <div class="pcell-head">
+          <span class="switch ${on?'on':''}" role="switch" aria-checked="${on}" data-switch="${p.id}|${pl.id}"></span>
+          ${tag}
+        </div>
+        <div class="pcell-fields">
+          <div class="field">
+            <span class="lbl">قیمت:</span>
+            <span class="val ${on?'':'muted'}" data-edit="price|${p.id}|${pl.id}" title="برای ویرایش کلیک کنید">${fmt(price)} <small>تومان</small></span>
+          </div>
+          <div class="field">
+            <span class="lbl">تخفیف:</span>
+            <span class="val ${disc?'':'muted'}" data-edit="discount|${p.id}|${pl.id}" title="برای ویرایش کلیک کنید">${discTxt}</span>
+            <a class="reset-link" data-reset="${p.id}|${pl.id}">بازنشانی</a>
+          </div>
+        </div>
+        ${on?`<div class="pcell-final">${strike} <span>${disc?('قیمت نهایی: '+fmt(final)+' تومان'):''}</span></div>`:''}
+      </td>`;
+    });
+    return `<tr>
+      <td class="plugin-cell" data-plugin="${pl.id}">
+        <div class="pg-row">
+          <div class="pg-name"><span class="pg-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>${pl.name}${typeChip(pl)}</div>
+          <div class="pg-desc">${pl.desc}</div>
+          <div class="pg-base">قیمت پایه: <b>${pl.base?fmt(pl.base)+' تومان':'رایگان'}</b>${pl.install?' · نصب‌شده: '+fa(pl.install)+' فروشگاه':''}</div>
+        </div>
+      </td>
+      ${cells}
+    </tr>`;
+  }).join('');
+}
+
+function renderChips(){
+  const chips=document.getElementById('chips');
+  chips.innerHTML=PLANS.map(p=>{
+    const on=PLUGINS.filter(pl=>S.enabled[p.id][pl.id]).length;
+    return `<span class="chip" data-plan="${p.id}"><span class="c-dot"></span>${p.name}: <b>${fa(on)}</b> از ${fa(PLUGINS.length)} افزونه فعال</span>`;
+  }).join('') + `<span class="chip">مجموع افزونه‌ها: <b>${fa(PLUGINS.length)}</b></span>`;
+}
+
+function renderCounts(){
+  PLANS.forEach(p=>{
+    const on=PLUGINS.filter(pl=>S.enabled[p.id][pl.id]).length;
+    const el=document.querySelector(`[data-count="${p.id}"]`);
+    if(el) el.textContent=`${fa(on)}/${fa(PLUGINS.length)} فعال`;
+  });
+}
+
+function refresh(){
+  renderHead(); renderBody(); renderChips(); renderCounts();
+}
+
+/* ===== جمع‌وجور هدر هنگام اسکرول داخل جدول ===== */
+document.querySelector('.table-wrap').addEventListener('scroll', function(){
+  document.body.classList.toggle('scrolled', this.scrollTop > 8);
+}, {passive:true});
+
+/* ================= Interactions ================= */
+document.addEventListener('click', function(e){
+  // switch toggle
+  const sw=e.target.closest('[data-switch]');
+  if(sw){
+    const [pid,plid]=sw.dataset.switch.split('|');
+    S.enabled[pid][plid]=!S.enabled[pid][plid];
+    refresh();
+    return;
+  }
+  // toggle all in a plan column
+  const ta=e.target.closest('.toggle-all');
+  if(ta){
+    const pid=ta.dataset.plan;
+    const anyOff=PLUGINS.some(pl=>!S.enabled[pid][pl.id]);
+    PLUGINS.forEach(pl=>{ S.enabled[pid][pl.id]=anyOff; });
+    refresh();
+    return;
+  }
+  // reset to base
+  const rs=e.target.closest('[data-reset]');
+  if(rs){
+    const [pid,plid]=rs.dataset.reset.split('|');
+    S.priceOverride[pid][plid]=null;
+    S.discount[pid][plid]=null;
+    refresh();
+    return;
+  }
+  // inline edit
+  const ed=e.target.closest('[data-edit]');
+  if(ed){
+    startEdit(ed);
+    return;
+  }
+});
+
+function startEdit(el){
+  const [field,pid,plid]=el.dataset.edit.split('|');
+  const plugin=getPlugin(plid);
+  const cur = field==='price' ? (S.priceOverride[pid][plid] ?? plugin.base) : (S.discount[pid][plid] ?? '');
+  const input=document.createElement('input');
+  input.type='number'; input.min='0'; input.className='edit-input';
+  if(field==='discount'){ input.max='100'; input.placeholder='٪'; }
+  input.value=cur===''?'':cur;
+  el.replaceWith(input);
+  input.focus(); input.select();
+  const commit=()=>{
+    const v=input.value.trim();
+    const num=v===''?null:Math.max(0,Number(v));
+    if(field==='price'){
+      // ورودی خالی → بازگشت به پایه
+      if(num===null) S.priceOverride[pid][plid]=null;
+      else S.priceOverride[pid][plid]=num;
+    }else{
+      S.discount[pid][plid]= (num===null||num===0)?null:Math.min(100,num);
+    }
+    refresh();
+  };
+  input.addEventListener('keydown',ev=>{ if(ev.key==='Enter'){commit();} if(ev.key==='Escape'){refresh();} });
+  input.addEventListener('blur',commit);
+}
+
+/* search filter */
+document.getElementById('searchInput').addEventListener('input',function(){
+  const q=this.value.trim();
+  document.querySelectorAll('#tbody tr').forEach(tr=>{
+    const pid=tr.querySelector('.plugin-cell')?.dataset.plugin||'';
+    const name=getPlugin(pid)?.name||'';
+    tr.style.display=(name.includes(q)||q==='')?'':'none';
+  });
+});
+
+/* save (نمونه) */
+document.getElementById('saveBtn').addEventListener('click',function(){
+  showToast('تغییرات ذخیره شد (نمونه — متصل به API در پیاده‌سازی نهایی)');
+});
+
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+refresh();
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2bf761cba5ed348',t:'MTc4Njg3MzA1Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
