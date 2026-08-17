@@ -47,12 +47,22 @@ can be decommissioned.
 
 ### 1.4 Known containers & volumes
 
+> Confirmed on the 2026-08-16 migration: there are **8** containers, not 4 — the
+> `manooch-fronts` compose file runs four separate Next.js apps as four containers, all
+> from the same image. Images are `ghcr.io/ieffectstudio/manooch-{api,cms,fronts}:latest`
+> and are auto-pulled by `docker compose up -d` on the NEW server — no manual image
+> transfer step is needed.
+
 | Container | Service |
 |-----------|---------|
 | `manooch-postgres` | PostgreSQL |
 | `manooch-api` | Backend API |
-| `manooch-cms` | CMS |
+| `manooch-cms` | CMS (Strapi — see note below) |
 | `manooch-caddy` | Reverse proxy / SSL |
+| `manooch-storefront` | Storefront (manooch-fronts image) |
+| `manooch-portal` | Seller/admin portal (manooch-fronts image) |
+| `manooch-admin` | Super-admin panel (manooch-fronts image) |
+| `manooch-website` | Marketing website (manooch-fronts image) |
 
 | Volume | Contents |
 |--------|----------|
@@ -61,7 +71,12 @@ can be decommissioned.
 | `manooch-backend_caddy_data` | SSL certificates |
 | `manooch-backend_caddy_config` | Caddy config |
 | `manooch-cms_manooch_cms_uploads` | CMS uploads |
-| `manooch-cms_manooch_wp_db` | WordPress DB |
+| `manooch-cms_manooch_wp_db` | Legacy WordPress DB (not load-bearing — see note) |
+
+> **CMS is Strapi, not WordPress.** WordPress was the CMS in an earlier version of the
+> platform; the `wp-cli` container is retired/exited and `manooch_wp_db` is only backed
+> up for safety. Don't spend restore time troubleshooting it if it doesn't come back
+> clean — it isn't required for the site to work.
 
 ### 1.5 Success criteria
 1. All containers on the NEW server are `Up` and healthy.
@@ -133,21 +148,31 @@ echo "Backup directory: $BACKUP_DIR"
 ### 3.2 Backup project files (compose + .env)
 
 ```bash
-cp -r ~/manooch $BACKUP_DIR/manooch-project
+rsync -a --exclude node_modules --exclude .git ~/manooch/ $BACKUP_DIR/manooch-project/
 ls -la $BACKUP_DIR/manooch-project/
 ```
+
+> Proven on the real migration — `rsync` with these excludes is much faster than `cp -r`
+> and skips build artifacts you don't need. This also carries over untracked files that
+> matter (`.env.bak.*`, `Caddyfile.bak`, `.env.website`) since it isn't a git operation.
 
 ### 3.3 Backup PostgreSQL (all databases)
 
 ```bash
 docker exec manooch-postgres \
-    pg_dumpall -U postgres \
+    pg_dumpall -U manooch \
     > $BACKUP_DIR/postgres-full-backup.sql
 
 # Verify the dump is valid (should start with -- PostgreSQL...)
 ls -lh $BACKUP_DIR/postgres-full-backup.sql
 head -3 $BACKUP_DIR/postgres-full-backup.sql
 ```
+
+> ⚠️ **`-U manooch`, not `-U postgres`.** The Postgres superuser on this project is
+> `manooch` (see `manooch-backend/.env.db` → `POSTGRES_DB=manooch`), not the Docker
+> default. Verify with `docker exec manooch-postgres env | grep POSTGRES_USER` before
+> running this on a server you haven't confirmed — don't assume it's the same on every
+> deployment.
 
 ### 3.4 Backup all Docker volumes
 
@@ -264,6 +289,9 @@ cp -r $BACKUP_DIR/manooch-project/* ~/manooch/
 ls ~/manooch/
 cat ~/manooch/manooch-backend/.env
 cat ~/manooch/manooch-cms/.env
+
+# manooch-fronts has NO .env — it uses .env.website. Confirm it made it over:
+cat ~/manooch/manooch-fronts/.env.website
 ```
 
 ### 5.3 Create the volumes
@@ -324,6 +352,20 @@ echo "All volumes restored!"
 > Note: the tars were created with absolute path `/data/...`, which is why we extract
 > with `-C /` — the contents land back inside each volume's mount correctly.
 
+### 5.4b If the `manooch_pg` volume restore looks wrong, fall back to the SQL dump
+
+The volume restore (5.4) is the primary path and is what was actually used on the real
+migration — the SQL dump is a belt-and-suspenders fallback, not normally needed. If
+Postgres comes up but data looks missing or corrupt, restore from the logical dump
+instead: start just Postgres, then
+
+```bash
+cat $BACKUP_DIR/postgres-full-backup.sql | docker exec -i manooch-postgres psql -U manooch
+```
+
+This is the only place in this runbook that actually uses `postgres-full-backup.sql` —
+don't skip creating it in 3.3 even though 5.4 doesn't normally need it.
+
 ### 5.5 Start all services (order matters)
 
 > Before `up -d`: each `~/manooch/<repo>` needs to be a real git checkout, not just the
@@ -338,6 +380,10 @@ echo "All volumes restored!"
 > 2026-08-17.
 
 ```bash
+# 0) REQUIRED: create the shared network first — all three compose files declare
+#    manooch_net as `external: true`, so `up -d` fails without this.
+docker network create manooch_net
+
 # 1) Backend first (postgres + api + caddy)
 cd ~/manooch/manooch-backend
 docker compose -f docker-compose.prod.yml up -d
@@ -392,17 +438,36 @@ curl -k -I https://NEW_SERVER_IP
 
 ## 7. STEP 5 — DNS cutover
 
-1. In your DNS provider, lower the TTL on the domain's A record(s) to ~300 seconds a
-   few hours (ideally a day) before cutover.
-2. Update the A record to point at the NEW server IP.
-3. Wait for propagation (use `dig example.com` / `getent hosts`).
-4. Confirm the live site loads over HTTPS.
-5. Watch logs for a few minutes to catch any final issues.
+0. **Before touching DNS**, update tenant custom-domain routing in
+   `~/manooch/manooch-backend/.env` on the NEW server:
 
-```bash
-dig +short yourdomain.com
-curl -I https://yourdomain.com
-```
+   ```bash
+   # PLATFORM_CUSTOM_DOMAIN_A_IPS=<OLD_IP>  →  PLATFORM_CUSTOM_DOMAIN_A_IPS=<NEW_IP>
+   docker compose -f docker-compose.prod.yml restart manooch-api   # or recreate if env isn't hot-reloaded
+   docker exec manooch-api printenv PLATFORM_CUSTOM_DOMAIN_A_IPS   # must print NEW_IP
+   ```
+
+   This is what routes tenants' own custom domains (via CNAME/A to the platform) to the
+   right server. Missing this step was the one thing that silently broke on the real
+   migration until caught.
+
+1. In your DNS provider (Arvan Cloud, for this project), lower the TTL on the domain's
+   A record(s) to ~300 seconds a few hours (ideally a day) before cutover.
+2. Update the A records to point at the NEW server IP: `@` (apex), `www`, `*` (wildcard,
+   for tenant subdomains), `api`, `cms`, `admin`, `portal`.
+3. Wait for propagation, then verify with **DNS-over-HTTPS**, not a plain `dig` against
+   a public resolver — if you're resolving from a network with DNS interception/censorship
+   (e.g. inside Iran), `dig @8.8.8.8` can silently return the wrong answer while `dig`
+   itself reports success. Use:
+
+   ```bash
+   for d in yourdomain.com www.yourdomain.com api.yourdomain.com; do
+     curl -s -H 'accept: application/dns-json' "https://dns.google/resolve?name=$d&type=A"
+   done
+   ```
+
+4. Confirm the live site loads over HTTPS: `curl -I https://yourdomain.com`.
+5. Watch logs for a few minutes to catch any final issues.
 
 ---
 
@@ -452,8 +517,8 @@ DNS
 ```bash
 BACKUP_DIR=~/backups/$(date +%Y%m%d)
 mkdir -p $BACKUP_DIR
-cp -r ~/manooch $BACKUP_DIR/manooch-project
-docker exec manooch-postgres pg_dumpall -U postgres > $BACKUP_DIR/postgres-full-backup.sql
+rsync -a --exclude node_modules --exclude .git ~/manooch/ $BACKUP_DIR/manooch-project/
+docker exec manooch-postgres pg_dumpall -U manooch > $BACKUP_DIR/postgres-full-backup.sql
 ls -lh $BACKUP_DIR/
 ```
 
