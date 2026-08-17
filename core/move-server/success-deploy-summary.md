@@ -51,11 +51,19 @@ manooch-website      ghcr.io/ieffectstudio/manooch-fronts:latest
 ### Domains served (all verified HTTPS 200/3xx on new IP)
 
 - `manooch.site` (Next.js website)
+- `www.manooch.site` (→ 301 to apex)
 - `api.manooch.site` (Express API)
 - `cms.manooch.site` (Strapi → /admin)
 - `admin.manooch.site` (→ /sign-in)
 - `portal.manooch.site` (→ /sign-in)
-- `edge.manooch.site` + all custom/tenant domains (via `*` wildcard)
+- `<slug>.manooch.site` tenant storefronts (via `*` wildcard, e.g. `tajmahal.manooch.site`)
+
+> **Correction (2026-08-17):** `edge.manooch.site` is **not** served — it fails TLS
+> handshake (alert 592, "no information found to solve challenge") on both the new *and*
+> old server, so it was never actually working; the "verified HTTPS 200/3xx" claim above
+> was wrong. Caddy's on-demand-TLS oracle (`ask http://localhost:9000/check` in
+> `manooch-backend/Caddyfile`) denies it because `edge` isn't a registered store slug.
+> Not a migration regression — just leave it as-is unless `edge` is meant to be a real host.
 
 ---
 
@@ -107,13 +115,52 @@ NEW SERVER (restore)
 
 ## Post-migration TODO (still open)
 
-1. **Keep old server running 24–48h** as rollback, then decommission.
-2. **Rotate secrets** — DB password, JWT secrets, SMS/API keys (Melipayamak, Finnotech,
-   Armaghan) were exposed during the migration. Update in `.env` files after stable.
+1. ~~Keep old server running 24–48h as rollback, then decommission.~~ **Done** — see
+   "Post-cutover verification" below; containers stopped 2026-08-17 (Option A, soft stop).
+2. **Rotate secrets — NOT done, verified.** DB password, JWT secrets, SMS/API keys were
+   exposed during the migration (they crossed the wire via `rsync`/`scp` and now sit in
+   plaintext in `~/backups/20260816/` on **both** servers). On 2026-08-17 I diffed the
+   live values on old vs. new server directly: `DB_PASSWORD`, `JWT_SECRET`, and Strapi
+   `APP_KEYS`/`API_TOKEN_SALT` are **byte-for-byte identical** — nothing was rotated.
+   Stopping/deleting the old server does **not** fix this exposure (the backup archives
+   already have the plaintext values regardless of which server exists). Rotate before
+   terminating the old VPS — see [`drop-old-server.md`](drop-old-server.md) Gate 5.
 3. **Optional cleanup** — delete `.env.bak.*` files and update `.env.production.example`
-   (they still reference the old IP `130.185.121.227`; inert but stale).
+   (they still reference the old IP `130.185.121.227`; inert but stale). Also note
+   `.env.production.example` is tracked in `manooch-backend` git, so this needs a commit
+   there, not just a server-side edit.
 
 ## Rollback plan (if anything breaks in the next 48h)
 
 - Flip Arvan Cloud A records back to `130.185.121.227` → old server resumes instantly.
-- Old server was never stopped or modified, so it's a clean fallback.
+- Old server's containers were stopped 2026-08-17 (`docker compose down` — disks/volumes
+  untouched); rollback is `docker compose up -d` in each of the three project dirs, plus
+  the DNS flip. It is no longer "never stopped," but it is still a clean, fast fallback.
+
+## Post-cutover verification (2026-08-17)
+
+Checked ~24h after cutover, before stopping the old server's containers:
+
+- **DNS**: all 7 hosts resolve to `95.38.185.156` via DNS-over-HTTPS (`dns.google/resolve`),
+  checked from the old server to avoid local DNS interception on the checking machine.
+- **Old server traffic**: `manooch-api` had 0 log lines in the prior 24h (last entry was
+  its own 08/15 startup); `manooch-caddy` had 42 lines/24h, all ACME renewal-info and
+  `.well-known` scanner probes — no real user requests. Old server was fully idle.
+- **New server data parity vs. old server** (measured on both, same moment): DB size
+  13 MB, `stores=6`, `products=16`, `orders=1` on both. API uploads volume: 112 files.
+  CMS uploads volume: 24 files. Both non-empty.
+- **Backups on new server**: `~/backups/20260816/` present with `manooch-project/`,
+  `postgres-full-backup.sql` (1.0 MB), and all 6 `vol-*.tar.gz` (159 MB total) — sizes
+  match the old server's originals.
+- **File parity**: every untracked file that only lived on the old server (`.env`,
+  `.env.db`, `.env.bak.*` ×11, `Caddyfile.bak`, `Caddyfile.diag.bak`, `.env.website`,
+  `.env.wordpress.bak`, the 94 MB legacy `wp-core/`) is present on the new server too —
+  nothing was left behind.
+- **No unpushed code**: all three repos (`manooch-backend`, `manooch-cms`,
+  `manooch-fronts`) on `main`, clean working tree, zero commits ahead of `origin` on the
+  old server.
+- **No live tenant custom domains**: `store_domains` table has 4 rows, all
+  `pending`/`failed`, 3 soft-deleted — zero verified domains depend on either IP.
+- Old server's containers stopped (`docker compose down` ×3) after all the above passed.
+  Live site re-checked immediately after and stayed healthy — confirmed nothing was
+  still depending on the old server.
