@@ -14,8 +14,9 @@
 - Cutover completed 2026-08-16. Checked ~24h later, 2026-08-17.
 - **Gate 1 (DNS) ✅ PASS** and **Gate 2 (old server drained) ✅ PASS** — see evidence
   below. **Gate 3 (data) ✅ PASS** and **Gate 4 (backups) ✅ PASS** — verified directly on
-  the new server. **Gate 5 (secrets) ❌ FAIL** — verified NOT rotated; see below and
-  [`success-deploy-summary.md`](success-deploy-summary.md#post-migration-todo-still-open).
+  the new server. **Gate 5 (secrets) 🟡 PARTIAL** — DB/JWT/Strapi secrets rotated live
+  2026-08-17; SMS/payment provider keys and `SUPER_ADMIN_PASSWORD` still open; see below
+  and [`success-deploy-summary.md`](success-deploy-summary.md#post-migration-todo-still-open).
 - **Option A (soft stop) executed 2026-08-17.** All `manooch-*` containers on the old
   server were stopped via `docker compose down` in each of the three project dirs. VPS,
   disks, and all 6 volumes are untouched — rollback is `docker compose up -d` ×3 + a DNS
@@ -155,12 +156,20 @@ The following were exposed during the migration and should be rotated:
 
 ✅ **Pass:** rotated, OR a scheduled ticket exists to rotate immediately after decommission.
 
-**❌ Result (2026-08-17): NOT rotated, verified directly.** Diffed the live values on old
-vs. new server: `DB_PASSWORD`, `JWT_SECRET`, and Strapi `APP_KEYS`/`API_TOKEN_SALT` are
-byte-for-byte identical on both hosts. SMS keys weren't individually diffed but there's no
-reason to expect they're different. **This gate blocks Option B (termination)** — until
-rotated, the old server's disk (and both servers' `~/backups/20260816/`) contain
-still-valid production credentials. See `success-deploy-summary.md` for detail.
+**🟡 Result: partially rotated, 2026-08-17.** Initially found byte-for-byte identical on
+old vs. new server. Then rotated live on the new server: `DB_PASSWORD`/`POSTGRES_PASSWORD`
+(Postgres `manooch` role), `DATABASE_PASSWORD` (Postgres `strapi` role), backend
+`JWT_SECRET`, and all of Strapi's `APP_KEYS`/`API_TOKEN_SALT`/`ADMIN_JWT_SECRET`/
+`TRANSFER_TOKEN_SALT`/`JWT_SECRET`/`ENCRYPTION_KEY`/`REVALIDATE_SECRET`/
+`CONSULTATION_SECRET` — verified working (all containers recreated healthy, DB
+queryable, all domains still serving). **Still not rotated:** the 3 SMS/payment provider
+keys (Melipayamak, Finnotech, Armaghan — require action in each provider's own dashboard)
+and `SUPER_ADMIN_PASSWORD` (editing the env var doesn't work — see
+`success-deploy-summary.md` for why; needs either the app's own password-change flow or
+a direct DB update). **Gate 5 now partially clears Option B** — the old server's disk and
+both servers' `~/backups/20260816/` hold DB/JWT/Strapi secrets that are now stale/inert
+against the live system, but still hold the 3 provider keys and the super-admin password
+as live, valid credentials. Full termination should wait on those two.
 
 ---
 
@@ -232,8 +241,9 @@ just no longer a single-step one.
 [x] Gate 2 — old server confirmed drained of real traffic              (2026-08-17)
 [x] Gate 3 — data integrity spot-checks pass                           (2026-08-17)
 [x] Gate 4 — full backup set present on new server                     (2026-08-17)
-[ ] Gate 5 — secrets rotated                                           NOT DONE — verified identical on both servers
+[~] Gate 5 — secrets rotated: DB/JWT/Strapi done (2026-08-17); SMS/payment provider
+    keys + SUPER_ADMIN_PASSWORD still open — see success-deploy-summary.md
 [x] Option A — old stack stopped (docker compose down)                 (2026-08-17)
 [ ] External providers confirmed not dependent on old IP (you only)
-[ ] 1–2 weeks clean + Gate 5 fixed → Option B — terminate old server
+[ ] 1–2 weeks clean + remaining Gate 5 items fixed → Option B — terminate old server
 ```
