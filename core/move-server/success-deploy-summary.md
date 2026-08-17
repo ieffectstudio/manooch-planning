@@ -117,14 +117,38 @@ NEW SERVER (restore)
 
 1. ~~Keep old server running 24–48h as rollback, then decommission.~~ **Done** — see
    "Post-cutover verification" below; containers stopped 2026-08-17 (Option A, soft stop).
-2. **Rotate secrets — NOT done, verified.** DB password, JWT secrets, SMS/API keys were
-   exposed during the migration (they crossed the wire via `rsync`/`scp` and now sit in
-   plaintext in `~/backups/20260816/` on **both** servers). On 2026-08-17 I diffed the
-   live values on old vs. new server directly: `DB_PASSWORD`, `JWT_SECRET`, and Strapi
-   `APP_KEYS`/`API_TOKEN_SALT` are **byte-for-byte identical** — nothing was rotated.
-   Stopping/deleting the old server does **not** fix this exposure (the backup archives
-   already have the plaintext values regardless of which server exists). Rotate before
-   terminating the old VPS — see [`drop-old-server.md`](drop-old-server.md) Gate 5.
+2. **Rotate secrets — partially done, 2026-08-17.** Everything fully under our control
+   was rotated live on the new server, verified working (containers recreated, DB
+   reachable, all domains still 200/3xx, no data loss): Postgres `manooch` role password
+   (`DB_PASSWORD`/`POSTGRES_PASSWORD`), Postgres `strapi` role password
+   (`DATABASE_PASSWORD`), backend `JWT_SECRET`, and Strapi's `APP_KEYS`,
+   `API_TOKEN_SALT`, `ADMIN_JWT_SECRET`, `TRANSFER_TOKEN_SALT`, `JWT_SECRET`,
+   `ENCRYPTION_KEY`, `REVALIDATE_SECRET`/`CONSULTATION_SECRET`. Pre-rotation values were
+   backed up as `.env.bak.<timestamp>` alongside the existing backup-file convention.
+   Effect: every logged-in customer/seller/admin session and both Strapi admin sessions
+   were invalidated (users just need to sign back in — no data loss); the 3 existing
+   Strapi API tokens ("Read Only", "Full Access", "prod-seed-script") are invalidated too
+   — they were unreferenced defaults, not live integrations.
+
+   **Still open — needs you, not something I can self-service:**
+   - `MELIPAYAMAK_OTP_KEY`, `FINNOTECH_CLIENT_SECRET`, `ARMAGHAN_PASSWORD` — issued by
+     each provider's own dashboard; rotate there, then update `.env` + restart `manooch-api`.
+   - `SUPER_ADMIN_PASSWORD` — **editing this env var does nothing.** The seeder
+     (`manooch-backend/src/modules/super-admin/seed/super-admin.seeder.ts`) only hashes
+     it into the DB once, on first boot, then no-ops forever after — that already
+     happened, so the live credential is unaffected by changing the env var. Actually
+     rotating it needs either the app's own admin password-change flow, or a direct DB
+     update of the bcrypt hash on the `admin_credentials`/`Customer` row for that admin's
+     mobile — say which you want and I'll do it.
+   - Legacy MySQL/WordPress DB passwords (`.env.db` in `manooch-cms`) — left as-is; no
+     running container consumes them (the WordPress/MySQL stack is retired), so they're
+     dead credentials, not a live-system risk.
+
+   Stopping/deleting the old server does **not**, by itself, fix secret exposure — but
+   now that the live values differ, the plaintext secrets sitting in `~/backups/20260816/`
+   on both servers (and on the old server's disk generally) are **stale/inert**, not valid
+   against the live system. That significantly lowers the risk of deleting the old VPS —
+   see [`drop-old-server.md`](drop-old-server.md) Gate 5.
 3. **Optional cleanup** — delete `.env.bak.*` files and update `.env.production.example`
    (they still reference the old IP `130.185.121.227`; inert but stale). Also note
    `.env.production.example` is tracked in `manooch-backend` git, so this needs a commit
