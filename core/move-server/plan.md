@@ -326,6 +326,17 @@ echo "All volumes restored!"
 
 ### 5.5 Start all services (order matters)
 
+> Before `up -d`: each `~/manooch/<repo>` needs to be a real git checkout, not just the
+> restored files. The rsync backup step excludes `.git`, and every repo's `deploy.sh`
+> (run by CI on every push to `main`) does `git fetch origin main && git reset --hard
+> origin/main` — without `.git` that fails on the very next deploy. Per repo:
+> `git init -b main`, `git remote add origin git@github.com:ieffectstudio/<repo>.git`,
+> `git fetch origin`, then diff `docker-compose.prod.yml` (and `manooch-backend`'s
+> `Caddyfile`, which is bind-mounted and reloaded by `deploy.sh`) against `origin/main`
+> before `git reset --hard origin/main` — confirms nothing hand-edited on the server gets
+> silently overwritten. See `success-deploy-summary.md` for the incident this caused on
+> 2026-08-17.
+
 ```bash
 # 1) Backend first (postgres + api + caddy)
 cd ~/manooch/manooch-backend

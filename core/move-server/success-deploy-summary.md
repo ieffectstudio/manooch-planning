@@ -82,6 +82,19 @@ cms, admin, portal). Propagation confirmed via `dig`.
 
 ## Proven migration steps (for future reference)
 
+> **`--exclude .git` breaks CI deploys on the new server.** Each repo's
+> `scripts/deploy.sh` (run by `.github/workflows/deploy.yml` over SSH) starts with
+> `git fetch origin main && git reset --hard origin/main` — with `.git` excluded, the
+> restored `~/manooch/<repo>` dirs are plain file trees and the first push-to-main after
+> the move fails with `fatal: not a git repository`. This actually happened after the
+> 2026-08-16 migration and had to be fixed by hand: `git init -b main`, `git remote add
+> origin git@github.com:ieffectstudio/<repo>.git`, `git fetch origin`, diff
+> `docker-compose.prod.yml` (and, for `manooch-backend`, `Caddyfile` — it's bind-mounted
+> and reloaded by `deploy.sh` on every deploy) against `origin/main` before `git reset
+> --hard origin/main`, so a hand-edited server file isn't silently discarded. Either keep
+> `.git` in the rsync next time, or run this re-init for all three repos as part of the
+> restore, before the first post-migration deploy.
+
 ```
 OLD SERVER (backup)
   mkdir -p ~/backups/$(date +%Y%m%d)
