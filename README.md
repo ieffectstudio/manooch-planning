@@ -18,6 +18,9 @@ you delete or supersede a doc, delete its row here too, in the same change.
 | [`fino-teck-verfiy-phone-nId/`](core/fino-teck-verfiy-phone-nId/fino-teck-verfiy-phone-nId.md) | Draft, imported from elsewhere — written against a Python/FastAPI/Redis stack, not this platform's NestJS backend; needs a rewrite before it's actionable here |
 | [`14-days-demo/prompt.md`](core/14-days-demo/prompt.md) | Shipped (`feat-2-week-demo`) — 14-day trial, stacking referral gift, plan-expiry gate |
 | `bugs/<sprint>/` | Point-in-time bug write-ups (`14-5`, `15-5`, `16-5`, ...) — check the matching front/backend repo's git log for the fix commit before assuming one is still open |
+| [`move-server/plan.md`](core/move-server/plan.md) | Reusable server-migration runbook — updated 2026-08-17 with everything proven on the real migration |
+| [`move-server/success-deploy-summary.md`](core/move-server/success-deploy-summary.md) | Migration completed 2026-08-16 — post-migration record; secrets rotation still open |
+| [`move-server/drop-old-server.md`](core/move-server/drop-old-server.md) | Old server decommission gates — Gates 1-4 passed, Option A (soft stop) done 2026-08-17; Gate 5 (secrets) blocks termination |
 
 ## `portal/` — super-admin panel (`apps/portal`)
 
