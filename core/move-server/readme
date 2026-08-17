@@ -1,7 +1,0 @@
-here is my deploy plan manooch-planings\core\move-server\plan.md &
-here is success plan i done manooch-planings\core\move-server\success-deploy-summary.md
-here is plan for drop old server  manooch-planings\core\move-server\drop-old-server.md
-my new server ssh is 95.38.185.156 and user is effect and pass is 123456
-also add new ssh named manooch-ir-server like manooch-server but dont block others on firewall
-check and update it where should update and push move-to-server branch
-
