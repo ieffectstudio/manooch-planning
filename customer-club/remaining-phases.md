@@ -48,7 +48,8 @@ commit (`81fee16` in this repo) newer than any of the "closed" documentation abo
 | 4a | Segmentation (امتیاز / RFM / برچسب‌ها) | **Done** |
 | 4c | Design parity with the prototype (tokens, shell, per-view sweep) | **Done** |
 | 4b | Acquisition (referral/lead magnet) | **Done** |
-| 5 | Geography: radar, regional SMS | Not started |
+| 5a | Geography: regional SMS (province → city) | **Done** |
+| 5b | Geography: radar zones | Not started |
 | 6 | Personal message, walk-in keypad, dashboard rebuild | Not started |
 | 7 | Docs reconciliation (this file, then PRD.md, README.md) | In progress (this update) |
 
@@ -465,14 +466,94 @@ actually true; everything below it is new work on `feat-customer-club`.
 - Test counts: 11 new tests across `customers`/`reports`, full backend suite **990/990** green (up
   from 979), lint 0 errors (unchanged 56-warning baseline), build clean in both repos.
 
-### Stages 5–7 — Not started
+### Stage 5a — Regional SMS (province → city) — Done
+
+- **The governing constraint**: there are no customer coordinates anywhere in this codebase — only
+  `Province`/`City` carry `latitude`/`longitude` (as centroids), and no neighborhood table exists.
+  `Profile.provinceId`/`cityId` really do filter real customers, so regional is fully data-backed and
+  independently shippable — unlike radar (Stage 5b), which has no real trigger source. This split was
+  a deliberate decision (confirmed with the user) rather than shipping both geography tools together.
+- **The neighborhood (محله) tier is dropped** — province → city only, per the same decision. Adding a
+  third tier would make every count read ۰ until someone backfills data nobody collects, exactly the
+  fabricated-number defect Stage 4b's dropped landing-page-visit row already removed. Recorded here as
+  documentation debt against PRD.md's Flow D, which still describes a neighborhood step.
+- **The reuse decision**: no new backend module, extending §4.1's rule the same way Stages 4a/4b did.
+  Provinces/cities reuse the existing `locations` module's routes/hooks/schemas wholesale — nothing
+  new there at all. Sending reuses `SmsOutboxService.createBatch` with the per-recipient `body`
+  override (Stage 3a) and `customerLastVisitAt` (so `SmsQuotaService`'s inactive-customer rule
+  actually engages, same as Stage 3b's fix for the campaign path). History reuses `SmsBatch` rows,
+  named `regional-{cityId|provinceId}-{ts}` so the list query can find them without a new table.
+- **Backend** (`manooch-backend`, commit `4222d3d`): new `RegionalSmsService` inside the existing
+  `SmsMarketingModule` (not a new module) — `getRegions` (per-province/per-city live customer counts
+  for the «مناطق» pane, replacing the prototype's hardcoded `PROVINCES` array), `getAudience`
+  (`{ provinceId, cityId, total, costPerMessage }`, cost sourced from the real `SMS_COST_TOMAN`
+  constant already used by `SmsQuotaService`, never the prototype's hardcoded `n × 250` literal),
+  and `send` (resolves the audience, rejects `REGIONAL_NO_RECIPIENTS`/`REGIONAL_QUOTA_EXCEEDS_AUDIENCE`,
+  applies **random non-repeating N-of-M selection** via a new pure `pickRandomSubset<T>` util
+  — Fisher-Yates partial shuffle, `random-subset.util.ts`, 8 unit tests — substitutes `{نام}`/`{منطقه}`
+  per recipient via the existing `renderPersianTokens` util, then one `createBatch`). Four new
+  endpoints on `AdminSmsController`: `GET regional/regions`, `GET regional/audience`,
+  `POST regional/send`, `GET regional/sends`.
+- **The join, written right the first time**: the audience query joins
+  `StoreCustomerStatus.customerId`/`storeId` (bare `@Column()`, physically varchar) against
+  `Profile.customerId` (`@Column({ type: 'uuid' })`) — the same lookalike-column trap that has hit
+  every one of the last four stages in a different direction (Stage 3b missing cast, Stage 4a
+  unnecessary cast, Stage 4b cast-both-sides). `regional-sms.service.ts` casts only the varchar side
+  (`scs."customerId"::uuid = p."customerId"`) with a doc comment cross-referencing all four prior
+  instances — and **this is the first of five consecutive geography/segmentation-adjacent stages
+  where the live-Postgres check found no join bug**, i.e. the accumulated doc comments and the
+  "cast the varchar side only" rule actually prevented a fifth occurrence rather than just diagnosing
+  another one after the fact.
+- **Frontend** (`manooch-fronts`, commit `414f2b3`): `tools/regional/` — a 3-pane `ClubTabsCtl`
+  (مناطق/ارسال پیامک/تاریخچه) following the `tools/referral/` layout. `RegionsPane` (real province
+  cards with real per-city customer-count badges, clicking a city jumps to the send pane
+  pre-selected); `SendPane` (province `<select>`/city `ClubChipsRow`, live audience count, the
+  quota range+exact-number pair kept in sync and clamped to `[1, total]`, `{نام}`/`{تاریخ}`/`{منطقه}`
+  composer, live cost from the server's real per-message price); `HistoryPane` (reuses the existing
+  `BatchHistoryCard` from `campaigns/bulk/_common/` verbatim — same shape, same `SmsBatch` data
+  source, no reason for a second implementation). `tools/page.tsx`'s «پیامک منطقه‌ای» card now
+  navigates instead of toasting.
+- **A lint error found and fixed during the build gate (not a live-verification bug)**:
+  `react-hooks/set-state-in-effect` flagged `SendPane`'s `useEffect` that reset the quota whenever
+  `provinceId`/`cityId` changed — calling `setState` directly inside an effect for this "derived
+  reset" shape is exactly the anti-pattern the rule exists to catch (it can flash the stale value for
+  one frame before the effect fires). Fixed using React's own recommended "adjusting state when a
+  prop changes" pattern instead — compare the current selection key against a stored one during
+  render and call `setQuota(null)` synchronously in that branch, no `useEffect` at all. Live-retested
+  by switching province mid-session (Tehran, quota=2 → Isfahan) and confirming the quota reset to the
+  new audience's full count with no stale flash.
+- **Divergences from the prototype** (recorded per Stage 7): neighborhood tier dropped (above);
+  `{کد تخفیف}` token dropped, same reason as Stages 3b/4b (`CartService.checkout` still hardcodes
+  `discountAmount: 0`); all six hardcoded `PROVINCES` counts in `renderRegions()` are now real
+  queries; the fabricated 96%/2%/2% delivery split in `renderRegHist()` is replaced by real
+  `SmsMessage` statuses via the reused `BatchHistoryCard`.
+- **Verified live** via direct HTTP calls (a JWT minted with the backend's own secret plus a matching
+  `customer_auth_tokens` row and an active `seller_subscriptions` trial row, the same technique
+  established in Stage 4b) against a real local backend + Postgres seeded with 10 test customers
+  across three cities (5 Tehran/تهران, 2 Tehran/تجریش, 3 Isfahan/اصفهان), then via Playwright at
+  390×844 for the UI layer: `regions`/`audience` counts matched a hand-run SQL count exactly,
+  including `total: 0` (never `NaN`) for a province with no matching customers; a quota above the
+  audience was rejected with `REGIONAL_QUOTA_EXCEEDS_AUDIENCE`; an empty-audience province was
+  rejected with `REGIONAL_NO_RECIPIENTS`; two sends at the same sub-total quota against the same
+  5-customer pool produced two different selected sets, confirming the random non-repeating subset
+  is genuinely random and not always taking the same rows; `{نام}`/`{منطقه}` rendered correctly per
+  recipient in the stored `sms_messages` rows; the tools card navigated instead of toasting; the send
+  pane's province/city selectors, live count, quota sync, and cost line all matched the seeded data;
+  a real UI-triggered send appeared correctly in the history pane alongside the API-triggered ones.
+- Test counts: 16 new tests (`random-subset.util.spec.ts` 8, `regional-sms.service.spec.ts` 8), full
+  backend suite **1006/1006** green (up from 990), lint 0 errors (unchanged 56-warning baseline),
+  typecheck/lint/build clean in both repos.
+
+### Stages 5b–7 — Not started
 
 Per the plan, in order:
 
-- **Stage 5 — geography**: `zones`/radar (point/circle 200–3000m + polygon 3–10 vertices, 24-hour
-  suppression — automatic triggering stays gated behind the still-absent customer-app location
-  source), `regional` (province → city → neighborhood, quota N ≤ M enforced, random non-repeating
-  selection).
+- **Stage 5b — radar zones**: point/circle 200–3000m + polygon 3–10 vertices, real geometry
+  (`haversineMeters`/`pointInPolygon`), a real suppression ledger, and a real transactional
+  `POST .../radar/zones/:id/hit` endpoint — but no cron/auto-fire, since nothing in the codebase can
+  call the trigger yet (no customer-app location source exists, and PRD.md itself excludes automatic
+  radar detection from V1). Ships the full server machinery unfed, verified via direct HTTP calls
+  since the hit endpoint has no UI caller.
 - **Stage 6 — prototype extras + dashboard**: `modal-ps` (personal message inside bulk SMS),
   `modal-kbd` (walk-in registration keypad), and rebuilding the admin main dashboard to
   `manooch-dashboard.html` (Figma `38:1186`).
@@ -621,15 +702,21 @@ regional quota, tokens, and date windows. Client validation is UX support, not a
   `Order.storeId` both silently `uuid` via a sibling `@JoinColumn`, joined raw against
   `StoreCustomerStatus`'s genuinely-`varchar` columns of the same names — caught only because the
   smoke script exercised the acquisition endpoint's lead-funnel query against a real database. Four
-  stages in a row have now each surfaced a different raw SQL join guessing a lookalike column's
-  physical type wrong, in three different directions (missing cast, unnecessary cast, cast on both
-  sides needed) — a strong signal that every new raw join adjacent to a `@ManyToOne`/`@JoinColumn`
-  pair deserves a live check before being trusted, not just a unit test against a mocked builder.
+  stages in a row each surfaced a different raw SQL join guessing a lookalike column's physical type
+  wrong, in three different directions (missing cast, unnecessary cast, cast on both sides needed) —
+  and then, in Stage 5a, the streak broke: the same join shape against the same two entities was
+  written with the correct single-varchar-side cast on the first attempt and the live check found
+  nothing wrong with it. That is itself a useful data point — the accumulated doc comments and the
+  "cast the varchar side only, never the uuid side, never both" rule generalized correctly rather than
+  each stage only diagnosing its own instance after the fact. The live-Postgres check remains
+  mandatory for every new raw join regardless — it is what turned four guesses into a fifth correct
+  one, not something to relax now that it has "worked."
 
-Critical flows still to smoke once Stages 3–5 land: wheel rejects any chance total ≠ 100 and never
-double-charges or double-awards; survey/referral rewards are single-award and cap-aware; radar
-24-hour suppression and polygon vertex validation; regional quota N cannot exceed M and selection is
-random and non-repeating; out-of-hours/daily-cap/opt-out/invalid-number sends deduct no credit.
+Critical flows still to smoke once Stage 5b lands: radar 24-hour suppression and polygon vertex
+validation, out-of-hours gating on the hit endpoint via direct HTTP calls (no UI caller exists for it).
+Already smoked and passing: wheel chance-total validation and no double-charge/double-award (Stage
+3a); survey/referral single-award and cap-aware rewards (Stages 3a/4b); regional quota N cannot exceed
+M and selection is random and non-repeating (Stage 5a).
 
 ---
 
