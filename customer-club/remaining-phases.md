@@ -1,6 +1,6 @@
 # Customer Loyalty Club — Remaining Phases and Delivery Status
 
-**Version:** 3.1 — **Updated:** 27 Mordad 1405 (2026-08-18) — **Status:** In progress on `feat-customer-club`
+**Version:** 3.2 — **Updated:** 27 Mordad 1405 (2026-08-18) — **Status:** In progress on `feat-customer-club`
 
 > This file replaces the prior "Version 2.0 — Closed — Phases 1–4 complete" status. That status was
 > incorrect: git history shows only `feature/customer-club-phase1` was ever merged to `main` in
@@ -44,7 +44,7 @@ commit (`81fee16` in this repo) newer than any of the "closed" documentation abo
 | 1 | Setup wizard (`view-setup`) + SMS credit purchase UI | **Done** |
 | 2 | Club shop (items, redemption, purchase history, settings) | **Done** |
 | 3a | Loyalty tools: wheel, surveys | **Done** |
-| 3b | Loyalty tools: occasions, retargeting | Not started |
+| 3b | Loyalty tools: occasions, retargeting | **Done** |
 | 4 | Acquisition (referral/lead magnet) & segmentation | Not started |
 | 5 | Geography: radar, regional SMS | Not started |
 | 6 | Personal message, walk-in keypad, dashboard rebuild | Not started |
@@ -180,13 +180,81 @@ actually true; everything below it is new work on `feat-customer-club`.
 - Test counts: `wheel.service.spec.ts` (23/23), `surveys` module tests (17/17), full backend suite
   (922/922) green, lint 0 errors (unchanged 56-warning baseline), build clean in both repos.
 
-### Stages 3b–7 — Not started
+### Stage 3b — Loyalty tools: occasions + retargeting — Done
+
+- **The unifying decision**: neither tool got a new backend module. Both are configurations of one
+  new campaign capability — *a campaign send can also grant points, with a per-recipient body* —
+  riding the existing `campaigns` module and its `/admin/stores/:storeId/campaigns` /
+  `/message-templates` endpoints. No new controller, route, settings entity, or cron, honouring
+  §4.1's no-second-scheduler rule. Reminders and retargeting are both `DAYS_SINCE_PURCHASE`
+  campaigns told apart by `config.linkedToolKey` (`'retargeting'` vs. unset) — see §4.1.
+- **Backend** (`manooch-backend`, uncommitted on `feat-customer-club` at time of writing): added
+  `OCCASION` to `CampaignTrigger` and `giftPoints`/`occasionAt`/`segment` to `CampaignConfig`
+  (`@manooch/types`, synced), a migration widening `campaign_trigger_enum` and
+  `point_transaction_reason_enum` (`occasion`, `retarget` — irreversible per Postgres `ALTER TYPE …
+  ADD VALUE`, documented in the migration file). `CampaignsService.runDueCampaigns` gained a real
+  dispatch over `DAYS_SINCE_PURCHASE` (unchanged), `BIRTHDAY` (new — audience resolved by joining
+  `Profile.birthDate` month/day against Tehran-local today, scoped to the store via
+  `store_customer_status`), and `OCCASION` (new — fires once when `config.occasionAt` falls in
+  today's Tehran day range, audience is the whole store filtered by `config.segment`). Points grant
+  through `LoyaltyService.earn` with `referenceId: '{campaignId}:{tehranDayKey}'` before the SMS
+  batch is queued, so the message never promises points that failed to land — see §4.3.
+- **Frontend** (`manooch-fronts`, uncommitted on `feat-customer-club` at time of writing):
+  `tools/occasions` (2-pane: rules/history — birthday row toggled via the pre-seeded BIRTHDAY-category
+  template, custom occasions via a create/edit sheet with date/time/segment/gift-points/SMS composer,
+  default birthday rule's delete button hidden rather than rejecting) and `tools/retargeting`
+  (3-pane: rule/settings/history — one rule per store, quick-activate on first toggle with sane
+  defaults since there is no seeded template to reuse). Both mirror `tools/reminders`' campaign-backed
+  shape. Wired into `tools/page.tsx` cards, `campaigns/page.tsx`'s «ساختار» pane (also fixing two
+  stale Stage 3a rows — گردونه شانس and نظرسنجی — that still toasted "coming soon" instead of
+  navigating), and `dashboard/_common/QuickActionsRow.tsx`'s retargeting action.
+- **Divergences from the prototype** (all deliberate — full 18-row table in the design plan; the
+  headline ones): Toman "cashback" credit replaced with points throughout, since nothing in the
+  codebase spends a discount code at checkout (`CartService.checkout` hardcodes `discountAmount: 0`);
+  `{کد تخفیف}`/`{discountCode}` tokens dropped for the same reason; the occasion enable/disable
+  switch — dead in the prototype (`$$('.switch input')` bound once before `#occ-list` existed) — is
+  now a real `PATCH .../campaigns/:id/active` call; editing a disabled occasion preserves `isActive`
+  instead of the prototype's hardcoded `active: true` on save; occasion history is real `SmsMessage`
+  rows keyed by `campaignId`, not a 1:1 rule mapping that showed ۰ ارسال for a brand-new rule.
+- **Incidental fixes surfaced while building the runner dispatch**: `CampaignsService.update` and
+  `MessageTemplatesService.update` both carried the same blind-`Object.assign` bug documented in
+  §4.5 (fixed, same `Object.entries` + `!== undefined` pattern as Stages 1–2); per-recipient SMS
+  bodies now render `{name}` per customer instead of literally, a standing limitation the runner's own
+  doc comment had flagged as stale; campaign recipients now pass `customerLastVisitAt` into
+  `createBatch`, newly activating `SmsQuotaService`'s inactive-customer rule for campaign sends (it
+  was silently disabled before, since the campaign path omitted the field — surveys already passed
+  it); a missing `faNum()` Persian-digit wrap on `campaign.config.dayOffset` was found and fixed in
+  three places, including one **pre-existing, already-shipped** instance in `tools/reminders/page.tsx`
+  (noticed only because the same pattern was copied into the new retargeting code).
+- **Verified live** via Playwright against a real local backend + Postgres, the plan's 8-step smoke
+  script: an occasion dated today sent, granted exactly `giftPoints` once, and rendered a real
+  per-customer `{name}` (an empty-string render for the two dev-seed customers was confirmed as a
+  genuine data artifact — no `name` set — not a code bug); a same-day re-run of the scheduler sent
+  zero additional batches (both for the occasion and, separately, for the birthday trigger — proving
+  `referenceId` idempotency holds per-trigger); an occasion dated tomorrow did not fire today; a
+  customer's `Profile.birthDate` set to today's month/day was picked up by the birthday rule, a
+  non-matching date was not; toggling an occasion or the retargeting rule off persisted across a
+  reload; editing a disabled occasion and saving kept it disabled; the retargeting rule's
+  `linkedToolKey` correctly isolated it from `tools/reminders`' own list at the same trigger; and all
+  three previously-stale «ساختار» pane rows (retargeting, wheel, survey) now navigate instead of
+  toasting. Deleting a custom occasion was exercised as part of cleanup and confirmed working end to
+  end (soft-delete, list refresh, confirmation toast).
+- **A real, live-only bug found and fixed**: `resolveBirthdayAudience`'s join between
+  `store_customer_status.customerId` (bare `@Column()`, defaults to varchar) and `Profile.customerId`
+  (`@Column({ type: 'uuid' })`) failed with `operator does not exist: character varying = uuid` —
+  Postgres has no implicit varchar=uuid cast. Both columns ultimately reference the same
+  `Customer.id`, but this is the first query in the codebase to join them directly in raw SQL rather
+  than binding one as a parameter. `campaigns.service.spec.ts` mocks the TypeORM query builder, so the
+  full unit suite (939/939) never executed real SQL and could not have caught this — exactly the
+  defect class the plan's live-verification step exists for. Fixed with an explicit `::uuid` cast in
+  the join condition, with a doc comment explaining why.
+- Test counts: `campaigns` module tests 28/28, full backend suite 939/939 green, lint 0 errors
+  (unchanged 56-warning baseline), build clean in both repos.
+
+### Stages 4–7 — Not started
 
 Per the plan, in order:
 
-- **Stage 3b — loyalty tools**: `occasions` (birthday seeded/non-deletable + custom, built on the
-  existing `campaigns` module), `buyback`/retargeting (return-credit rules, transactional cashback
-  grants).
 - **Stage 4 — acquisition & segmentation**: `acquire` (referral 500/250, lead magnet, 15%
   first-purchase code), `segments` (Bronze/Silver/Gold/Diamond + RFM with server-side configurable
   thresholds).
@@ -222,10 +290,14 @@ a payment gateway is wired up — Zarinpal is the internal candidate
 
 These apply to all remaining stages, not just what has shipped so far.
 
-### 4.1 Reminders are campaigns, not a separate backend module
+### 4.1 Reminders, occasions, and retargeting are all campaigns, not separate backend modules
 
 A reminder rule is a `DAYS_SINCE_PURCHASE` campaign with a linked message template. Occasions
-(Stage 3) follow the same shape. Do not introduce a second scheduler or duplicate quota path.
+(Stage 3b — `BIRTHDAY` recurring, `OCCASION` one-shot via `config.occasionAt`) and retargeting
+(Stage 3b — also `DAYS_SINCE_PURCHASE`) follow the same shape: no new module, controller, route,
+settings entity, or cron. Reminders and retargeting share a trigger, so `config.linkedToolKey`
+(`'retargeting'` vs. unset) is the tool-ownership discriminator — filter every list/audience query by
+it before adding a fourth tool at any of the three triggers already in use.
 
 ### 4.2 All business-time logic uses an explicit Tehran-time utility
 
@@ -245,7 +317,11 @@ record (Stage 4). `LoyaltyService.spendWithinManager` (added in Stage 2) is the 
 is its award-side counterpart — same contract (`LOYALTY_INVALID_AMOUNT`, `LOYALTY_MEMBER_NOT_FOUND`,
 `referenceId` idempotency looked up inside the same manager before crediting), used by the wheel's
 participation-points award and the survey's response reward. Use one of these two rather than opening
-a second `QueryRunner`.
+a second `QueryRunner`. Occasion/retargeting point grants (Stage 3b) are the one exception that
+doesn't need a shared manager — a campaign send has no sibling write to share a transaction with — so
+they call plain `LoyaltyService.earn` directly, with `referenceId: '{campaignId}:{tehranDayKey}'` as
+the sanctioned "grant once per campaign per Tehran day" primitive: a same-day re-run of
+`runDueCampaigns` is a no-op with no extra idempotency machinery, live-verified in Stage 3b.
 
 ### 4.4 Server authority is mandatory
 
@@ -295,10 +371,12 @@ regional quota, tokens, and date windows. Client validation is UX support, not a
 - **Visual:** compare each new view against the prototype at 390×844 — RTL, Persian numerals, card
   order, copy.
 - **Live:** Playwright against a real local backend+DB, not just mocks — this caught real bugs in
-  every stage that has shipped so far (§Stage 1, §Stage 2, §Stage 3a) that unit tests alone did not:
-  response-serialization defects (bare-entity returns missing joined fields) in Stages 1, 2, and 3a,
-  and — new in Stage 3a — a systemic date-serialization bug (`pg`'s local-timezone `Date` handling
-  vs. UTC-naive `timestamp` columns) that only a real, non-UTC-pinned process could expose.
+  every stage that has shipped so far (§Stage 1, §Stage 2, §Stage 3a, §Stage 3b) that unit tests alone
+  did not: response-serialization defects (bare-entity returns missing joined fields) in Stages 1, 2,
+  and 3a; a systemic date-serialization bug in Stage 3a (`pg`'s local-timezone `Date` handling vs.
+  UTC-naive `timestamp` columns); and in Stage 3b, a raw-SQL join between a `uuid` and an
+  unconverted `varchar` column that only a real Postgres instance — not a mocked query builder —
+  could reject.
 
 Critical flows still to smoke once Stages 3–5 land: wheel rejects any chance total ≠ 100 and never
 double-charges or double-awards; survey/referral rewards are single-award and cap-aware; radar
