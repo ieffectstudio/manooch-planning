@@ -1,6 +1,6 @@
 # Customer Loyalty Club — Remaining Phases and Delivery Status
 
-**Version:** 3.0 — **Updated:** 26 Mordad 1405 (2026-08-17) — **Status:** In progress on `feat-customer-club`
+**Version:** 3.1 — **Updated:** 27 Mordad 1405 (2026-08-18) — **Status:** In progress on `feat-customer-club`
 
 > This file replaces the prior "Version 2.0 — Closed — Phases 1–4 complete" status. That status was
 > incorrect: git history shows only `feature/customer-club-phase1` was ever merged to `main` in
@@ -43,7 +43,8 @@ commit (`81fee16` in this repo) newer than any of the "closed" documentation abo
 | 0 | Branch setup across all 3 repos, billing-model decision (§3) | Done |
 | 1 | Setup wizard (`view-setup`) + SMS credit purchase UI | **Done** |
 | 2 | Club shop (items, redemption, purchase history, settings) | **Done** |
-| 3 | Loyalty tools: wheel, surveys, occasions, retargeting | Not started |
+| 3a | Loyalty tools: wheel, surveys | **Done** |
+| 3b | Loyalty tools: occasions, retargeting | Not started |
 | 4 | Acquisition (referral/lead magnet) & segmentation | Not started |
 | 5 | Geography: radar, regional SMS | Not started |
 | 6 | Personal message, walk-in keypad, dashboard rebuild | Not started |
@@ -99,14 +100,93 @@ actually true; everything below it is new work on `feat-customer-club`.
   outside this branch's scope (see the branch's own tracking notes) — a candidate for a dedicated
   cleanup pass, not reopened here.
 
-### Stages 3–7 — Not started
+### Stage 3a — Loyalty tools: wheel + surveys — Done
+
+- **Backend** (`manooch-backend`, uncommitted on `feat-customer-club` at time of writing): new
+  `wheel` and `surveys` modules — `Wheel`/`WheelPrize`/`WheelSpin`/`WheelSettings` and
+  `Survey`/`SurveyOption`/`SurveyResponse`/`SurveySettings` entities, DTOs, services, admin
+  controllers, two migrations (`AddWheel`, `AddSurveys`). A wheel spin and a survey response are
+  each one atomic transaction, following the Stage 2 `ClubService.redeem` shape: validation →
+  Tehran-day daily-cap / single-response check → point spend or award via the new
+  `LoyaltyService.earnWithinManager` (see §4.3) → ledger row → commit → post-commit SMS. Prizes and
+  survey options are child tables, not JSONB, so a spin/response can reference exactly which row it
+  hit and so winners/results can be read back with a real `COUNT(*)`, fixing two prototype defects
+  (spin counts and winner lists that never actually persisted — divergences 3–4 in the design plan).
+- `PointReason.WHEEL` is exempt from `LoyaltyPolicy.minimumRedemptionPoints` (the floor is a
+  redemption rule for the club shop; a wheel entry is a small recurring cost) — the exemption set
+  that already carried `MANUAL_ADJUST` for this reason now also carries `WHEEL`, with a regression
+  test proving `CLUB_REDEEM` still hits the floor.
+- VIP free spins key off `LoyaltySegment.VIP` (a new public `CustomersService.getCustomerSegment`
+  single-customer read), not `LoyaltyTier` — matching the prototype's VIP/وفادار/تازه‌وارد/در خطر ریزش
+  audience chips, which are segments everywhere else in the app.
+- `SmsOutboxService.createBatch` gained an optional per-recipient `body` override (Step B0) so a
+  survey invite to N recipients can render `{نام}` per customer instead of one shared body across a
+  batch, without falling back to Stage 2's one-batch-per-recipient workaround.
+- **Frontend** (`manooch-fronts`, uncommitted on `feat-customer-club` at time of writing):
+  `tools/wheel` (4-pane: wheels/spin/winners/settings, SVG wheel with the prototype's 4s spin easing,
+  a local-only "چرخش آزمایشی" preview plus a real `tools/wheel/preview` sub-route that calls the
+  transactional spin endpoint) and `tools/surveys` (3-pane: list/settings/history, a real survey
+  detail view with result bars, and a `tools/surveys/[id]/preview` sub-route for the transactional
+  respond endpoint) — both preview sub-routes are the same admin-side stand-in pattern Stage 2's
+  `club/preview` established, since there is still no customer-facing app. Wired into
+  `dashboard/_common/QuickActionsRow.tsx` and `tools/page.tsx` (previously both fired a
+  "coming soon" toast for these two tools).
+- All fourteen prototype divergences called out in the design plan were implemented as scoped
+  (persisted prize colors, real spin/response counts, FK-based winner joins instead of name-string
+  matching, count-before-sum prize validation, cash "toman" entry modeled but rejected with
+  `WHEEL_TOMAN_ENTRY_UNSUPPORTED` since no payment gateway exists yet, etc.) — see the plan document
+  for the full table; not reproduced here since none of them changed during implementation.
+- **Verified live** via Playwright against a real local backend + Postgres (not mocks), the full
+  8-step smoke script from the plan's verification section: chance-sum and prize-count validation
+  order, a real spin with correct balance/point movement and a non-zero persisted spin/winner count,
+  a daily-cap rejection with zero balance change and zero new rows, a VIP free spin, winner SMS
+  presence, a scheduled survey invite with correct per-recipient SMS bodies, and a survey response
+  cycle (reward once, percentages recompute, second response from the same customer rejected). This
+  live pass is what surfaced the three real bugs below — unit tests, full suite, lint, and build were
+  all green throughout and did not catch any of them, matching the pattern already seen in Stages 1–2.
+- **Bugs found and fixed during live verification** (all three confirmed via targeted module tests,
+  the full backend suite, lint, build, and a live re-test after each fix):
+  1. **Wheel/survey create & update returned a bare entity, not the joined response shape.**
+     `WheelService.createWheel`/`updateWheel` and `SurveyService.createSurvey`/`updateSurvey`
+     returned the raw TypeORM row, missing `prizes`/`spinCount`/`winnerCount` (wheel) or `options`
+     (survey) that the frontend's Zod response schemas require — a non-fatal "Response validation
+     drift" warning in both cases, and a hard crash on wheel create (`.length` read on `undefined`
+     prizes). Fixed by having both wheel methods re-read through the existing `getWheel` after their
+     transaction commits, and by adding a `getSurveyWithOptions` helper for survey's update path
+     (and returning the transaction's own inserted options directly on create, avoiding an extra
+     query). Same root cause both times — a service returning less than its own response schema
+     promises — worth checking for on any future admin mutation endpoint.
+  2. **`Between()` daily-cap query silently used the wrong timezone off the production container.**
+     `node-postgres` serializes a JS `Date` bound to a `timestamp without time zone` column using the
+     Node process's *local OS timezone*, not UTC, while Postgres's own `now()` (used by
+     `@CreateDateColumn()` defaults, DB session already `TimeZone=UTC`) writes UTC-naive values. On
+     any host where the Node process isn't itself pinned to UTC, every `Between(start, end)`-style
+     date-range query against such a column — the wheel daily-cap count, and by the same pattern
+     `getStats`'s `spinsToday`/`spinsYesterday` — silently shifts by the local UTC offset, undercounting
+     or overcounting rows. This only ever "worked" in production by coincidence (the container
+     defaults to UTC per `manooch-backend/CLAUDE.md`), never as an enforced invariant, and would
+     misbehave identically for anyone developing from a non-UTC machine. Fixed by pinning
+     `process.env.TZ = 'UTC'` at the top of `bootstrap()` in `main.ts`, before any DB call runs —
+     this is a process-wide fix, not scoped to the wheel module, so it protects every existing and
+     future `Between()`-over-timestamp query in the codebase, not only Stage 3a's.
+  3. A pre-existing, **out-of-scope** UI defect was observed but deliberately left unfixed: the FAB's
+     container (`ClubFab.tsx`) sits at `z-45` while `ClubTabBar`'s nav sits at `z-50`; the FAB
+     visually pokes above the nav but the nav's fixed positioning intercepts real pointer events in
+     the ~10px overlap, so a real click on the FAB across the whole customer-club section (not just
+     the two new tools) lands on the nav underneath instead. Testing worked around this with a direct
+     DOM `.click()`. This is shared chrome predating Stage 3a — flagging here for a decision on
+     whether to fix it as its own small pass, since it affects every existing view, not filing a fix
+     unilaterally.
+- Test counts: `wheel.service.spec.ts` (23/23), `surveys` module tests (17/17), full backend suite
+  (922/922) green, lint 0 errors (unchanged 56-warning baseline), build clean in both repos.
+
+### Stages 3b–7 — Not started
 
 Per the plan, in order:
 
-- **Stage 3 — loyalty tools**: `lucky` (wheel — multiple wheels, chance total validated to exactly
-  100% server-side, transactional spin), `surveys`/`survey-detail` (2–6 options, one reward per
-  customer per survey), `occasions` (birthday seeded/non-deletable + custom, built on the existing
-  `campaigns` module), `buyback`/retargeting (return-credit rules, transactional cashback grants).
+- **Stage 3b — loyalty tools**: `occasions` (birthday seeded/non-deletable + custom, built on the
+  existing `campaigns` module), `buyback`/retargeting (return-credit rules, transactional cashback
+  grants).
 - **Stage 4 — acquisition & segmentation**: `acquire` (referral 500/250, lead magnet, 15%
   first-purchase code), `segments` (Bronze/Silver/Gold/Diamond + RFM with server-side configurable
   thresholds).
@@ -157,11 +237,15 @@ at least one `TZ=UTC` test per rule.
 ### 4.3 Multi-record financial/value writes are transactional
 
 One `QueryRunner` transaction, no partial writes on failure, for: club stock + points + purchase +
-code (shipped, Stage 2); wheel cost/reward + spin/prize result (Stage 3); cashback/retargeting credit
-(Stage 3); SMS credit deduction + batch/message creation (existing); any reward that also updates a
-campaign/referral/survey record (Stages 3–4). `LoyaltyService.spendWithinManager` (added in Stage 2)
-is the reusable pattern for "share my transaction with a points spend" — use it rather than opening a
-second `QueryRunner`.
+code (shipped, Stage 2); wheel cost/reward + spin/prize result (shipped, Stage 3a); survey reward +
+response + option count (shipped, Stage 3a); cashback/retargeting credit (Stage 3b); SMS credit
+deduction + batch/message creation (existing); any reward that also updates a campaign/referral
+record (Stage 4). `LoyaltyService.spendWithinManager` (added in Stage 2) is the reusable pattern for
+"share my transaction with a points spend"; `LoyaltyService.earnWithinManager` (added in Stage 3a)
+is its award-side counterpart — same contract (`LOYALTY_INVALID_AMOUNT`, `LOYALTY_MEMBER_NOT_FOUND`,
+`referenceId` idempotency looked up inside the same manager before crediting), used by the wheel's
+participation-points award and the survey's response reward. Use one of these two rather than opening
+a second `QueryRunner`.
 
 ### 4.4 Server authority is mandatory
 
@@ -210,9 +294,11 @@ regional quota, tokens, and date windows. Client validation is UX support, not a
 - **Frontend:** `pnpm turbo run typecheck`/`lint`/`build --filter=@manooch/admin`.
 - **Visual:** compare each new view against the prototype at 390×844 — RTL, Persian numerals, card
   order, copy.
-- **Live:** Playwright against a real local backend+DB, not just mocks — this caught two real bugs
-  (§Stage 1, §Stage 2) that unit tests alone did not, because the bug was in how a mutation's response
-  serialized, not in the mutation's DB write.
+- **Live:** Playwright against a real local backend+DB, not just mocks — this caught real bugs in
+  every stage that has shipped so far (§Stage 1, §Stage 2, §Stage 3a) that unit tests alone did not:
+  response-serialization defects (bare-entity returns missing joined fields) in Stages 1, 2, and 3a,
+  and — new in Stage 3a — a systemic date-serialization bug (`pg`'s local-timezone `Date` handling
+  vs. UTC-naive `timestamp` columns) that only a real, non-UTC-pinned process could expose.
 
 Critical flows still to smoke once Stages 3–5 land: wheel rejects any chance total ≠ 100 and never
 double-charges or double-awards; survey/referral rewards are single-award and cap-aware; radar
