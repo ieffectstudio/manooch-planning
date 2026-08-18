@@ -1,6 +1,6 @@
 # Customer Loyalty Club — Remaining Phases and Delivery Status
 
-**Version:** 3.2 — **Updated:** 27 Mordad 1405 (2026-08-18) — **Status:** In progress on `feat-customer-club`
+**Version:** 3.3 — **Updated:** 27 Mordad 1405 (2026-08-18) — **Status:** In progress on `feat-customer-club`
 
 > This file replaces the prior "Version 2.0 — Closed — Phases 1–4 complete" status. That status was
 > incorrect: git history shows only `feature/customer-club-phase1` was ever merged to `main` in
@@ -45,7 +45,8 @@ commit (`81fee16` in this repo) newer than any of the "closed" documentation abo
 | 2 | Club shop (items, redemption, purchase history, settings) | **Done** |
 | 3a | Loyalty tools: wheel, surveys | **Done** |
 | 3b | Loyalty tools: occasions, retargeting | **Done** |
-| 4 | Acquisition (referral/lead magnet) & segmentation | Not started |
+| 4a | Segmentation (امتیاز / RFM / برچسب‌ها) | **Done** |
+| 4b | Acquisition (referral/lead magnet) | Not started |
 | 5 | Geography: radar, regional SMS | Not started |
 | 6 | Personal message, walk-in keypad, dashboard rebuild | Not started |
 | 7 | Docs reconciliation (this file, then PRD.md, README.md) | In progress (this update) |
@@ -251,13 +252,107 @@ actually true; everything below it is new work on `feat-customer-club`.
 - Test counts: `campaigns` module tests 28/28, full backend suite 939/939 green, lint 0 errors
   (unchanged 56-warning baseline), build clean in both repos.
 
-### Stages 4–7 — Not started
+### Stage 4a — Customer segmentation (امتیاز / RFM / برچسب‌ها) — Done
+
+- **The reuse decision**: segmentation shipped as a read-model on the existing `reports` module —
+  one new endpoint (`GET .../reports/segmentation`), three new columns on the existing
+  `LoyaltyPolicy` row, two pure classifier utils, and three new filters on the existing
+  `listCustomers` query. No new module, controller, entity, cron, or settings table, extending
+  §4.1's rule. Customer tags reused `Category` rows of `type: CUSTOMER` (already CRUD'd by the
+  products module) with `parentId` as the group relation — zero schema change. Tag *assignment*
+  reused the existing `PATCH .../customers/:id`, though (see incidental fixes) that endpoint's DTO
+  didn't actually accept `categoryIds` yet.
+- **Backend** (`manooch-backend`, uncommitted on `feat-customer-club` at time of writing):
+  `LoyaltyPolicy` gained `silverFromPoints`/`goldFromPoints`/`diamondFromPoints` (defaults
+  500/1500/3000) via an additive migration; `classifyTier(balance, policy)`
+  (`loyalty/classify-tier.util.ts`) is the pure, unit-tested authority for tier, mirroring
+  `classifySegment`'s shape, with `LoyaltyMember.tier` kept as a cached projection written alongside
+  `balance` inside `earnWithinTransaction`/`spendWithinTransaction` — the column had been `BRONZE`
+  for every member since it was added, since nothing had ever written to it. `reports/rfm.util.ts`
+  (`scoreRfm`/`classifyRfmSegment`) buckets R/F/M from `ReportsService.baseOrderQuery` (PAID orders
+  only, lifetime window) into the prototype's own edges and five named segments
+  (قهرمانان/وفادار/در خطر ریزش/مشتری جدید/خفته).
+  `ReportsService.getSegmentation` composes one order aggregate, one `LoyaltyMember` read, and one
+  tag-count join into counts and distributions only — no customer array — landing on
+  `AdminReportsController`. `ListCustomersQueryDto` gained `tier`/`categoryId`/`rfmSegment` filters,
+  the last guarded behind one extra aggregate query only when present.
+- **Frontend** (`manooch-fronts`, uncommitted on `feat-customer-club` at time of writing):
+  `customers/segments/page.tsx` (3-pane `ClubTabsCtl`: امتیاز/RFM/برچسب‌ها)
+  replacing the members page's `comingSoon` entry card with a real link;
+  `ScoreSegmentsPane`+`ScoreThresholdsCard` (real tier counts, editable thresholds); `RfmPane`
+  (R/F/M sub-tabs with real distribution bars and the five named segment rows, an honest empty
+  state instead of `NaN` on a store with no PAID orders); `TagsPane`+`TagCreateCard`+
+  `TaggedMembersCard` (real tag CRUD with confirm-delete, group `<select>` backed by parent
+  categories); a URL-driven drill-down on `customers/page.tsx` (`?tier=`/`?categoryId=`/
+  `?rfmSegment=`) with a clear-filter banner, wrapped in `Suspense` per Next's `useSearchParams()`
+  requirement. `ResultBars.tsx` (Stage 3a) was lifted into a shared `_common/ui/ClubBarRows.tsx` so
+  the survey detail view and the RFM pane don't carry two bar implementations.
+- **Divergences from the prototype** (11 total, all deliberate — full table in the design plan; the
+  headline ones): every number in `view-segments` was a hardcoded literal with no server call
+  behind it (score counts, RFM distributions/segment scores, tag list, tag members) — all now real;
+  score tiers existed nowhere server-side (`LoyaltyMember.tier` dead since the column was added)
+  and are now computed and kept in sync; «مشاهده»/«هدف‌گیری» carried `data-goto="members"` but
+  applied no filter — now real filtered navigation; tag delete fired immediately with no confirm
+  and no server call — now a confirm dialog plus a real `DELETE`; the group `<select>` was five
+  hardcoded options bound to nothing — now real parent categories.
+- **Incidental fix**: the plan assumed `PATCH .../customers/:id` already wrote `categoryIds`
+  (Stage 3b's `createCustomer` already had initial-tag write); reading the service showed the
+  *update* path never gained the field. Added `categoryIds?: string[]` to `UpdateCustomerDto` with
+  replace-set semantics (same contract as create) plus the response shaping needed to satisfy the
+  same `AdminCustomer` Zod shape the list endpoint returns, since the member sheet's tag toggle
+  calls this PATCH directly and validates against that schema.
+- **Verified live** via Playwright against a real local backend + Postgres, the plan's 8-step smoke
+  script: segments page navigates from the members-page card instead of toasting; the score tab's
+  four tier counts sum correctly with real balances; a threshold edit (1500→1200) moved counts and
+  ranges live and reverted cleanly; the RFM tab rendered real (zeroed, non-NaN) buckets on a store
+  with no PAID orders; tag create persisted across reload; assigning a tag via the member sheet
+  PATCHed 200 with the full `AdminCustomer` shape and incremented the tag's chip count; the
+  tagged-members card listed exactly that customer; delete showed a confirm dialog, cancel
+  preserved the tag, accept removed it with a toast; «مشاهده» navigated to `?tier=silver` with a
+  working clear-filter banner. This live pass is what surfaced the bug below — unit tests, full
+  suite, lint, and build were all green throughout and did not catch it, extending the pattern from
+  every prior stage.
+- **A real, live-only bug found and fixed**: `getTagCounts`'s parent-category join cast
+  `Category.parentId` to `::text` on the same precedent as the `categoryId` join beside it
+  (`customer_categories.categoryId` is a bare varchar with no FK) — but `parentId` is declared with
+  a plain `@Column()` *and* a `@ManyToOne`/`@JoinColumn` onto the same property name, and TypeORM
+  lets the relation win the physical column type: `parentId` is a real `uuid` column in Postgres.
+  The cast produced `operator does not exist: text = uuid` on first live boot of the endpoint.
+  `reports.service.spec.ts` mocks the query builder, so the full unit suite (979/979) never executed
+  the real SQL and could not have caught this — the same defect class as Stage 3b's varchar/uuid
+  join, now on the opposite side of a lookalike column. Fixed by dropping the cast on the parent
+  join only, with a doc comment explaining the `@ManyToOne` override so the next raw join near this
+  entity doesn't get it backwards.
+- **Two more live-only findings, both fixed**: a freshly-created tag disappeared from every chip
+  list immediately after creation — both `TagsPane` and `MemberReportSheet` treated *any*
+  parentless category row as a non-assignable "group", which is wrong for a brand-new standalone
+  tag; fixed with the structural rule "a row is a group only once something is nested under it via
+  `parentId`", extracted into a shared `assignableCustomerTags` helper so the two call sites can't
+  drift apart again. Separately, the score tab kept showing stale ranges/counts after a threshold
+  save until an unrelated refetch; fixed by having `useUpdateLoyaltyPolicy` also invalidate the
+  segmentation report's query key.
+- **Known follow-up, not fixed here**: `ProductsService.deleteCategory` does a plain
+  `categoryRepo.remove` with no cleanup of `customer_categories` assignment rows — deleting a tag
+  category leaves orphaned join rows behind (worked around manually in the dev DB during this
+  stage's testing). Out of scope for this stage since it's a pre-existing gap in category deletion
+  generally, not something Stage 4a introduced; worth a dedicated fix.
+- Test counts: 26 new tests across `loyalty`/`reports`/`customers`, full backend suite **979/979**
+  green (up from 939), lint 0 errors (unchanged 56-warning baseline), build clean in both repos.
+
+### Stages 4b–7 — Not started
 
 Per the plan, in order:
 
-- **Stage 4 — acquisition & segmentation**: `acquire` (referral 500/250, lead magnet, 15%
-  first-purchase code), `segments` (Bronze/Silver/Gold/Diamond + RFM with server-side configurable
-  thresholds).
+- **Stage 4b — acquisition**: referral (reusing the existing global `Customer.referralCode`,
+  modeled per-store — must not write `Invite` rows, which would mint PRO credit days meant for the
+  seller-invite system), lead magnet as points-only with an admin-side stand-in (the prototype's
+  15% first-purchase discount code dropped, on Stage 3b's precedent — `CartService.checkout` still
+  hardcodes `discountAmount: 0`), and the prototype's «کمپین هوشمند AI» tab reshaped into a
+  non-AI campaign starter (goal chips prefill a seeded SMS and create a real campaign targeting the
+  matching segment; the AI badge and fabricated open-rate/best-time stats dropped, no LLM wired).
+  Referral *redemption* entry point remains out of scope, unresolved, pending a customer-facing
+  surface — the club feature gets no landing page or storefront view at this stage (scope boundary
+  set when Stage 4a was scoped).
 - **Stage 5 — geography**: `zones`/radar (point/circle 200–3000m + polygon 3–10 vertices, 24-hour
   suppression — automatic triggering stays gated behind the still-absent customer-app location
   source), `regional` (province → city → neighborhood, quota N ≤ M enforced, random non-repeating
@@ -299,6 +394,12 @@ settings entity, or cron. Reminders and retargeting share a trigger, so `config.
 (`'retargeting'` vs. unset) is the tool-ownership discriminator — filter every list/audience query by
 it before adding a fourth tool at any of the three triggers already in use.
 
+Segmentation (Stage 4a) extends the same no-new-module rule in a different shape: it's a
+**read-model**, not a write path — one endpoint on the existing `reports` module composing
+existing tables (`Order`, `LoyaltyMember`, `Category`/`CustomerCategory`), not a new entity.
+Customer tags are `Category` rows of `type: CUSTOMER` with `parentId` as the group relation — not
+a dedicated tag table — reusing the products module's existing category CRUD wholesale.
+
 ### 4.2 All business-time logic uses an explicit Tehran-time utility
 
 Never use server-local `Date#getHours()`/`setHours()` for business rules. Birthday matching, occasion
@@ -337,6 +438,12 @@ regional quota, tokens, and date windows. Client validation is UX support, not a
 - Localized error codes in `src/i18n/fa/errors.json` (key = the raw exception message) and success
   messages via `@SuccessMessage`.
 - Test-first for money, credit, points, and chance/award logic.
+- Pure, unit-tested classifier functions for anything with named buckets/segments —
+  `classifySegment` (customer segment), `classifyTier` (Stage 4a, loyalty tier from balance vs.
+  `LoyaltyPolicy` thresholds), `scoreRfm`/`classifyRfmSegment` (Stage 4a, RFM). Where a classifier's
+  result is also cached on an entity column for cheap reads (`LoyaltyMember.tier`), the column is a
+  **projection kept in sync by the write path**, never the source of truth — derive-on-read stays
+  authoritative so a later threshold change doesn't leave stored values stale.
 - Before blindly `Object.assign(entity, dto)`-ing a class-validator DTO onto a loaded entity: don't.
   Undeclared fields on the DTO instance materialize as own `undefined` properties (class-transformer
   + `transform: true`), so a blind assign overwrites real values with `undefined` and truncates the
@@ -371,12 +478,16 @@ regional quota, tokens, and date windows. Client validation is UX support, not a
 - **Visual:** compare each new view against the prototype at 390×844 — RTL, Persian numerals, card
   order, copy.
 - **Live:** Playwright against a real local backend+DB, not just mocks — this caught real bugs in
-  every stage that has shipped so far (§Stage 1, §Stage 2, §Stage 3a, §Stage 3b) that unit tests alone
-  did not: response-serialization defects (bare-entity returns missing joined fields) in Stages 1, 2,
-  and 3a; a systemic date-serialization bug in Stage 3a (`pg`'s local-timezone `Date` handling vs.
-  UTC-naive `timestamp` columns); and in Stage 3b, a raw-SQL join between a `uuid` and an
+  every stage that has shipped so far (§Stage 1, §Stage 2, §Stage 3a, §Stage 3b, §Stage 4a) that unit
+  tests alone did not: response-serialization defects (bare-entity returns missing joined fields) in
+  Stages 1, 2, and 3a; a systemic date-serialization bug in Stage 3a (`pg`'s local-timezone `Date`
+  handling vs. UTC-naive `timestamp` columns); in Stage 3b, a raw-SQL join between a `uuid` and an
   unconverted `varchar` column that only a real Postgres instance — not a mocked query builder —
-  could reject.
+  could reject; and in Stage 4a, the mirror image of that same defect class — a raw-SQL join that
+  added an unnecessary `::text` cast onto a column (`Category.parentId`) that TypeORM's
+  `@ManyToOne` relation had silently made a real `uuid` — plus two UX-only bugs (a newly created
+  tag misclassified as unassignable, a stale cache after a threshold save) that only a live
+  click-through surfaces.
 
 Critical flows still to smoke once Stages 3–5 land: wheel rejects any chance total ≠ 100 and never
 double-charges or double-awards; survey/referral rewards are single-award and cap-aware; radar
