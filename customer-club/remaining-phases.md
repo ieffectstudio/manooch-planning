@@ -1,6 +1,6 @@
 # Customer Loyalty Club — Remaining Phases and Delivery Status
 
-**Version:** 3.3 — **Updated:** 27 Mordad 1405 (2026-08-18) — **Status:** In progress on `feat-customer-club`
+**Version:** 3.4 — **Updated:** 27 Mordad 1405 (2026-08-18) — **Status:** In progress on `feat-customer-club`
 
 > This file replaces the prior "Version 2.0 — Closed — Phases 1–4 complete" status. That status was
 > incorrect: git history shows only `feature/customer-club-phase1` was ever merged to `main` in
@@ -46,7 +46,8 @@ commit (`81fee16` in this repo) newer than any of the "closed" documentation abo
 | 3a | Loyalty tools: wheel, surveys | **Done** |
 | 3b | Loyalty tools: occasions, retargeting | **Done** |
 | 4a | Segmentation (امتیاز / RFM / برچسب‌ها) | **Done** |
-| 4b | Acquisition (referral/lead magnet) | Not started |
+| 4c | Design parity with the prototype (tokens, shell, per-view sweep) | **Done** |
+| 4b | Acquisition (referral/lead magnet) | **Done** |
 | 5 | Geography: radar, regional SMS | Not started |
 | 6 | Personal message, walk-in keypad, dashboard rebuild | Not started |
 | 7 | Docs reconciliation (this file, then PRD.md, README.md) | In progress (this update) |
@@ -339,20 +340,135 @@ actually true; everything below it is new work on `feat-customer-club`.
 - Test counts: 26 new tests across `loyalty`/`reports`/`customers`, full backend suite **979/979**
   green (up from 939), lint 0 errors (unchanged 56-warning baseline), build clean in both repos.
 
-### Stages 4b–7 — Not started
+### Stage 4c — Design parity with the prototype — Done
+
+- **Why this stage exists**: `customer-club-admin.html` was re-skinned (Manooch brand indigo, flat —
+  no shadows, restructured header) in a commit that landed *after* Stages 1–4a had already shipped
+  against the older violet-and-shadow design the prototype originally had. `tokens.css`'s own club
+  block comment claimed to be "ported verbatim" from the prototype's `:root`, which was no longer
+  true — a correctness bug in already-delivered stages, not a polish task, so it was run before
+  Stage 4b rather than after (new screens then get built in the final look with no rework).
+- **The token drift** (`customer-club-admin.html:33-53` vs. `packages/ui/src/tokens.css`, before/after):
+
+  | Token | Prototype (authoritative) | Old value |
+  |---|---|---|
+  | `--color-club-primary` | `#4B45E6` | `#6c4df6` |
+  | `--color-club-primary-2` | `#6F6AEB` | `#8e6bff` |
+  | `--color-club-primary-soft` | `#ECEBFB` | `#efebfe` |
+  | `--color-club-bg` | `#FEFEFE` | `#f4f5fa` |
+  | `--color-club-muted` | `#737377` | `#7b8194` |
+  | `--color-club-border` | `#F0F1F4` | `#eceef5` |
+  | `--shadow-club` | `none` | a two-layer drop shadow |
+
+  `--color-club-bg: #FEFEFE` deliberately removes the page/card contrast the old `#f4f5fa` gave —
+  the prototype separates cards from the page by `--border` alone, not by a fill difference.
+- **What was re-skinned**: the tokens above; the shared kit (`ClubCard` padding `p-4`→`p-3`,
+  `ClubTabsCtl` back to `11.5px`/`400` with no active-state shadow, `ClubFab` to `48px`/`15px`
+  radius/no shadow, `ClubTabBar` to the prototype's translucent/backdrop-blur bar); every hardcoded
+  violet literal across `customers/page.tsx`, `MemberRow.tsx`, `HeroCard.tsx`, `ClubAppBar.tsx`,
+  `ClubFab.tsx`; and the shell structure — the dashboard's dark `#202A37` header block with a glass
+  (`backdrop-filter: blur`) SMS-credit hero replacing the old solid-gradient card, and inner pages'
+  `52px` `#FEFEFE` header with a bare back arrow and inline title/subtitle (the old standalone
+  `<h1>/<p>` title block was deleted — the prototype has no such element in either shell mode). All
+  21 views were then walked at 390×844 against the prototype's matching `view-*` section.
+- **Deliberately deferred, not done**: the prototype's scroll-collapse hero animation
+  (`customer-club-admin.html:787-808`) — recorded here as an explicit scope cut, not an oversight.
+- **Verified**: `pnpm typecheck:admin && pnpm lint && pnpm build:admin` clean; Playwright at 390×844
+  against a real local backend confirmed the dark dashboard header + glass hero, the inner-page 52px
+  header on a deep route, no visible drop shadows anywhere in the club tree, indigo (not violet) on
+  chips/tabs/buttons, and RTL intact after every layout edit. `manooch-backend` was untouched by this
+  stage — no backend test run beyond confirming that.
+
+### Stage 4b — Acquisition (referral / lead magnet / campaign starter) — Done
+
+- **The reuse decision**: acquisition shipped with **no new backend module** — one settings group
+  added to the existing `LoyaltyPolicy` row, one optional DTO field, one read endpoint on the
+  existing `reports` module, and one award path added inside `CustomersService.createCustomer`'s
+  existing transaction, extending §4.1's rule the same way Stage 4a did. There is no dedicated
+  `Referral` entity — the point ledger itself is the record (see below).
+- **Backend** (`manooch-backend`, uncommitted on `feat-customer-club` at time of writing):
+  `LoyaltyPolicy` gained `referrerPoints`/`inviteePoints`/`referrerDailyCap`/
+  `leadConversionWindowDays` (defaults 500/250/5/14) via an additive migration and
+  `UpdateLoyaltyPolicyDto`. `customers/referral-award.util.ts` runs inside `createCustomer`'s
+  existing `QueryRunner`: resolves the invitee's `referrerCode` to a `Customer`, no-ops silently
+  (customer still created) on a missing code, a self-referral, or a referrer with no live
+  `StoreCustomerStatus` row for this store; otherwise awards both sides via
+  `LoyaltyService.earnWithinManager` with `reason: REFERRAL` and `referenceId` set to the other
+  party's customer id, capping the referrer's award (never the invitee's) at
+  `referrerDailyCap` per Tehran day (`getTehranDayRange`, §4.2). `reports.service.ts` gained
+  `getAcquisition(storeId)`: one `PointTransaction` aggregate split by the two fixed award-note
+  strings (`REFERRAL_INVITEE_NOTE`/`REFERRAL_REFERRER_NOTE`, exported constants so the write path and
+  the read path can't drift apart) for the referral ledger, and a `StoreCustomerStatus`⋈`Order`
+  funnel query (registered in a rolling `leadConversionWindowDays` window vs. converted — has a PAID
+  order inside that same window from their own join date) for the lead funnel, landing on
+  `AdminReportsController`'s existing `GET .../reports/*` shape.
+- **Frontend** (`manooch-fronts`, uncommitted on `feat-customer-club` at time of writing):
+  `tools/referral/` — a 3-pane `ClubTabsCtl` (`referral`/`lead`/`campaign`) reusing the whole existing
+  club kit (`ClubCard`, `ClubStatBox`, `ClubChipsRow`, `ClubEmptyState`, `SmsComposer`, `faNum`) with
+  no new primitives. `ReferralPane` shows real referrer/invitee counts and a real "دعوت‌های اخیر" list
+  paired by `referenceId`; `ReferralRewardsCard`/`LeadSettingsCard` PATCH the new `LoyaltyPolicy`
+  fields (`LeadSettingsCard` reads/writes the **existing** `welcomePoints`, not a second field — the
+  same trap `ClubSettings` already avoided for `minimumRedemptionPoints`); `CampaignStarterPane`
+  reshapes the prototype's AI tab into goal chips that seed an `SmsComposer` body and open the
+  existing `NewCampaignSheet` pre-targeted at the matching `LoyaltySegment` (no LLM wired anywhere).
+  `tools/page.tsx`'s «رفرال» card now navigates instead of toasting; `sarnakh` (the walk-in
+  phone-first registration screen — the only registration entry point that exists without a
+  storefront) gained an optional referrer-code field; the member report sheet surfaces that
+  customer's own `referralCode` with a copy action.
+- **Divergences from the prototype** (11 total, all deliberate — full table in the design plan; the
+  headline ones): the prototype's store-level hardcoded invite code (`CLB-DIJI-2024`) is replaced by
+  the existing per-customer `Customer.referralCode` (there is no store-level code to invent); every
+  hardcoded stat (`۱۸۶ دعوت فعال`, `۹۲ ثبت‌نام`, `↑۲۴٪`, `نرخ تبدیل ۴۹٪`) is now a real count; the
+  reward inputs and «ذخیره» button, previously bound to nothing, now PATCH real policy columns; the
+  three-step funnel's fabricated "بازدید از لینک لندینگ" row is dropped entirely — there is no
+  landing page to count, and a fabricated visit number is exactly the defect class every prior stage
+  has been removing; the 15%-discount first-purchase gift is dropped for Stage 3b's reason
+  (`CartService.checkout` still hardcodes `discountAmount: 0`) and repurposed as the real
+  `leadConversionWindowDays` setting; the AI tab's fabricated `۸۷٪ باز شدن`/`پنجشنبه ۱۹:۰۰`/AI badge
+  are gone along with any LLM call.
+- **Test-first coverage**: `referral-award.util.spec.ts` (8 tests — both sides awarded with correct
+  `referenceId`s, self-referral ignored, unknown code ignored, non-member referrer ignored, at-cap
+  invitee-still-awarded/referrer-skipped, under-cap boundary, a `TZ=UTC` cap-boundary test per §4.2,
+  zero-configured-points skips both, and a structural check that no `Invite` row is ever touched);
+  `reports.service.spec.ts` gained 3 tests for `getAcquisition` (empty-store zeros with
+  `conversionPercent: 0` never `NaN`, aggregated ledger + paired funnel counts, percent rounds rather
+  than truncates).
+- **Verified live** via Playwright + direct Postgres access against a real local backend (a JWT
+  minted with the backend's own secret plus a matching `customer_auth_tokens` row, to drive real
+  `CustomerAuthGuard`-protected calls without a full OTP flow), the plan's full 9-step smoke script:
+  the tools-page card navigates instead of toasting; registering a customer with another's
+  `referralCode` moves both ledgers by the configured amounts, with the referral tab's live counts and
+  recent list agreeing with a hand-run SQL count; the `invite` table is confirmed unchanged
+  throughout (decision 2 — a club referral must never touch the seller-invite system); pushing past
+  the daily cap still creates and awards the invitee, but stops awarding the referrer at the
+  configured cap; a garbage code, a self-code, and a non-member's code each create the customer and
+  award nothing; a `referrerPoints` PATCH persists across reload (the DTO-whitelist check, per §4.5)
+  and the next referral uses the new value; the lead tab shows real zeros (never `NaN`) on data-empty
+  paths; a directly-inserted PAID order inside the window moves the converted count/percentage, an
+  unpaid order does not; and picking a campaign-starter goal chip opens `NewCampaignSheet` correctly
+  pre-filled, whose submission created a real, visible `Campaign` row. All seeded test customers,
+  orders, the campaign/template pair, and the seeded auth token were removed from the dev DB after
+  verification.
+- **A real, live-only bug found and fixed — the fourth instance of this bug class**: `getAcquisition`'s
+  lead-funnel join (`StoreCustomerStatus` ⋈ `Order`) failed with
+  `operator does not exist: uuid = character varying`. `Order.customerId` *and* `Order.storeId` each
+  carry a `@ManyToOne`+`@JoinColumn` alongside a sibling `@Column()` on the same property name —
+  TypeORM's relation-driven type inference silently wins, making both physically `uuid` in Postgres,
+  while `StoreCustomerStatus.customerId`/`storeId` are genuinely plain `varchar` columns with no
+  relation decorator. This is the same defect class as Stage 3b's *missing* cast and Stage 4a's
+  *unnecessary* cast — three different raw joins across three stages, each guessing a lookalike
+  column's physical type wrong in a different direction. `reports.service.spec.ts` mocks the query
+  builder and could not have caught it; only the live run did. Fixed by casting both varchar sides
+  (`scs."customerId"::uuid`, `scs."storeId"::uuid`) — never the uuid side, never both sides of the
+  same comparison — with a doc comment cross-referencing the prior two instances so the next raw join
+  near either entity doesn't get the direction backwards again.
+- Test counts: 11 new tests across `customers`/`reports`, full backend suite **990/990** green (up
+  from 979), lint 0 errors (unchanged 56-warning baseline), build clean in both repos.
+
+### Stages 5–7 — Not started
 
 Per the plan, in order:
 
-- **Stage 4b — acquisition**: referral (reusing the existing global `Customer.referralCode`,
-  modeled per-store — must not write `Invite` rows, which would mint PRO credit days meant for the
-  seller-invite system), lead magnet as points-only with an admin-side stand-in (the prototype's
-  15% first-purchase discount code dropped, on Stage 3b's precedent — `CartService.checkout` still
-  hardcodes `discountAmount: 0`), and the prototype's «کمپین هوشمند AI» tab reshaped into a
-  non-AI campaign starter (goal chips prefill a seeded SMS and create a real campaign targeting the
-  matching segment; the AI badge and fabricated open-rate/best-time stats dropped, no LLM wired).
-  Referral *redemption* entry point remains out of scope, unresolved, pending a customer-facing
-  surface — the club feature gets no landing page or storefront view at this stage (scope boundary
-  set when Stage 4a was scoped).
 - **Stage 5 — geography**: `zones`/radar (point/circle 200–3000m + polygon 3–10 vertices, 24-hour
   suppression — automatic triggering stays gated behind the still-absent customer-app location
   source), `regional` (province → city → neighborhood, quota N ≤ M enforced, random non-repeating
@@ -399,6 +515,13 @@ Segmentation (Stage 4a) extends the same no-new-module rule in a different shape
 existing tables (`Order`, `LoyaltyMember`, `Category`/`CustomerCategory`), not a new entity.
 Customer tags are `Category` rows of `type: CUSTOMER` with `parentId` as the group relation — not
 a dedicated tag table — reusing the products module's existing category CRUD wholesale.
+
+Acquisition (Stage 4b) follows the same rule again, combining both prior shapes: its settings are
+four columns added to the existing `LoyaltyPolicy` row (a write path, no new entity), its stats are
+a `reports` read-model exactly like Stage 4a's segmentation endpoint, and its only new write
+behavior — the referral award — is a helper called from inside `CustomersService.createCustomer`'s
+existing transaction, not a new controller/service/module. There is deliberately no `Referral`
+entity; the `PointTransaction` ledger, keyed by two fixed award-note strings, is the record.
 
 ### 4.2 All business-time logic uses an explicit Tehran-time utility
 
@@ -467,6 +590,13 @@ regional quota, tokens, and date windows. Client validation is UX support, not a
   nav shell (`_common/clubViews.ts`, `ClubAppBar`, `ClubTabBar`, `ClubFab`) already models all 22
   views; only `page.tsx` files are missing for the unbuilt stages, do not rebuild the shell.
 - Exclude decorative `.stage`, `.phone`, `.island`, and `.statusbar` prototype chrome from production.
+- **`customer-club-admin.html`'s `:root` is the source of truth for the club's design tokens**
+  (`packages/ui/src/tokens.css`'s club block), established by Stage 4c after the prototype was
+  re-skinned *after* Stages 1–4a had already shipped against its older colors/shadows — the token
+  block had claimed to be "ported verbatim" while having silently drifted. Re-diff the club token
+  block against the prototype's `:root` whenever the prototype file changes, don't assume it's still
+  in sync; `typecheck`/`lint`/`build` all pass on a wrong color, only a 390×844 screenshot comparison
+  catches drift here.
 
 ---
 
@@ -478,16 +608,23 @@ regional quota, tokens, and date windows. Client validation is UX support, not a
 - **Visual:** compare each new view against the prototype at 390×844 — RTL, Persian numerals, card
   order, copy.
 - **Live:** Playwright against a real local backend+DB, not just mocks — this caught real bugs in
-  every stage that has shipped so far (§Stage 1, §Stage 2, §Stage 3a, §Stage 3b, §Stage 4a) that unit
-  tests alone did not: response-serialization defects (bare-entity returns missing joined fields) in
-  Stages 1, 2, and 3a; a systemic date-serialization bug in Stage 3a (`pg`'s local-timezone `Date`
-  handling vs. UTC-naive `timestamp` columns); in Stage 3b, a raw-SQL join between a `uuid` and an
-  unconverted `varchar` column that only a real Postgres instance — not a mocked query builder —
-  could reject; and in Stage 4a, the mirror image of that same defect class — a raw-SQL join that
-  added an unnecessary `::text` cast onto a column (`Category.parentId`) that TypeORM's
-  `@ManyToOne` relation had silently made a real `uuid` — plus two UX-only bugs (a newly created
-  tag misclassified as unassignable, a stale cache after a threshold save) that only a live
-  click-through surfaces.
+  every stage that has shipped so far (§Stage 1, §Stage 2, §Stage 3a, §Stage 3b, §Stage 4a, §Stage 4b)
+  that unit tests alone did not: response-serialization defects (bare-entity returns missing joined
+  fields) in Stages 1, 2, and 3a; a systemic date-serialization bug in Stage 3a (`pg`'s local-timezone
+  `Date` handling vs. UTC-naive `timestamp` columns); in Stage 3b, a raw-SQL join between a `uuid` and
+  an unconverted `varchar` column that only a real Postgres instance — not a mocked query builder —
+  could reject; in Stage 4a, the mirror image of that same defect class — a raw-SQL join that added an
+  unnecessary `::text` cast onto a column (`Category.parentId`) that TypeORM's `@ManyToOne` relation
+  had silently made a real `uuid` — plus two UX-only bugs (a newly created tag misclassified as
+  unassignable, a stale cache after a threshold save) that only a live click-through surfaces; and in
+  Stage 4b, a fourth instance of the same uuid/varchar join-cast class — `Order.customerId` *and*
+  `Order.storeId` both silently `uuid` via a sibling `@JoinColumn`, joined raw against
+  `StoreCustomerStatus`'s genuinely-`varchar` columns of the same names — caught only because the
+  smoke script exercised the acquisition endpoint's lead-funnel query against a real database. Four
+  stages in a row have now each surfaced a different raw SQL join guessing a lookalike column's
+  physical type wrong, in three different directions (missing cast, unnecessary cast, cast on both
+  sides needed) — a strong signal that every new raw join adjacent to a `@ManyToOne`/`@JoinColumn`
+  pair deserves a live check before being trusted, not just a unit test against a mocked builder.
 
 Critical flows still to smoke once Stages 3–5 land: wheel rejects any chance total ≠ 100 and never
 double-charges or double-awards; survey/referral rewards are single-award and cap-aware; radar
