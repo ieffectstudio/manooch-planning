@@ -49,7 +49,7 @@ commit (`81fee16` in this repo) newer than any of the "closed" documentation abo
 | 4c | Design parity with the prototype (tokens, shell, per-view sweep) | **Done** |
 | 4b | Acquisition (referral/lead magnet) | **Done** |
 | 5a | Geography: regional SMS (province → city) | **Done** |
-| 5b | Geography: radar zones | Not started |
+| 5b | Geography: radar zones | **Done** |
 | 6 | Personal message, walk-in keypad, dashboard rebuild | Not started |
 | 7 | Docs reconciliation (this file, then PRD.md, README.md) | In progress (this update) |
 
@@ -544,16 +544,96 @@ actually true; everything below it is new work on `feat-customer-club`.
   backend suite **1006/1006** green (up from 990), lint 0 errors (unchanged 56-warning baseline),
   typecheck/lint/build clean in both repos.
 
-### Stages 5b–7 — Not started
+### Stage 5b — Radar zones — Done
+
+- **The governing constraint (same as 5a's, opposite conclusion)**: no customer coordinates exist
+  anywhere in this codebase, no PostGIS, no neighborhood table — only `Province`/`City` carry
+  centroid `latitude`/`longitude`. Unlike regional (5a), radar has no real trigger source: nothing in
+  the codebase can supply a customer's live position, and PRD.md itself excludes automatic radar
+  detection from V1. **Decision (confirmed with the user): ship the full server machinery unfed** —
+  real geometry, a real suppression ledger, a real transactional hit endpoint — verified via direct
+  HTTP calls instead of a UI flow, for the day a customer app can call it.
+- **Backend** (`manooch-backend`, commit `d7233c8`): new `radar` module (warrants its own module,
+  unlike 5a's reuse — it owns entities and a non-trivial geometry algorithm, following the
+  `wheel`/`club` module template). `RadarZone` (`storeId`, `name`, `address`, `shape`
+  point/polygon, `centerLat`/`centerLng`/`radiusMeters` for point, `vertices` jsonb for polygon,
+  `body`, `clubMembersOnly`, `active`, soft-deletable), `RadarSettings` (one row/store:
+  `minHoursBetweenSends` default 24, `businessHoursOnly`, `sendFromHour`/`sendToHour` default 9/22,
+  `clubMembersOnly`), `RadarHit` (append-only suppression ledger, no `@DeleteDateColumn` — indexed
+  `IDX_radar_hit_store_customer_created`, which *is* the 24h suppression lookup). Migration
+  `AddRadar1786801500000`.
+- **Geometry lives in a pure, unit-tested util** (`geo.util.ts`, 9 tests): `haversineMeters(a, b)`
+  (great-circle distance) and `pointInPolygon(point, vertices)` (standard ray-casting/even-odd rule,
+  x=lng/y=lat). A real lat/lng-axis-swap bug in the ray-casting formula was caught and fixed before
+  any test ran, by explicitly re-deriving the x=lng/y=lat mapping from the textbook algorithm rather
+  than eyeballing it — the same class of defect the module's own doc comment now warns future edits
+  to watch for.
+- **`RadarZonesService`**: CRUD + settings, `validateGeometry` (cross-field shape-vs-geometry check
+  left to the service, not class-validator, since it depends on which of two mutually-exclusive field
+  groups is populated), real `sentCountWeek` per zone (a 7-day `radar_hit` count/join — never a
+  literal, replacing the prototype's hardcoded per-card numbers), only-copy-defined-keys PATCH
+  (preserves `active` when the client omits it, the same pattern this branch has fixed as a bug in
+  ~4 other services since Stage 1).
+- **`RadarHitService.hit(storeId, zoneId, {customerId, lat, lng})`** — the one endpoint with no UI
+  caller, documented as such in its own module doc comment. Ordering: zone active → geometry
+  containment (`haversineMeters ≤ radiusMeters` or `pointInPolygon`) → club-membership gate (a direct
+  `LoyaltyMember` read, not `ensureMember`, to avoid auto-creating a member as a side effect of a
+  gate check) → 24h suppression + insert, wrapped in one `QueryRunner` transaction (a deliberate
+  pragmatic choice over full `SERIALIZABLE` isolation, noted in-code, since the endpoint has zero
+  live callers today) → business-hours gate (`isWithinBusinessHours`, handles the overnight-wrap
+  case) → SMS queued post-commit via `SmsOutboxService.createBatch`, then the hit row backfilled with
+  the resulting `smsMessageId`. Five distinct rejection codes
+  (`RADAR_ZONE_NOT_FOUND`/`RADAR_ZONE_GEOMETRY_INVALID`/`RADAR_OUTSIDE_ZONE`/`RADAR_SUPPRESSED`/
+  `RADAR_OUTSIDE_HOURS`/`RADAR_NOT_CLUB_MEMBER`), each with its own `errors.json` entry.
+- **A DTO bug found live, not by the unit tests**: `RadarHitDto.customerId` was `@IsUUID()`, which
+  correctly rejects a UUID-shaped string whose version nibble isn't 1–5 — exactly what the hand-seeded
+  test customer IDs (`aaaaaaaa-0000-...`) were. Fixed to `@IsString()`, following the existing
+  `SpinWheelDto.customerId` precedent (the FK lookup is the real authority, not string-shape
+  validation) — mocked-repository unit tests couldn't have caught this since they never construct a
+  real class-validator pipeline against realistic ids.
+- **Frontend** (`manooch-fronts`, commit `e5525ae`): `tools/radar/` — a 3-pane `ClubTabsCtl`
+  (مناطق/تنظیمات/تاریخچه), FAB opens `ZoneFormSheet`. `ZonesPane`/`ZoneCard` (real weekly sent
+  counts, active toggle); `SettingsPane` (the prototype's 4 settings rows, now actually persisted —
+  the prototype's save button only toasted and every input was unbound); `HistoryPane` (real
+  `RadarHit` rows joined to zone + customer, replacing five hardcoded `<div>`s with no JS behind
+  them). `tools/page.tsx`'s «رادار (Zone)» card now navigates instead of toasting, badged with the
+  real zone count.
+- **The one place the implementation deliberately doesn't copy the prototype literally**: the
+  prototype's zone-picker is a decorative 300×150 viewBox SVG whose polygon vertices are raw pixels,
+  not geography. `ZoneFormSheet` keeps the same SVG affordance but maps every click through
+  `zoneGeo.ts` onto real lat/lng — a fixed 6km×3km box (20 meters/pixel, uniform on both axes so a
+  circle drawn in pixels stays a circle in meters) anchored either on a picked province/city's real
+  centroid (`City.latitude`/`longitude`, confirmed populated with real data) for a new zone, or on the
+  zone's own existing center/vertex-centroid when editing — which sidesteps needing to persist which
+  city a zone was originally anchored to, since `RadarZone` has no `cityId` column. Verified live: a
+  click at pixel (200, 60) against the Tehran anchor (35.410, 51.240) produced `(35.4128, 51.2509)` in
+  the database, matching a hand-computed expectation to four decimal places; a 4-vertex sample
+  trapezoid similarly produced four distinct, plausible Tehran-area coordinates.
+- **Divergences from the prototype**: the entire history pane and every `sent` count were literals,
+  now real; the settings pane persisted nothing, now real; the "فقط اعضای باشگاه" switches in both
+  the zone modal and settings were bound to nothing, now real; polygon vertices were viewBox pixels,
+  now real lat/lng; `{کد تخفیف}` dropped, same reason as every prior stage. The zones list carries an
+  explicit info-box disclosure that automatic pass-by detection has no caller yet, rather than
+  implying zones are live — the headline divergence, called out per the plan rather than left
+  implicit.
+- **Verified live**: backend via direct HTTP calls (the Stage 4b JWT-minting technique) against a
+  real local backend + Postgres — zone CRUD, radius/vertex-count DTO bounds, the hit endpoint's full
+  rejection matrix in both directions where applicable (inside/outside a circle, inside/outside a
+  polygon, club-member/non-member, immediate-repeat suppression producing **zero** duplicate rows and
+  zero SMS queued, in/out of business hours), real `sentCountWeek`/history joins. Frontend via
+  Playwright at 390×844 against the same backend: zone CRUD round-trips including polygon vertices;
+  the radius slider clamps at 200/3000; a polygon submitted with 2 vertices is rejected client-side
+  (`حداقل ۳ رأس لازم است`) before any request is sent; settings persist across a full page reload;
+  the history pane shows the real `RadarHit` rows the backend pass had produced, with real
+  Persian-formatted timestamps and zone names.
+- Test counts: 34 new tests (`geo.util.spec.ts` 9, `radar-zones.service.spec.ts` ~14,
+  `radar-hit.service.spec.ts` ~11), full backend suite **1040/1040** green (up from 1006), lint 0
+  errors (unchanged 56-warning baseline), typecheck/lint/build clean in both repos.
+
+### Stages 6–7 — Not started
 
 Per the plan, in order:
 
-- **Stage 5b — radar zones**: point/circle 200–3000m + polygon 3–10 vertices, real geometry
-  (`haversineMeters`/`pointInPolygon`), a real suppression ledger, and a real transactional
-  `POST .../radar/zones/:id/hit` endpoint — but no cron/auto-fire, since nothing in the codebase can
-  call the trigger yet (no customer-app location source exists, and PRD.md itself excludes automatic
-  radar detection from V1). Ships the full server machinery unfed, verified via direct HTTP calls
-  since the hit endpoint has no UI caller.
 - **Stage 6 — prototype extras + dashboard**: `modal-ps` (personal message inside bulk SMS),
   `modal-kbd` (walk-in registration keypad), and rebuilding the admin main dashboard to
   `manooch-dashboard.html` (Figma `38:1186`).
@@ -712,11 +792,12 @@ regional quota, tokens, and date windows. Client validation is UX support, not a
   mandatory for every new raw join regardless — it is what turned four guesses into a fifth correct
   one, not something to relax now that it has "worked."
 
-Critical flows still to smoke once Stage 5b lands: radar 24-hour suppression and polygon vertex
-validation, out-of-hours gating on the hit endpoint via direct HTTP calls (no UI caller exists for it).
 Already smoked and passing: wheel chance-total validation and no double-charge/double-award (Stage
 3a); survey/referral single-award and cap-aware rewards (Stages 3a/4b); regional quota N cannot exceed
-M and selection is random and non-repeating (Stage 5a).
+M and selection is random and non-repeating (Stage 5a); radar 24-hour suppression producing zero
+duplicate rows/SMS on an immediate repeat, polygon vertex-count validation (client-side and DTO),
+and out-of-hours/non-club-member gating on the hit endpoint via direct HTTP calls, since no UI caller
+exists for it (Stage 5b).
 
 ---
 
