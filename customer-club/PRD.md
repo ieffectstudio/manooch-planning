@@ -2,8 +2,8 @@
 
 **Version:** 1.1 — **Updated:** 24 Mordad 1405 (2026-08-15) — **Status:** Delivered / as-built baseline
 
-> This revision reconciles the approved Persian PRD, the Persian `README.md`, the English
-> `readme-en.md`, and the final `customer-club-admin.html` reference implementation. The approved
+> This revision reconciles the approved Persian PRD, `README.md`, and the final
+> `customer-club-admin.html` reference implementation. The approved
 > Version 1 admin-plugin feature scope is complete. The HTML remains the visual and interaction
 > reference; production persistence, providers, and external services are supplied by the
 > store-builder implementation rather than by the in-memory demo data in the HTML.
@@ -13,7 +13,7 @@
 1. **This document** — final English product scope and resolved requirements.
 2. **`customer-club-admin.html`** — final screen structure, visible behavior, validation, copy, and interaction reference.
 3. **`PRD-باشگاه-مشتریان.md`** — approved Persian product intent and terminology.
-4. **`README.md` / `readme-en.md`** — Persian/English setup guides, packaging, fonts, and feature overview.
+4. **`README.md`** — setup guide, packaging, fonts, and feature overview.
 5. **`remaining-phases.md`** — delivery close-out and implementation/verification record; it does not redefine scope.
 
 When older documents conflict, the resolved requirement in this PRD applies. Demo names, counts,
@@ -36,8 +36,10 @@ customers through:
 
 The delivered Version 1 experience is **mobile-first**, fully **right-to-left (RTL)**, and designed
 around the **Ravi** typeface with **Vazirmatn** as the development fallback. Its final reference
-contains **5 bottom-navigation tabs, 21 views, 13 bottom-sheet modals, and 10 functional tools**.
-Nine tools appear in the Tools hub; **Club** is the tenth tool and is entered from the Dashboard.
+contains **5 bottom-navigation tabs, 22 views, 19 bottom-sheet modals, and 10 functional tools**.
+Nine tools appear in the Tools hub; **Club** is the tenth tool and is entered from the Dashboard. The
+22nd view (`setup`) and 6 of the 19 modals were added by the newest prototype revision (see §6.2,
+§6.3, and §7.10) after the counts below were first drafted.
 
 ### Key product values
 
@@ -54,8 +56,9 @@ Nine tools appear in the Tools hub; **Club** is the tenth tool and is entered fr
 | Phase 2 — Loyalty | Complete | 7 views |
 | Phase 3 — Acquisition and intelligence | Complete | 2 views |
 | Phase 4 — Geographic outreach | Complete | 2 views |
-| **Approved Version 1 feature scope** | **Complete** | **21/21 views** |
-| Phase 5 — external production extensions | Future / outside Version 1 | Real customer app, gateway top-up, production media/CDN, ML RFM |
+| Phase 5 — Setup, billing UI, and prototype-only extras | Complete | 1 view (`setup`) + 6 modals (see §7.10) |
+| **Approved Version 1 feature scope** | **Complete** | **22/22 views** |
+| Phase 6 — external production extensions | Future / outside Version 1 | Real customer app, payment gateway, production media/CDN, ML RFM |
 
 ---
 
@@ -90,7 +93,7 @@ These are post-launch business targets, not fixture values from the prototype.
 
 ### 4.1 Delivered in Version 1
 
-- Mobile admin shell with 5 primary tabs, 21 views, parent-aware back navigation, contextual FABs, toasts, and bottom sheets.
+- Mobile admin shell with 5 primary tabs, 22 views, parent-aware back navigation, contextual FABs, toasts, and bottom sheets.
 - Points policy, ledger, expiry, balance/history, manual add/deduct, and points-based customer tiers.
 - Automated/manual campaigns, bulk SMS, scheduling, reusable templates, variables, preview, cost estimate, and delivery details.
 - Ten functional tools: referral/acquisition, occasions, bulk SMS, reminders, retargeting, wheel, surveys, radar, regional SMS, and Club.
@@ -187,7 +190,7 @@ Bottom bar — 5 tabs
 **Clarification:** there are 10 functional tools in total, but only 9 are listed in the Tools hub.
 Club is intentionally accessed from the Dashboard and is not a sixth footer tab.
 
-### 6.2 Final 21-view inventory
+### 6.2 Final 22-view inventory
 
 The `?tab=` values below are the HTML reference identifiers. Production route paths may differ while
 preserving the same information architecture and parent-tab highlight.
@@ -215,10 +218,11 @@ preserving the same information architecture and parent-tab highlight.
 | 19 | `members` | Customers | Search, filters, customer list/report |
 | 20 | `points` | Customers | Points history and manual registration |
 | 21 | `settings` | Settings | Rules, automated SMS, general settings |
+| 22 | `setup` | Plugin activation gate | 4-step activation stepper: profile completeness → plan/pay → sender line → success (see §7.10) |
 
 ### 6.3 Bottom-sheet interactions
 
-The reference includes 13 modal/bottom-sheet flows:
+The reference includes 19 modal/bottom-sheet flows:
 
 1. New campaign
 2. New survey
@@ -233,6 +237,12 @@ The reference includes 13 modal/bottom-sheet flows:
 11. Wheel details and winners
 12. New/edit reminder rule
 13. Club redemption confirmation/result
+14. Store-profile completion (`modal-profile`) — name/category checklist, gates activation
+15. Plan payment (`modal-pay`) — single-plan card, card-number form, UI-only per §7.10
+16. SMS credit purchase (`sms-sheet`) — six packages or a custom amount, ends in a gateway placeholder
+17. Personal message (`modal-ps`, inside Bulk SMS) — one member or one segment, saved message library
+18. Walk-in registration keypad (`modal-kbd`) — numeric mobile entry, +100 welcome balance
+19. Quick club setup (`modal-ai` in the reference; delivered as a non-AI one-tap preset — see §7.10)
 
 ---
 
@@ -348,6 +358,58 @@ The reference includes 13 modal/bottom-sheet flows:
 - **Custom labels:** product, payment gateway, acquisition channel, and other configured groups; create/delete labels and view labeled customers.
 - RFM thresholds must be configurable server-side; Version 1 may ship with deterministic defaults.
 
+### 7.10 Setup, Billing UI, and Prototype-only Extras
+
+These five items were added by the newest prototype revision (commit `81fee16`, +183/−33 in
+`customer-club-admin.html`) after the rest of this document was drafted; §6.2/§6.3's view/modal
+counts above already include them.
+
+**Setup wizard (`setup`, view 22).** A 4-step activation gate a store passes through once: (1)
+store-profile completeness — name and category, `modal-profile` to complete them, or a
+"temporary entry (skip)" path straight to the dashboard; (2) the single **باشگاه مشتریان** plan
+card, **۲۹۰,۰۰۰ Toman/month** — the prototype's earlier three-tier رایگان/پایه/حرفه‌ای pricing and
+its "unlimited SMS" tier were both removed in the same revision, replaced by one plan plus a
+separately-purchased SMS credit basket; `modal-pay` collects a card number and always "succeeds"
+(no real charge — see the next paragraph); (3) sender-line selection from the store's available
+lines; (4) a success pane. An unactivated store landing on any club route redirects here.
+
+**Billing is deliberately deferred, not simulated as complete.** The club's ۲۹۰,۰۰۰/month plan is a
+per-plugin add-on, not a whole-store subscription tier (`subscriptions`'s `PlanTier` models exactly
+one active tier per seller and would conflict with it — confirmed during implementation, not just
+assumed). Both `modal-pay` and the SMS credit purchase sheet (`sms-sheet`) are **UI-only**: club
+activation flips `StorePlugin.isActive` once the wizard completes, with no billing entity and no
+real charge; the SMS sheet computes real package math (base 400 Toman/message, six tiers at
+350→300 Toman/message with volume badges, and a custom-amount path that floors `amount / 400` and
+rejects anything under 400 Toman) but ends in a "connecting to gateway" placeholder identical to the
+prototype's own toast, not a real credit top-up. This mirrors the pattern `SmsCreditAccount` already
+used for manual balance top-ups. Revisit both once a payment gateway (Zarinpal is the internal
+candidate) is wired up — until then, treat §12's "Payment/top-up" dependency as **built UI, deferred
+settlement**, not as out-of-scope.
+
+**Quick club setup (`modal-ai` in the reference).** The prototype's picker lets an owner multi-select
+7 plugin presets, plays a ~650ms-per-item staggered reveal animation, then calls it done. Verification
+found this animation configures nothing: its "finish" handler writes one `localStorage` flag and
+jumps to sender-line selection: every reward number shown (20% birthday discount, 15% win-back
+discount, ۵۰۰ referral points, one free daily wheel spin) exists only in display copy, never
+persisted. **Delivered as an honest, non-AI one-tap preset** instead ("راه‌اندازی سریع باشگاه"):
+the same 7 toggles, but each writes to a real endpoint already shipped in Phases 2–4 — the points and
+referral rules through the loyalty policy, a real birthday campaign against the seeded system
+template, a real days-since-purchase retargeting rule, and a real free-entry wheel with prizes
+summing to 100%. Two of the seven have no working automatic-send path today and report that plainly
+rather than writing a rule that can never fire: an abandoned-cart reminder (no runner support for
+that trigger yet) and a custom-occasion campaign (which requires a specific date the picker never
+collects). Both percentage-based rewards (birthday 20%, win-back 15%) drop the percentage from their
+applied copy, for the same reason discount codes are absent elsewhere in this document — cart
+checkout has no live discount-application path yet.
+
+**Personal message (`modal-ps`).** A third pane inside Bulk SMS for sending to exactly one member
+(searchable by name/phone) or one loyalty segment, with a saved-message library supporting
+create/edit/delete, riding the existing message-template storage rather than a new entity.
+
+**Walk-in registration keypad (`modal-kbd`).** A numeric keypad for capturing a walk-in customer's
+mobile number at the register, creating (or finding) the customer and granting the standard +100
+welcome-points balance.
+
 ---
 
 ## 8. Points and Value Rules
@@ -446,7 +508,7 @@ Retargeting → grant cashback → verify history.
 - **Uploads/storage:** Club images through the platform storage provider.
 - **Short-link service:** surveys, referral, lead magnet, and customer-preview links.
 - **Location source:** customer app/permission for automatic radar hits; postal code/profile/reference data for regional selection.
-- **Payment/top-up:** required only for real SMS-credit purchase or monetary wheel entry; excluded from Version 1 feature scope.
+- **Payment/top-up:** the plan-payment and SMS-credit purchase UI shipped in Version 1 (§7.10); only the actual gateway settlement — the real charge and the real credit top-up — remains deferred, pending a provider (Zarinpal is the internal candidate).
 - **AI:** Version 1 is an assisted mock using deterministic goal-to-text suggestions. A model call is a future enhancement, not a Version 1 requirement.
 
 ---
@@ -459,7 +521,8 @@ Retargeting → grant cashback → verify history.
 | **Phase 2 — Loyalty** | Club, wheel, retargeting/cashback, surveys, occasions | **Complete** |
 | **Phase 3 — Acquisition and intelligence** | Referral, lead magnet, assisted campaign, RFM/labels | **Complete** |
 | **Phase 4 — Geographic and scale** | Radar, regional SMS, geographic history/quota, completed sales/lifecycle reporting | **Complete** |
-| **Phase 5 — Production extensions** | Gateway top-up, standalone customer app/location source, production media/CDN, ML RFM, full geographic dataset | **Future / outside Version 1** |
+| **Phase 5 — Setup, billing UI, and prototype-only extras** | Activation wizard, plan/pay UI, SMS-credit purchase UI, personal message, walk-in keypad, de-AI'd quick-setup preset (see §7.10) | **Complete** |
+| **Phase 6 — Production extensions** | Gateway top-up, standalone customer app/location source, production media/CDN, ML RFM, full geographic dataset | **Future / outside Version 1** |
 
 There are **no remaining feature phases inside the approved Version 1 admin-plugin scope**. See
 `remaining-phases.md` for close-out, evidence boundaries, and launch dependencies.
@@ -470,14 +533,14 @@ There are **no remaining feature phases inside the approved Version 1 admin-plug
 
 Version 1 is accepted at product-scope level when:
 
-- all 21 views in §6.2 are reachable and retain the correct parent-tab state;
-- the 13 bottom-sheet flows in §6.3 open, validate, save/cancel, and close correctly;
+- all 22 views in §6.2 are reachable and retain the correct parent-tab state;
+- the 19 bottom-sheet flows in §6.3 open, validate, save/cancel, and close correctly;
 - all 10 tools in §7.3 expose their documented settings/history/results behavior;
 - SMS composers enforce 320 characters and show preview, audience, cost, and delivery details where applicable;
 - Club redemption and points/money mutations are atomic and server-authoritative;
 - wheel prize chances total exactly 100% on both client and server;
 - survey/referral/lead rewards cannot be awarded more than allowed;
-- regional selection requires province, city, and at least one neighborhood, and quota cannot exceed eligibility;
+- regional selection requires province and city (the neighbourhood tier was dropped — see §7.10-adjacent Stage 5a divergence notes in `remaining-phases.md`), and quota cannot exceed eligibility;
 - radar polygon validation requires 3–10 vertices and radar suppression enforces 24 hours;
 - customer reports show both points and purchase history;
 - Persian/RTL/mobile fidelity is maintained at 390×844;

@@ -2,32 +2,31 @@
 
 **Documentation version:** 1.1 — **Last updated:** 24 Mordad 1405 (2026-08-15) — **Status:** Version 1 feature scope complete
 
-English project guide for the **Customer Loyalty Club**, a loyalty and SMS-marketing plugin for the
+Project guide for the **Customer Loyalty Club**, a loyalty and SMS-marketing plugin for the
 store-builder admin panel with a **mobile-first**, **RTL**, Ravi-based interface.
-
-[راهنمای فارسی](./README.md)
 
 ---
 
 ## Final Status
 
-The approved Version 1 feature scope is complete across four phases:
+The approved Version 1 feature scope is complete across five phases:
 
 | Item | Status |
 |---|---:|
-| Completed phases | 4 of 4 |
-| Reference views/screens | 21 of 21 |
+| Completed phases | 5 of 5 |
+| Reference views/screens | 22 of 22 |
 | Bottom-navigation tabs | 5 of 5 |
 | Functional tools | 10 of 10 |
 | Tool cards inside the Tools hub | 9 of 9 |
 | Separate Club entry from Dashboard | 1 of 1 |
-| Reference modals/bottom sheets | 13 of 13 |
+| Reference modals/bottom sheets | 19 of 19 |
 
 > **Clarification:** there are 10 functional tools, but only 9 appear in the Tools hub. **Club** is the tenth tool and opens from the Dashboard card; it is not a sixth footer tab.
 
-Phase 5 contains extensions outside Version 1: a standalone customer app, real SMS-credit payment,
-a location source for automatic radar triggers, a complete region dataset, production CDN/media
-handling, and ML-based RFM.
+Phase 5 (setup wizard, billing UI, and the prototype-only extras — see PRD.md §7.10) is inside
+Version 1 and complete. Phase 6 contains extensions outside Version 1: a standalone customer app,
+real SMS-credit/plan gateway settlement, a location source for automatic radar triggers, a complete
+region dataset, production CDN/media handling, and ML-based RFM.
 
 ---
 
@@ -39,8 +38,7 @@ handling, and ML-based RFM.
 | [`PRD.md`](./PRD.md) | Final English PRD and authority for resolved requirements |
 | [`PRD-باشگاه-مشتریان.md`](./PRD-باشگاه-مشتریان.md) | Approved Persian PRD and source for product intent/terminology |
 | [`remaining-phases.md`](./remaining-phases.md) | Final delivery close-out for Phases 1–4 |
-| [`README.md`](./README.md) | Persian project guide |
-| [`readme-en.md`](./readme-en.md) | This English guide |
+| [`README.md`](./README.md) | This project guide |
 | `fonts/` | Local Ravi and Vazirmatn fonts; may be supplied separately from the current package |
 
 ### Source-of-truth order
@@ -48,7 +46,7 @@ handling, and ML-based RFM.
 1. `PRD.md` — final scope, rules, and acceptance criteria.
 2. `customer-club-admin.html` — screen structure, visible behavior, validation, and UI copy.
 3. `PRD-باشگاه-مشتریان.md` — approved Persian product intent.
-4. `README.md` and `readme-en.md` — setup and project overview.
+4. `README.md` — setup and project overview.
 5. `remaining-phases.md` — delivery status and implementation-evidence boundary.
 
 Store names, plan labels, phone numbers, links, dates, counts, and report values in the HTML are
@@ -304,7 +302,7 @@ These do not reopen Phases 1–4, but may be required for a real launch:
 - Inbound-SMS webhook for opt-out/“reply 5”.
 - Manual top-up or payment flow for SMS credit.
 - Customer location source and permission for automatic radar triggers.
-- Complete, maintained province/city/neighborhood data.
+- Complete, maintained province/city data.
 - Points-liability and plugin-deactivation policy.
 - Client-approved RFM thresholds.
 - Licensed Ravi files and a production image storage/CDN policy.
@@ -314,7 +312,7 @@ These do not reopen Phases 1–4, but may be required for a real launch:
 
 ## Quick Acceptance Check
 
-- [x] The HTML contains 5 primary tabs, 21 views, and 13 reference sheets.
+- [x] The HTML contains 5 primary tabs, 22 views, and 19 reference sheets.
 - [x] `?tab=` navigation and parent highlighting exist.
 - [x] All 10 functional tools are represented.
 - [x] SMS composers provide a 320-character limit and preview.

@@ -1,20 +1,20 @@
 # Customer Loyalty Club — Remaining Phases and Delivery Status
 
-**Version:** 3.4 — **Updated:** 27 Mordad 1405 (2026-08-18) — **Status:** In progress on `feat-customer-club`
+**Version:** 3.5 — **Updated:** 5 Shahrivar 1405 (2026-08-19) — **Status:** All stages complete on
+`feat-customer-club`
 
 > This file replaces the prior "Version 2.0 — Closed — Phases 1–4 complete" status. That status was
 > incorrect: git history shows only `feature/customer-club-phase1` was ever merged to `main` in
 > `manooch-backend` and `manooch-fronts` — 10 of the prototype's 22 views. No code for the remaining
 > views existed before `feat-customer-club` was branched. This file tracks real, git-verified
 > progress against that branch across all three repos, following the staged plan agreed when the
-> branch was scoped.
+> branch was scoped. As of this update, every stage (0 through 7) is done and `PRD.md`/`README.md`
+> have been corrected to match — see §6.
 
-The product baseline is [`PRD.md`](./PRD.md). Its "Delivered / as-built baseline" status line and
-4-of-4-phases table describe the same incorrect state this file used to — they are due for the same
-correction in the docs pass that produced this update (see §6). The prototype
-[`customer-club-admin.html`](./customer-club-admin.html) outranks the PRD wherever the two disagree —
-decided when `feat-customer-club` was scoped, since the prototype is itself ahead of its own PRD (see
-§1).
+The product baseline is [`PRD.md`](./PRD.md), now corrected by this same docs pass (see §6). The
+prototype [`customer-club-admin.html`](./customer-club-admin.html) outranks the PRD wherever the two
+disagree — decided when `feat-customer-club` was scoped, since the prototype is itself ahead of its
+own PRD (see §1).
 
 ---
 
@@ -50,8 +50,10 @@ commit (`81fee16` in this repo) newer than any of the "closed" documentation abo
 | 4b | Acquisition (referral/lead magnet) | **Done** |
 | 5a | Geography: regional SMS (province → city) | **Done** |
 | 5b | Geography: radar zones | **Done** |
-| 6 | Personal message, walk-in keypad, dashboard rebuild | Not started |
-| 7 | Docs reconciliation (this file, then PRD.md, README.md) | In progress (this update) |
+| 6a | Personal message, walk-in keypad | **Done** |
+| 6b | Admin dashboard: report button + real subscription stat | **Done** |
+| 6c | Quick club setup — `modal-ai` ported de-AI'd | **Done** |
+| 7 | Docs reconciliation (this file, PRD.md, README.md) | **Done (this update)** |
 
 ### Phase 1 baseline (pre-existing — merged to `main` before this branch)
 
@@ -630,16 +632,131 @@ actually true; everything below it is new work on `feat-customer-club`.
   `radar-hit.service.spec.ts` ~11), full backend suite **1040/1040** green (up from 1006), lint 0
   errors (unchanged 56-warning baseline), typecheck/lint/build clean in both repos.
 
-### Stages 6–7 — Not started
+### Stage 6a — Walk-in keypad + personal message
 
-Per the plan, in order:
+Ported the two remaining prototype-only modals with **no new backend**, reusing what earlier stages
+already shipped:
 
-- **Stage 6 — prototype extras + dashboard**: `modal-ps` (personal message inside bulk SMS),
-  `modal-kbd` (walk-in registration keypad), and rebuilding the admin main dashboard to
-  `manooch-dashboard.html` (Figma `38:1186`).
-- **Stage 7 — docs**: this file (done by this update), then PRD.md (§6.2 view/modal counts, pricing
-  model, remove the "credit top-up is outside v1" claim it no longer needs since Stage 1 shipped the
-  purchase UI), and README.md (same counts, plus the dangling `readme-en.md` reference noted in §6).
+- **`WalkInKeypadSheet`** (`modal-kbd`) — a numeric keypad capturing a mobile number at the register.
+  Reuses the existing find-or-create customer path and the lazy loyalty-member/welcome-points grant
+  already used elsewhere in the club (+100 points on first membership), rather than adding a
+  dedicated walk-in entity.
+- **Personal message** (`modal-ps`) — a third "پیام شخصی" pane added to `campaigns/bulk/page.tsx`,
+  alongside the existing group-send tab. Recipient resolution covers all three prototype modes: one
+  member (via `useClubCustomers`), one `LoyaltySegment`, or a manual phone number
+  (`customerId: null`). Client-side token substitution (`{نام}`/`{امتیاز}`/`{تاریخ}`) for the
+  single-recipient path; group mode sends the raw body, consistent with the existing settings-tab
+  send. Saved messages ride `MessageTemplateCategory.GENERAL` — no new entity — with full
+  create/edit/delete via the existing template hooks.
+
+`typecheck`/`lint`/`build` clean for `@manooch/admin`. **Verified live** via Playwright against the
+real backend+DB: walk-in registration granted the real ۱۰۰-point welcome bonus (dashboard count
+went ۱۰→۱۱); personal message's one/group/manual recipient resolution and client-side token
+substitution were confirmed against `sms_messages.body` in Postgres; group-mode fan-out to 8
+recipients and saved-message create/edit/delete all round-tripped correctly. Committed `cc24595`,
+pushed. No backend changes needed.
+
+### Stage 6b — Admin dashboard: close the two real gaps
+
+Reading `manooch-dashboard.html` end-to-end against what's on `main` reframed this stage. The admin
+dashboard (`apps/admin/app/(dashboard)/`, 452 lines) **already exists and already ports this exact
+Figma node** — `fa.admin.dashboard` carries the prototype's own literal copy. It is also **ahead of**
+the prototype: in the HTML, `#reportBtn` has no handler, the `.setup-guide` stepper reads no state at
+all (`25%` and «قدم ۱ از ۴» are static markup, both buttons call the same handler), 9 of 10 grid items
+and all 5 menubar cells are inert, and the reports rows are the literals ۱۴۳ and ۳ — all of which the
+shipped implementation already replaced with real queries. Rebuilding toward the prototype would have
+been a regression, so the stage was rescoped to the two gaps that are real:
+
+1. **Missing «گزارشات» button.** The prototype's `.club-row` is two buttons side by side
+   (`#reportBtn` + `#clubBtn`); only the club button existed. Added a second `Link`/`button` in
+   `CustomerClubCard.tsx`, sharing the existing `isPluginActive("customer-club")` gate and
+   `cardClassName` — active routes to the club's own reports view via a new
+   `routes.adminCustomerClubReports`, inactive toasts `fa.admin.comingSoon`, identical to the
+   existing club button's behavior.
+2. **Fabricated «۶۰ روز» / «پرو».** `StatBoxes.tsx` rendered these as hardcoded strings — the
+   prototype's own placeholders, shipped as if real. Real data already existed and needed no backend
+   work: `MySubscriptionSchema` already carries `daysRemaining`/`planName`/`isBlocked` from the
+   `feat-2-week-demo` entitlement engine, served by `GET /subscriptions/me` via the already-written
+   `useMySubscription()` hook. Replaced with real `daysRemaining` (Persian digits) + `planName`, with
+   an honest blocked-state fallback when `isBlocked` or no active subscription covers `now` — never a
+   fallback "۶۰ روز". Fixed the neighboring follower count's raw Latin digits in the same pass.
+
+Explicitly **not** built, and recorded as accepted divergences rather than gaps: the `.setup-guide`
+4-step store-onboarding stepper (a general store-onboarding concern, not customer-club, and the
+prototype itself ships it with zero logic behind a hardcoded 25%); the `#add-item-btn` sheet (product
+management — `MenuGrid` already routes to the real pages); the `.menubar` (already real —
+`AdminBottomNav` correctly renders `null` inside `/plugin/customer-club`, which owns `ClubTabBar`
+instead).
+
+`typecheck`/`lint`/`build` clean. **Verified live**: real `daysRemaining`/`planName` cross-checked
+against a raw SQL read of the subscription row (not just the UI) for the seeded test store — real
+۱۴ days vs. the dropped literal ۶۰. Committed `6d0a7e2`, pushed.
+
+### Stage 6c — «راه‌اندازی سریع باشگاه» (`modal-ai`, de-AI'd)
+
+Verification found `modal-ai` configures nothing: its "finish" handler (`#ai-finish`) writes exactly
+one `localStorage` flag and jumps to sender-line selection. The `picked` array of plugin keys is a
+local `const` inside `startAI()`, discarded when the function returns — no points rule, no birthday
+gift, no wheel is ever written. Every number in the picker ("۱ امتیاز به ازای هر ۱۰٬۰۰۰ تومان", "۲۰٪",
+"۵۰۰ امتیاز") exists only inside Persian display strings. The whole feature is a staggered reveal
+animation over a setup-gate skip — writing this as-is would be exactly the fabricated-success defect
+every prior stage has been removing.
+
+**Built instead**: a de-AI'd one-tap preset, same 7 toggles and copy, each wired to a real endpoint
+Stages 2–4 already shipped:
+
+| Key | Real write |
+|---|---|
+| `points` | `useUpdateLoyaltyPolicy` → `tomanPerPoint: 10000` |
+| `referral` | `useUpdateLoyaltyPolicy` → `referrerPoints`/`inviteePoints: 500` |
+| `birth` | `useCreateCampaign(BIRTHDAY)` + `useCreateMessageTemplate` — the same two-step pattern `tools/occasions` uses |
+| `buyback` | `useCreateCampaign(DAYS_SINCE_PURCHASE, linkedToolKey: "retargeting")` + template — the same two-step pattern `tools/retargeting` uses |
+| `wheel` | `useCreateWheel` — 3 prizes summing to exactly 100 |
+| `cart` | reports `unavailable` — see below |
+| `occasion` | reports `unavailable` — see below |
+
+Two of the seven turned out to have no real send path once checked against
+`campaigns.service.ts`, and report that honestly instead of writing a rule that can never fire:
+`cart` (`ABANDONED_CART` has no case in `runCampaign`'s switch — falls to `default: return false`)
+and `occasion` (`OCCASION` requires `config.occasionAt` server-side, which this one-tap picker has no
+date field to supply — points the user at `tools/occasions` instead, which does collect one). Both
+percentage-based rewards (birthday 20%, win-back 15%) drop the percentage from their applied copy —
+the same `CartService.checkout` hardcoding `discountAmount: 0` that made Stages 3b/4b/5a drop the
+`{کد تخفیف}` token. Every applier checks existing state first and reports "از قبل تنظیم شده" rather
+than double-writing on a repeat tap — the idempotency precondition, confirmed live (see below).
+
+Files follow the 5-file component convention and the 150-line gate:
+`QuickSetupSheet.types.ts` (status/result types, with a doc comment explaining why `unavailable` is a
+distinct status from `ok`/`skipped`), `QuickSetupSheet.consts.ts` (`PRESET_ITEMS` + reward constants),
+`QuickSetupSheet.resultConsts.ts` + `QuickSetupSheet.campaignFns.ts` + `QuickSetupSheet.applyFns.ts`
+(the per-key appliers, split across three files to stay under the line gate), `useQuickSetupApply.ts`
+(wires data/mutations, runs selected keys sequentially with per-key pending→result state, a
+try/catch per key so a partial failure preserves earlier successes), `PresetRow.tsx` +
+`QuickSetupSheet.tsx` (the sheet itself, reusing `ClubSheet`/`ClubSwitch`; empty selection blocked
+with the prototype's own toast). Bundled in the same change: the dashboard's «کلاب» card toasted
+`comingSoon` instead of routing to the real, already-built `/plugin/customer-club/club` (Stage 2) —
+a one-line incidental fix in `page.tsx`.
+
+`typecheck`/`lint`/`build` clean. **No Playwright browser tool was available this session** —
+verified instead via direct HTTP against the real backend+Postgres with the established
+JWT-minting technique: applied all 4 real-write presets, confirmed exact DB rows (loyalty policy
+fields, birthday campaign+template, retargeting campaign+template, wheel+3 prizes), confirmed the
+idempotency check on each applier correctly detects the just-created rows on a rerun (zero new rows,
+every row reports already-configured), then cleaned up every seeded row and restored the policy
+fields to their prior values. Committed `525e3cb`, pushed (`cc24595..525e3cb`, pre-push
+typecheck+lint gate passed). No backend changes needed either sub-stage.
+
+### Stage 7 — Docs (this update)
+
+Reconciled `PRD.md` (§1 counts and revision note, Delivery-state table's new Phase 5 row plus
+renumbered Phase 6, §4.1/§6.2/§6.3 view/modal counts, a new §7.10 documenting the setup wizard/
+billing UI/quick-setup preset, §12's payment dependency softened from "excluded from Version 1" to
+"UI shipped, settlement deferred", §13's roadmap table, §14's acceptance-baseline counts and the
+dropped-neighbourhood correction) and `README.md` (phase/view/modal counts, the Phase 5/6 split, and
+every dangling `readme-en.md` reference removed — that file was never restored, and README.md is the
+only project guide that exists in this directory, so the reference was removed rather than the file
+recreated). `PRD-باشگاه-مشتریان.md` was left untouched, per the note in §6 below — it remains the
+Persian intent/terminology source and wasn't part of this stage's scope.
 
 ---
 
@@ -801,15 +918,18 @@ exists for it (Stage 5b).
 
 ---
 
-## 6. Known documentation debt (to close out in Stage 7)
+## 6. Known documentation debt — closed out in Stage 7
 
-- **PRD.md** — "Status: Delivered / as-built baseline" and its phase-completion table describe the
-  same incorrect "already shipped" state this file used to. Needs the same correction: 22 views / 19
-  modals (not 21/13), the single ۲۹۰٬۰۰۰ plan (not three tiers), and an accurate stage-status table
-  instead of "complete."
-- **README.md** — same view/modal counts to fix, and it references a `readme-en.md` file that does
-  not exist anywhere in this directory. Either that file was lost at some point, or the reference was
-  never resolved. Restore it or remove the reference — don't leave a dangling link in Stage 7's pass.
+- **PRD.md** — corrected: 22 views / 19 modals throughout (§1, §4.1, §6.2, §6.3, §14), the single
+  ۲۹۰٬۰۰۰ plan (already accurate — the pricing rewrite in commit `81fee16` predates this file), a
+  new §7.10 documenting the setup wizard/billing UI/quick-setup preset, and the Delivery-state and
+  Roadmap tables now carry an explicit Phase 5 (setup/billing/prototype-only extras, Complete) ahead
+  of the renumbered Phase 6 (production extensions, future).
+- **README.md** — same count corrections, plus every `readme-en.md` reference removed. That file was
+  never restored and this directory has never held a second project guide — the reference was
+  removed rather than the file recreated, since nothing in the actual documentation set was ever
+  split into a Persian/English pair.
 - **`PRD-باشگاه-مشتریان.md`** — the original approved Persian PRD, still the source for product
-  intent/terminology per PRD.md's own source-of-truth order; not touched by this update, review it
-  for the same stale-status issue when PRD.md is corrected.
+  intent/terminology per PRD.md's own source-of-truth order. **Not touched by this pass** — still
+  carries whatever stale-status language it had before; flagged for a future dedicated review, same
+  as it was flagged here before Stage 7.
