@@ -1,617 +1,556 @@
-# کارت‌های فارسی Trello — اتصال پیامک باشگاه مشتریان
+# کارت‌های Feature-Based برای Trello — سیستم پیامک باشگاه مشتریان
 
-این فایل برای کپی‌کردن مستقیم عنوان، توضیحات و چک‌لیست هر کارت در Trello آماده شده است.
+این برد براساس **فیچر کامل End-to-End** تنظیم شده است. برای هر فیچر فقط یک کارت ساخته می‌شود و کارهای دیتابیس، منطق، API، صف، اتصال Armaghan، رابط کاربری، گزارش و تست همگی داخل همان کارت قرار می‌گیرند.
 
-## ساختار پیشنهادی برد
+> برای یک فیچر کارت جداگانه Backend و Frontend نسازید. کارت فقط زمانی Done می‌شود که کل جریان فیچر از UI تا Provider و گزارش نهایی کامل باشد.
 
-**لیست‌ها:**
+## لیست‌های پیشنهادی برد
 
 1. `Backlog`
 2. `Ready`
 3. `Doing`
-4. `Code Review`
-5. `QA / Staging`
-6. `Done`
-7. `Blocked`
+4. `Review & QA`
+5. `Done`
+6. `Blocked`
 
-**لیبل‌ها:**
+## لیبل‌های پیشنهادی
 
-- `P0 - زیرساخت`
-- `P1 - ضروری لانچ`
-- `Backend`
-- `Database`
-- `Queue/Scheduler`
-- `Security`
-- `SMS Provider`
+- `P0 - هسته مشترک`
+- `P1 - فیچر لانچ`
+- `Automation`
+- `Campaign`
+- `Loyalty`
 - `Reports`
-- `QA`
+- `Compliance`
 
 ---
 
-## کارت FND-01 — مدل داده، Tenant Isolation و Transactional Outbox
+# کارت 00 — تنظیم و اتصال هسته مشترک سیستم SMS
 
-**لیبل:** `P0 - زیرساخت`, `Backend`, `Database`, `Security`
+**لیبل:** `P0 - هسته مشترک`
 
-**توضیحات کارت:**
+## توضیحات
 
-زیرساخت مشترک تمام پیامک‌ها پیاده‌سازی شود. تمام رکوردها باید `seller_id` داشته باشند و ساخت پیامک از طریق Transactional Outbox انجام شود. هیچ Worker پیامکی اجازه تغییر امتیاز، اعتبار، موجودی، جایزه یا پاسخ نظرسنجی را ندارد.
+تمام زیرساخت مشترک موردنیاز فیچرهای پیامکی به‌صورت یک جریان کامل پیاده‌سازی شود: تنظیم Seller، سرخط واقعی، قالب‌های داینامیک، Outbox، Adapter نسخه ۲ ارمغان، اعتبار داخلی، Eligibility، Opt-out، وضعیت تحویل و ابزارهای مشترک UI. این کارت پیش‌نیاز فعال‌سازی کارت‌های فیچری است.
 
-**مستند مرجع:** `docs/00-architecture-and-data-model.md`
+**مستندات:**
 
-**چک‌لیست:**
+- `docs/00-architecture-and-data-model.md`
+- `docs/01-armaghan-v2-adapter.md`
+- `docs/02-seller-sender-configuration.md`
+- `docs/03-dynamic-template-management.md`
+- `docs/19-template-id-and-binding-decision.md`
 
-- [ ] جدول `seller_sms_profiles` ایجاد شود.
-- [ ] جدول `seller_sender_lines` ایجاد شود.
-- [ ] جدول versioned برای `seller_sms_templates` ایجاد شود.
-- [ ] جدول `sms_outbox` با وضعیت‌ها و `idempotency_key` ایجاد شود.
-- [ ] جدول یک‌ردیف‌به‌ازای‌گیرنده `sms_messages` ایجاد شود.
-- [ ] جدول `customer_sms_preferences` ایجاد شود.
-- [ ] جدول suppression برای محدودیت‌های زمانی ایجاد شود.
-- [ ] همه کلیدهای Provider به‌صورت string ذخیره شوند.
-- [ ] Unique constraintهای seller-scoped تعریف شوند.
-- [ ] ساخت Business Record و Outbox در یک Transaction انجام شود.
-- [ ] تست Rollback تراکنش نوشته شود.
-- [ ] تست دسترسی Seller A به داده Seller B نوشته و Fail شود.
-- [ ] سیاست نگهداری Snapshot سرخط، قالب و متغیرها پیاده‌سازی شود.
+## چک‌لیست
 
-**معیار Done:** Migrationها اعمال شده، تست‌های تراکنش و tenant isolation سبز باشند و حداقل یک Outbox آزمایشی قابل پردازش باشد.
+- [ ] مدل‌های `seller_sms_profiles`، `seller_sender_lines` و `seller_sms_templates` ایجاد شوند.
+- [ ] مدل‌های `sms_outbox` و `sms_messages` با Idempotency و Snapshot ایجاد شوند.
+- [ ] مدل Opt-out، Suppression و App Credit ایجاد شود.
+- [ ] Adapter عملیات One-to-Many، Many-to-Many، Message State، Credit و Incoming ساخته شود.
+- [ ] Error Codeهای مستندشده Armaghan مدیریت شوند.
+- [ ] Timeout مبهم بدون Retry کور مدیریت شود.
+- [ ] سرخط واقعی هر Seller ثبت، تست و انتخاب شود.
+- [ ] شماره تصادفی Prototype حذف شود.
+- [ ] قالب پیش‌فرض هر Feature به Seller Template مستقل تبدیل شود.
+- [ ] Preview، Test Send، Versioning و کنترل متغیرها پیاده‌سازی شوند.
+- [ ] نرمال‌سازی، Dedupe، Opt-out، Daily Cap و Business Hours مشترک ساخته شوند.
+- [ ] Signature و محدودیت نهایی ۳۲۰ کاراکتر اعمال شوند.
+- [ ] اعتبار داخلی Seller مستقل از Provider Credit رزرو و Reconcile شود.
+- [ ] تنظیمات سرخط، قالب و تست پیام از UI به API واقعی متصل شوند.
+- [ ] تمام Queryها و اکشن‌ها Seller-Scoped باشند.
+- [ ] Credentialها در Secret Manager باشند و در UI/Log نمایش داده نشوند.
+- [ ] تست Cross-Seller، Error Mapping، Idempotency و Ambiguous Timeout سبز باشد.
 
----
+## معیار Done
 
-## کارت FND-02 — پیاده‌سازی Armaghan V2 Adapter
-
-**لیبل:** `P0 - زیرساخت`, `Backend`, `SMS Provider`, `Security`
-
-**توضیحات کارت:**
-
-یک Adapter مستقل برای عملیات مستندشده Armaghan v2 ساخته شود. HTTP 200 به‌تنهایی موفقیت نیست و `errorModel.errorCode` باید همیشه بررسی شود.
-
-**مستند مرجع:** `docs/01-armaghan-v2-adapter.md`
-
-**چک‌لیست:**
-
-- [ ] Config برای Base URL، Prefix، Username، Password و Timeout تعریف شود.
-- [ ] `sendMessageOneToMany` پیاده‌سازی شود.
-- [ ] `sendMessageManyToMany` پیاده‌سازی شود.
-- [ ] `getMessageState` پیاده‌سازی شود.
-- [ ] `getUserInfo` پیاده‌سازی شود.
-- [ ] `getReceivedMessages` پیاده‌سازی شود.
-- [ ] Error codeهای `-101`, `-103`, `-104`, `-105`, `-107`, `-110`, `-119`, `-201` Map شوند.
-- [ ] Timeout بعد از ارسال درخواست به وضعیت `ambiguous/unknown` تبدیل شود.
-- [ ] Retry فقط برای خطاهای امن و با Backoff/Jitter انجام شود.
-- [ ] Circuit Breaker برای خطاهای Account-Level اضافه شود.
-- [ ] لاگ‌ها Credential، متن کامل و شماره کامل نداشته باشند.
-- [ ] تست Unit برای Payload و Error Mapping نوشته شود.
-- [ ] تست Mock برای پاسخ موفق، خطای دائمی و Timeout مبهم نوشته شود.
-
-**معیار Done:** Adapter از طریق Interface داخلی قابل استفاده باشد، تست‌ها سبز باشند و هیچ Credential در Log دیده نشود.
+یک Seller بتواند سرخط واقعی و قالب خودش را تنظیم کند، پیام تست واقعی ارسال کند، Provider Reference دریافت کند و وضعیت پیام را بدون استفاده از Fixture مشاهده کند.
 
 ---
 
-## کارت FND-03 — تنظیم سرخط واقعی هر فروشنده و Test Send
+# کارت 01 — تنظیم و اتصال ساختار SMS خوش‌آمدگویی
 
-**لیبل:** `P0 - زیرساخت`, `Backend`, `Database`, `SMS Provider`
+**لیبل:** `P1 - فیچر لانچ`, `Loyalty`
 
-**توضیحات کارت:**
+## توضیحات
 
-برای هر فروشنده فقط سرخط واقعی و از قبل تأییدشده Armaghan در دیتابیس ثبت شود. شماره تصادفی Prototype حذف شود. Seller فقط Internal ID سرخط‌های خودش را ببیند و انتخاب کند.
+جریان خوش‌آمدگویی برای عضو جدید آنلاین و مشتری ثبت‌شده از Keypad حضوری به‌صورت کامل متصل شود. ثبت مشتری، امتیاز خوش‌آمدگویی، ساخت Outbox، ارسال از سرخط Seller، نمایش نتیجه در UI و تاریخچه همگی در همین کارت انجام شوند.
 
-**مستند مرجع:** `docs/02-seller-sender-configuration.md`
+**مستند:** `docs/04-welcome-and-walk-in.md`
 
-**چک‌لیست:**
+## چک‌لیست
 
-- [ ] API ادمین برای ثبت سرخط تأییدشده ایجاد شود.
-- [ ] Originator به‌صورت string ذخیره شود.
-- [ ] وضعیت‌های `pending`, `verified`, `disabled` اعمال شوند.
-- [ ] برای هر Seller فقط یک Default Active Line مجاز باشد.
-- [ ] API لیست سرخط‌های Seller با شماره Mask شده ایجاد شود.
-- [ ] API انتخاب Default Line ایجاد شود.
-- [ ] API Test Send واقعی ایجاد شود.
-- [ ] Test Send با `sendMessageOneToMany` و یک گیرنده مجاز انجام شود.
-- [ ] خطای `-103` سرخط را غیرفعال و Alert ایجاد کند.
-- [ ] Test Send از KPI کمپین حذف ولی Audit/Cost شود.
-- [ ] هیچ Originator آزاد از Frontend پذیرفته نشود.
-- [ ] تست Cross-Tenant برای List/Select/Test نوشته شود.
+- [ ] قالب `member.welcome` برای هر Seller ایجاد و قابل ویرایش شود.
+- [ ] متغیرهای `name`، `store_name`، `points` و `balance` متصل شوند.
+- [ ] فرم عضویت و Keypad حضوری به یک جریان واقعی متصل شوند.
+- [ ] موبایل در محدوده همان Seller نرمال و یکتا شود.
+- [ ] Customer و Welcome Points فقط یک‌بار و در یک Transaction ثبت شوند.
+- [ ] Outbox خوش‌آمدگویی در همان Transaction ساخته شود.
+- [ ] پیام از سرخط Default همان Seller ارسال شود.
+- [ ] Preview و Test Send از صفحه تنظیمات قابل اجرا باشند.
+- [ ] مشتری موجود دوباره امتیاز و پیام Welcome نگیرد.
+- [ ] Failure پیامک عضویت یا امتیاز را Rollback نکند.
+- [ ] Resend پیام، امتیاز جدید تولید نکند.
+- [ ] وضعیت Queued/Accepted/Delivered/Failed در UI نمایش داده شود.
+- [ ] تاریخچه پیام در گزارش مشتری ثبت شود.
+- [ ] تست ثبت آنلاین، حضوری، Duplicate و Cross-Seller نوشته شود.
 
-**معیار Done:** یک Seller بتواند فقط سرخط واقعی خودش را انتخاب و تست کند و سرخط Fixture در UI/Backend وجود نداشته باشد.
+## معیار Done
 
----
-
-## کارت FND-04 — قالب‌های داینامیک Seller-Scoped
-
-**لیبل:** `P0 - زیرساخت`, `Backend`, `Database`, `Security`
-
-**توضیحات کارت:**
-
-قالب‌ها در دیتابیس برنامه نگهداری شوند و برای ۱۴ فیچر فعلی Template ID پنل Armaghan استفاده نشود. هر Seller برای هر Feature یک نسخه فعال مستقل داشته باشد.
-
-**مستند مرجع:** `docs/03-dynamic-template-management.md`, `docs/19-template-id-and-binding-decision.md`
-
-**چک‌لیست:**
-
-- [ ] Platform Default برای هر `feature_key` تعریف شود.
-- [ ] هنگام فعال‌سازی فیچر، Default به Seller Template کپی شود.
-- [ ] API ساخت، ویرایش، لیست، Preview و Test قالب ایجاد شود.
-- [ ] ویرایش قالب Version جدید بسازد.
-- [ ] متغیرهای Canonical مانند `{name}` و `{store_name}` پیاده‌سازی شوند.
-- [ ] Unknown Variable رد شود.
-- [ ] Missing Required Variable رد شود.
-- [ ] متغیر حل‌نشده `{...}` اجازه ارسال نداشته باشد.
-- [ ] Signature قبل از کنترل طول اضافه شود.
-- [ ] طول نهایی ۳۲۰ کاراکتر Server-Side کنترل شود.
-- [ ] Snapshot نسخه قالب در Outbox ذخیره شود.
-- [ ] Seller A نتواند Template Seller B را استفاده کند.
-- [ ] برای متن یکسان One-to-Many و متن شخصی‌سازی‌شده Many-to-Many انتخاب شود.
-
-**معیار Done:** قالب‌های مستقل Seller قابل Preview/Test باشند و هیچ Armaghan Template ID برای این Scope لازم نباشد.
+عضو جدید دقیقاً یک Welcome Point Entry و یک Message Intent دریافت کند و تمام نتیجه از UI تا Provider و History قابل مشاهده باشد.
 
 ---
 
-## کارت FND-05 — سرویس مشترک Eligibility، نرمال‌سازی و اعتبار پیامک
+# کارت 02 — تنظیم و اتصال ساختار SMS کمپین دستی
 
-**لیبل:** `P0 - زیرساخت`, `Backend`, `Security`, `Database`
+**لیبل:** `P1 - فیچر لانچ`, `Campaign`
 
-**توضیحات کارت:**
+## توضیحات
 
-یک سرویس مشترک برای نرمال‌سازی شماره، حذف تکراری، Opt-out، محدودیت روزانه، Business Hours، Suppression و رزرو اعتبار داخلی Seller ساخته شود تا همه فیچرها از یک منطق استفاده کنند.
+ساخت، Preview، ارسال فوری، زمان‌بندی، لغو و گزارش کمپین دستی به‌صورت End-to-End متصل شود. Audience، قالب، Sender، Linked Tool، اعتبار، Provider Submission و UI Report در همان فیچر تکمیل شوند.
 
-**مستند مرجع:** `docs/00-architecture-and-data-model.md`
+**مستند:** `docs/05-manual-campaigns.md`
 
-**چک‌لیست:**
+## چک‌لیست
 
-- [ ] شماره‌های فارسی/عربی/لاتین نرمال شوند.
-- [ ] یک فرمت Canonical برای موبایل ایران انتخاب شود.
-- [ ] شماره نامعتبر قبل از رزرو اعتبار حذف شود.
-- [ ] Dedupe براساس موبایل نرمال‌شده انجام شود.
-- [ ] Opt-out براساس Seller و Mobile بررسی شود.
-- [ ] Daily Cap و Suppression بررسی شوند.
-- [ ] Business Hours براساس timezone فروشگاه بررسی شوند.
-- [ ] Signature و Final Length کنترل شوند.
-- [ ] App Credit از Provider Credit جدا باشد.
-- [ ] Reserve/Commit/Release اعتبار داخلی پیاده‌سازی شود.
-- [ ] دلیل حذف هر گیرنده در گزارش ذخیره شود.
-- [ ] همان Eligibility قبل از Provider Call دوباره بررسی شود.
-- [ ] تست Race برای Opt-out همزمان با Dispatch نوشته شود.
+- [ ] ساختار Campaign، Run و Recipient ایجاد شود.
+- [ ] فرم ساخت کمپین Prototype به API واقعی متصل شود.
+- [ ] Audience، Template و Linked Tool متعلق به Seller بررسی شوند.
+- [ ] Preview شامل تعداد اولیه، واجدشرایط، حذف‌شده و هزینه باشد.
+- [ ] Template، Sender، Audience و Tool هنگام ثبت Snapshot شوند.
+- [ ] Send Now و Schedule در UI و Backend متصل شوند.
+- [ ] زمان Seller با `Asia/Tehran` به UTC تبدیل و ذخیره شود.
+- [ ] Eligibility و Opt-out در زمان ارسال دوباره بررسی شوند.
+- [ ] اعتبار داخلی فقط برای Eligibleهای نهایی رزرو شود.
+- [ ] متن یکسان با One-to-Many و متن شخصی با Many-to-Many ارسال شود.
+- [ ] Idempotency برای Run و هر Recipient اعمال شود.
+- [ ] Cancel فقط گیرنده‌های ارسال‌نشده را متوقف کند.
+- [ ] وضعیت واقعی هر Run در صفحه کمپین نمایش داده شود.
+- [ ] درصدهای Fixture با داده Provider جایگزین شوند.
+- [ ] تست Send Now، Schedule، Cancel، Retry و Cross-Seller سبز باشد.
 
-**معیار Done:** همه مسیرهای ارسال از این سرویس مشترک استفاده کنند و امکان دورزدن Opt-out/Quota/Credit وجود نداشته باشد.
+## معیار Done
 
----
-
-## کارت SMS-01 — پیام خوش‌آمدگویی و ثبت مشتری حضوری
-
-**لیبل:** `P1 - ضروری لانچ`, `Backend`, `Database`
-
-**توضیحات کارت:**
-
-برای عضو واقعاً جدید، مشتری و امتیاز خوش‌آمدگویی یک‌بار ثبت شوند و پیام Seller-Scoped ارسال شود. مسیر Online و Keypad حضوری از یک منطق Backend استفاده کنند.
-
-**مستند مرجع:** `docs/04-welcome-and-walk-in.md`
-
-**چک‌لیست:**
-
-- [ ] API ثبت مشتری حضوری ایجاد شود.
-- [ ] موبایل در محدوده Seller یکتا شود.
-- [ ] Find-or-Create داخل Transaction انجام شود.
-- [ ] Welcome Points Ledger فقط یک‌بار ثبت شود.
-- [ ] Outbox در همان Transaction ساخته شود.
-- [ ] Idempotency با `welcome:{sellerId}:{customerId}` اعمال شود.
-- [ ] پیام با سرخط و قالب Seller ارسال شود.
-- [ ] مشتری موجود دوباره امتیاز یا پیام Welcome نگیرد.
-- [ ] Failure پیامک عضویت/امتیاز را Rollback نکند.
-- [ ] Resend امتیاز جدید تولید نکند.
-- [ ] Prototype Keypad به API واقعی متصل شود.
-- [ ] تاریخچه پیام در گزارش مشتری نمایش داده شود.
-
-**معیار Done:** عضو جدید دقیقاً یک امتیاز و یک Message Intent داشته باشد و Retry باعث تکرار نشود.
+Seller بتواند یک کمپین واقعی را از UI ایجاد و ارسال/زمان‌بندی کند و گزارش واقعی هر گیرنده را مشاهده کند.
 
 ---
 
-## کارت SMS-02 — کمپین دستی و زمان‌بندی‌شده
+# کارت 03 — تنظیم و اتصال ساختار SMS گروهی
 
-**لیبل:** `P1 - ضروری لانچ`, `Backend`, `Queue/Scheduler`, `Reports`
+**لیبل:** `P1 - فیچر لانچ`, `Campaign`
 
-**توضیحات کارت:**
+## توضیحات
 
-Seller بتواند کمپین را Preview، ایجاد، ارسال فوری/زمان‌بندی، لغو و گزارش‌گیری کند. Audience و ابزار متصل باید متعلق به همان Seller باشند.
+ارسال گروهی به چند Segment با Union واقعی، حذف شماره تکراری، فیلتر Opt-out، محاسبه هزینه، ارسال Batch، وضعیت تحویل و اتصال کامل Composer/History پیاده‌سازی شود.
 
-**مستند مرجع:** `docs/05-manual-campaigns.md`
+**مستند:** `docs/06-bulk-sms.md`
 
-**چک‌لیست:**
+## چک‌لیست
 
-- [ ] جدول Campaign، Run و Recipient ایجاد شود.
-- [ ] API Preview با Gross/Eligible/Excluded/Cost ساخته شود.
-- [ ] API Create/Send/Cancel/Report ساخته شود.
-- [ ] Template، Sender، Audience و Linked Tool Snapshot شوند.
-- [ ] زمان Local با `Asia/Tehran` به UTC تبدیل و هر دو ذخیره شوند.
-- [ ] Scheduler برای Run موعدرسیده Lock بگیرد.
-- [ ] Audience در زمان اجرا دوباره Resolve شود.
-- [ ] Eligibility نهایی و Dedupe اجرا شود.
-- [ ] App Credit قبل از Provider Call رزرو شود.
-- [ ] Endpoint مناسب One-to-Many/Many-to-Many انتخاب شود.
-- [ ] Idempotency هر Run/Recipient اعمال شود.
-- [ ] Cancel فقط موارد ارسال‌نشده را متوقف کند.
-- [ ] گزارش واقعی جایگزین درصدهای Fixture شود.
-
-**معیار Done:** Send Now، Schedule، Cancel و Report در Staging با یک Seller واقعی و بدون Duplicate کار کنند.
-
----
-
-## کارت SMS-03 — پیامک گروهی چندبخشی
-
-**لیبل:** `P1 - ضروری لانچ`, `Backend`, `Queue/Scheduler`, `Reports`
-
-**توضیحات کارت:**
-
-Union چند Segment Seller ساخته شود، شماره‌ها Deduplicate و فیلتر شوند و پیام یکسان یا شخصی‌سازی‌شده با Batch امن ارسال شود.
-
-**مستند مرجع:** `docs/06-bulk-sms.md`
-
-**چک‌لیست:**
-
-- [ ] API Estimate/Run/Cancel/Detail/Test ایجاد شود.
-- [ ] Segment Ownership بررسی شود.
-- [ ] Union اعضا ساخته شود؛ Countها مستقیم جمع نشوند.
-- [ ] Dedupe موبایل نرمال‌شده انجام شود.
-- [ ] Exclusion Reason ذخیره شود.
-- [ ] App Credit براساس Eligible نهایی رزرو شود.
+- [ ] انتخاب چند Segment در UI به API واقعی متصل شود.
+- [ ] Segmentها فقط از Seller جاری Resolve شوند.
+- [ ] Union اعضا ساخته و Countها مستقیم جمع نشوند.
+- [ ] موبایل‌ها نرمال و Deduplicate شوند.
+- [ ] دلیل حذف Invalid/Opt-out/Cap/Suppression ذخیره شود.
+- [ ] تعداد Eligible و هزینه زنده به UI برگردد.
+- [ ] قالب سریع، متغیرها، Preview و محدودیت ۳۲۰ کاراکتر متصل شوند.
+- [ ] Send Now، Schedule و Test Send واقعی شوند.
+- [ ] App Credit قبل از ارسال رزرو شود.
 - [ ] Batch Size قابل تنظیم باشد.
-- [ ] Content/Destination از یک آرایه Object ساخته شوند.
-- [ ] تطابق Index در Many-to-Many تست شود.
-- [ ] Overlapping Segment فقط یک پیام تولید کند.
-- [ ] Test Send از KPI اصلی جدا شود.
-- [ ] Timeout مبهم باعث ارسال مجدد کور نشود.
-- [ ] گزارش Partial/Unknown نمایش داده شود.
+- [ ] Contents و Destinations همیشه از یک آرایه Recipient ساخته شوند.
+- [ ] One-to-Many/Many-to-Many براساس متن نهایی انتخاب شود.
+- [ ] Retry گیرنده Accepted یا Unknown را دوباره ارسال نکند.
+- [ ] History و Delivery Report واقعی در UI نمایش داده شوند.
+- [ ] تست Segment هم‌پوشان، Batch Boundary و Array Alignment سبز باشد.
 
-**معیار Done:** تست Segmentهای هم‌پوشان، Batch Boundary و Personalized Array Alignment سبز باشد.
+## معیار Done
+
+ارسال گروهی واقعی بدون Duplicate و با گزارش کامل Eligible/Excluded/Delivery از UI قابل انجام باشد.
 
 ---
 
-## کارت SMS-04 — پیام شخصی و مستقیم
+# کارت 04 — تنظیم و اتصال ساختار SMS شخصی
 
-**لیبل:** `P1 - ضروری لانچ`, `Backend`, `Security`
+**لیبل:** `P1 - فیچر لانچ`, `Campaign`
 
-**توضیحات کارت:**
+## توضیحات
 
-ارسال به یک Customer، شماره دستی مجاز، یا Segment پیاده‌سازی شود. حالت Segment باید وارد Bulk Pipeline شود و کنترل‌ها را دور نزند.
+ارسال پیام مستقیم به یک مشتری، شماره دستی مجاز یا یک Segment به‌صورت کامل پیاده‌سازی شود. انتخاب گیرنده، قالب ذخیره‌شده، پیام سریع، Opt-out، Provider و History در یک فیچر متصل شوند.
 
-**مستند مرجع:** `docs/07-personal-messages.md`
+**مستند:** `docs/07-personal-messages.md`
 
-**چک‌لیست:**
+## چک‌لیست
 
-- [ ] API Preview/Send/History ساخته شود.
-- [ ] Customer ID فقط در Seller جاری Resolve شود.
-- [ ] Manual Mobile نرمال و Actor/Reason آن Audit شود.
-- [ ] Manual Mode متغیرهای Customer را نپذیرد.
-- [ ] Segment Mode به Bulk Run تبدیل شود.
-- [ ] Opt-out و Daily Cap بررسی شوند.
-- [ ] Idempotency با Client Command ID اعمال شود.
+- [ ] حالت Customer، Manual Mobile و Segment در UI متصل شوند.
+- [ ] Customer فقط در Seller جاری Resolve شود.
+- [ ] شماره دستی نرمال و Actor/Reason آن Audit شود.
+- [ ] Manual Mode متغیرهای وابسته به Customer را رد کند.
+- [ ] Segment Mode از همان Bulk Pipeline استفاده کند.
+- [ ] Saved Messageها Seller-Scoped و Versioned باشند.
+- [ ] Preview نهایی قبل از ارسال نمایش داده شود.
+- [ ] Opt-out، Daily Cap و Business Hours بررسی شوند.
 - [ ] ارسال تک‌گیرنده با One-to-Many انجام شود.
 - [ ] از GET One-to-One استفاده نشود.
-- [ ] Saved Messageها Versioned و Seller-Scoped باشند.
-- [ ] Resend کنترل‌شده Message Intent جدید و مرتبط بسازد.
-- [ ] شماره و متن کامل در Log قرار نگیرد.
+- [ ] Client Command ID از ارسال تکراری جلوگیری کند.
+- [ ] Resend کنترل‌شده به Message اصلی لینک شود.
+- [ ] وضعیت ارسال در همان بخش Personal Message نمایش داده شود.
+- [ ] تست هر سه Mode، Duplicate و Cross-Seller سبز باشد.
 
-**معیار Done:** هر سه Mode با کنترل Tenant/Consent درست کار کنند و Replay پیام تکراری نسازد.
+## معیار Done
+
+اپراتور بتواند از UI یک پیام مستقیم واقعی ارسال کند و نتیجه آن را بدون دورزدن Consent یا Tenant Isolation ببیند.
 
 ---
 
-## کارت SMS-05 — یادآوری عدم خرید
+# کارت 05 — تنظیم و اتصال ساختار SMS یادآوری عدم خرید
 
-**لیبل:** `P1 - ضروری لانچ`, `Backend`, `Queue/Scheduler`
+**لیبل:** `P1 - فیچر لانچ`, `Automation`
 
-**توضیحات کارت:**
+## توضیحات
 
-Ruleهای ۱ تا ۳۶۵ روز براساس آخرین سفارش Paid/Completed Seller اجرا شوند و محدودیت پیش‌فرض ۳۰ روز بین Reminderها رعایت شود.
+Ruleهای یادآوری براساس آخرین سفارش Paid/Completed ایجاد و خودکار اجرا شوند. تنظیم Rule، Preview، Scheduler، Suppression، ارسال و History در یک فیچر کامل شوند.
 
-**مستند مرجع:** `docs/08-inactivity-reminders.md`
+**مستند:** `docs/08-inactivity-reminders.md`
 
-**چک‌لیست:**
+## چک‌لیست
 
-- [ ] جدول Rule و Delivery History ایجاد شود.
-- [ ] API Create/Edit/Preview/Status/History ساخته شود.
-- [ ] فقط Orderهای Paid/Completed مبنای Last Purchase باشند.
+- [ ] فرم ساخت/ویرایش Rule به API واقعی متصل شود.
+- [ ] Rule Days بین ۱ تا ۳۶۵ کنترل شود.
+- [ ] Audience و Template متعلق به Seller بررسی شوند.
+- [ ] فقط سفارش Paid/Completed مبنای آخرین خرید باشد.
 - [ ] Scheduler براساس timezone Seller اجرا شود.
-- [ ] Lock `(rule, local date)` پیاده‌سازی شود.
-- [ ] قبل از Queue خرید جدید دوباره بررسی شود.
-- [ ] Suppression ۳۰ روزه اعمال شود.
-- [ ] Rule Days خارج ۱ تا ۳۶۵ رد شود.
-- [ ] متغیرهای Days/Points/Date از Server ساخته شوند.
-- [ ] Discount Code فقط در صورت وجود واقعی Render شود.
-- [ ] Idempotency Window برای هر Customer اعمال شود.
-- [ ] History شامل Exclusion و Provider State باشد.
+- [ ] برای هر Rule/Local Date قفل اجرا ایجاد شود.
+- [ ] قبل از Queue، خرید جدید دوباره بررسی شود.
+- [ ] Suppression پیش‌فرض ۳۰ روز اعمال شود.
+- [ ] متغیرهای Name/Days/Points/Date از داده واقعی ساخته شوند.
+- [ ] Discount Code فقط در صورت وجود واقعی استفاده شود.
+- [ ] ارسال شخصی‌سازی‌شده از سرخط Seller انجام شود.
+- [ ] Settings، History و Delivery State در UI نمایش داده شوند.
+- [ ] Duplicate Worker پیام تکراری نسازد.
+- [ ] تست Timezone، Suppression، New Purchase و Cross-Seller سبز باشد.
 
-**معیار Done:** Duplicate Worker و خرید همزمان باعث Reminder اشتباه/تکراری نشوند.
+## معیار Done
 
----
-
-## کارت SMS-06 — تولد و مناسبت سفارشی
-
-**لیبل:** `P1 - ضروری لانچ`, `Backend`, `Queue/Scheduler`
-
-**توضیحات کارت:**
-
-پیام تولد سالانه و مناسبت دارای تاریخ/زمان/Audience اجرا شوند. تاریخ‌ها Canonical ذخیره و فقط برای UI به فارسی نمایش داده شوند.
-
-**مستند مرجع:** `docs/09-birthday-and-occasions.md`
-
-**چک‌لیست:**
-
-- [ ] مدل Occasion/Run/Recipient ایجاد شود.
-- [ ] Birthday به‌عنوان System Occasion غیرقابل حذف Seed شود.
-- [ ] API Create/Edit/Status/Preview/History ساخته شود.
-- [ ] مناسبت بدون تاریخ/زمان فعال نشود.
-- [ ] سیاست Calendar و Leap Day تعیین شود.
-- [ ] Scheduler در Local Time Seller اجرا شود.
-- [ ] Birthday سالانه Idempotent باشد.
-- [ ] Audience/Consent/Cap فیلتر شوند.
-- [ ] Discount Code جعلی Render نشود.
-- [ ] Template/Sender Snapshot ذخیره شود.
-- [ ] Business-Hour Adjustment ثبت شود.
-- [ ] گزارش Run واقعی ساخته شود.
-
-**معیار Done:** یک Customer در یک Seller در هر سال فقط یک Birthday Intent دریافت کند و تست Leap Day سبز باشد.
+Rule از UI تنظیم شود، در زمان صحیح اجرا شود و فقط مشتری واقعاً واجدشرایط یک پیام Idempotent دریافت کند.
 
 ---
 
-## کارت SMS-07 — اعلان انقضای امتیاز
+# کارت 06 — تنظیم و اتصال ساختار SMS تولد و مناسبت‌ها
 
-**لیبل:** `P1 - ضروری لانچ`, `Backend`, `Database`, `Queue/Scheduler`
+**لیبل:** `P1 - فیچر لانچ`, `Automation`
 
-**توضیحات کارت:**
+## توضیحات
 
-اعلان انقضا براساس Points Lotهای دارای Remaining Amount ساخته شود؛ نه فقط Balance کل. خرج‌شدن همزمان امتیاز باید قبل از Dispatch دوباره بررسی شود.
+پیام تولد سالانه و مناسبت سفارشی دارای تاریخ، ساعت و Audience به‌صورت کامل متصل شوند. مدیریت مناسبت، تقویم، Scheduler، قالب، ارسال و گزارش در همان کارت انجام شوند.
 
-**مستند مرجع:** `docs/10-points-expiry.md`
+**مستند:** `docs/09-birthday-and-occasions.md`
 
-**چک‌لیست:**
+## چک‌لیست
 
-- [ ] Points Lot و Remaining/Expiry قابل Query باشند.
-- [ ] Settings روز هشدار و ساعت ارسال ایجاد شود.
-- [ ] API Settings/Preview/History ساخته شود.
-- [ ] Lotهای یک Customer/Expiry Date طبق Policy تجمیع شوند.
-- [ ] Lot خرج‌شده/Reversed/Expired حذف شود.
-- [ ] Transaction Snapshot برای مبلغ انقضا ساخته شود.
+- [ ] Birthday به‌عنوان مناسبت سیستمی غیرقابل حذف ساخته شود.
+- [ ] فرم مناسبت جدید/ویرایش/فعال‌سازی به API متصل شود.
+- [ ] مناسبت بدون تاریخ، ساعت، Audience و Template فعال نشود.
+- [ ] تاریخ Canonical ذخیره و برای UI فارسی نمایش داده شود.
+- [ ] سیاست Leap Day و نوع تقویم مشخص و تست شود.
+- [ ] Scheduler در ساعت محلی Seller اجرا شود.
+- [ ] Birthday برای هر Customer/Year فقط یک‌بار Queue شود.
+- [ ] Audience، Opt-out، Cap و Business Hours اعمال شوند.
+- [ ] Template و Sender Seller استفاده شوند.
+- [ ] Discount Code غیرواقعی در متن قرار نگیرد.
+- [ ] Preview مناسبت از UI قابل مشاهده باشد.
+- [ ] History و Delivery Report واقعی نمایش داده شوند.
+- [ ] تست Birthday Duplicate، Custom Occasion و Calendar سبز باشد.
+
+## معیار Done
+
+Seller بتواند مناسبت را کامل تنظیم کند و پیام در تاریخ صحیح، یک‌بار و با گزارش واقعی ارسال شود.
+
+---
+
+# کارت 07 — تنظیم و اتصال ساختار SMS انقضای امتیاز
+
+**لیبل:** `P1 - فیچر لانچ`, `Automation`, `Loyalty`
+
+## توضیحات
+
+هشدار انقضای امتیاز براساس Points Lotهای باقی‌مانده تنظیم و اجرا شود. Settings، محاسبه امتیاز، Race با Spend، پیام و History در یک فیچر پیاده‌سازی شوند.
+
+**مستند:** `docs/10-points-expiry.md`
+
+## چک‌لیست
+
+- [ ] تنظیم Days Before Expiry، ساعت و Template به UI متصل شود.
+- [ ] Points Lot با Remaining و Expiry از Ledger خوانده شود.
+- [ ] Lotهای خرج‌شده/Reversed/Expired حذف شوند.
+- [ ] Lotهای یک تاریخ طبق Policy تجمیع شوند.
+- [ ] مبلغ Expiring Points در Transaction Snapshot شود.
+- [ ] Idempotency برای Seller/Customer/Expiry Date اعمال شود.
 - [ ] قبل از Provider Call Remaining دوباره بررسی شود.
-- [ ] Idempotency Seller/Customer/Expiry Date اعمال شود.
-- [ ] متغیرهای Points/Balance/Date از Ledger ساخته شوند.
-- [ ] Race Test با خرج همزمان نوشته شود.
-- [ ] Failure پیامک هیچ Pointی تغییر ندهد.
-- [ ] History به Lot IDها متصل باشد.
+- [ ] Name/Points/Balance/Date از داده واقعی Render شوند.
+- [ ] Opt-out/Classification و Business Hours اعمال شوند.
+- [ ] پیام شخصی از سرخط Seller ارسال شود.
+- [ ] Preview و History در UI نمایش داده شوند.
+- [ ] Failure پیامک Pointها را تغییر ندهد.
+- [ ] تست Spend همزمان، چند Lot و Duplicate Scheduler سبز باشد.
 
-**معیار Done:** پیام فقط برای امتیاز واقعاً باقی‌مانده Queue شود و Race با Spend کنترل شده باشد.
+## معیار Done
+
+هشدار فقط برای امتیاز واقعاً باقی‌مانده ارسال شود و خرج همزمان باعث پیام اشتباه نشود.
 
 ---
 
-## کارت SMS-08 — اعلان Retargeting و Cashback
+# کارت 08 — تنظیم و اتصال ساختار SMS هدف‌گیری مجدد
 
-**لیبل:** `P1 - ضروری لانچ`, `Backend`, `Database`, `Queue/Scheduler`
+**لیبل:** `P1 - فیچر لانچ`, `Automation`, `Loyalty`
 
-**توضیحات کارت:**
+## توضیحات
 
-پس از ثبت قطعی اعتبار بازگشت/Cashback و قبل از انقضای اعتبار استفاده‌نشده، اعلان Seller-Scoped ارسال شود. SMS Worker به Ledger مالی دست نزند.
+اعلان ثبت اعتبار بازگشت/Cashback و هشدار انقضای آن به Ledger واقعی متصل شوند. تنظیمات، Grant، Scheduler، پیام و History به‌صورت End-to-End تکمیل شوند.
 
-**مستند مرجع:** `docs/11-retargeting-notifications.md`
+**مستند:** `docs/11-retargeting-notifications.md`
 
-**چک‌لیست:**
+## چک‌لیست
 
-- [ ] Credit Ledger و Notification Record ایجاد شود.
-- [ ] Grant Ruleها Server-Side محاسبه شوند.
-- [ ] Grant و Outbox در یک Transaction ساخته شوند.
+- [ ] تنظیمات Grant و Expiry Notification به UI/API متصل شوند.
+- [ ] مقدار Credit با Ruleهای Server-Side محاسبه شود.
+- [ ] Credit Ledger و Grant Outbox در یک Transaction ثبت شوند.
 - [ ] Manual Grant شامل Actor و Reason باشد.
-- [ ] Grant Message با Credit ID Idempotent باشد.
-- [ ] Expiry Scheduler فقط Remaining مثبت را انتخاب کند.
-- [ ] Credit مصرف‌شده/منقضی/Reversed حذف شود.
-- [ ] Grant و Expiry Template جدا باشند.
-- [ ] Amount/Date از Snapshot Ledger Render شوند.
-- [ ] Failure پیامک Credit را حذف/تکرار نکند.
-- [ ] Reversal یک Ledger Event جدا باشد.
-- [ ] History به Credit و Provider Reference متصل شود.
+- [ ] Grant برای Source یک‌بار ثبت شود.
+- [ ] Scheduler فقط Credit استفاده‌نشده و مثبت را انتخاب کند.
+- [ ] Credit Expired/Used/Reversed حذف شود.
+- [ ] قالب Grant و Expiry جدا و Seller-Scoped باشند.
+- [ ] Amount/Balance/Date از Snapshot Ledger Render شوند.
+- [ ] ارسال از سرخط Seller انجام شود.
+- [ ] Failure پیامک Credit را تغییر یا تکرار نکند.
+- [ ] Settings، KPIs و History از داده واقعی نمایش داده شوند.
+- [ ] تست Duplicate Grant، Expiry و Reversal سبز باشد.
 
-**معیار Done:** یک Source فقط یک Credit و یک Grant Notification Intent تولید کند.
+## معیار Done
+
+ثبت یا انقضای Credit دقیقاً یک Message Intent ایجاد کند و Ledger مستقل از نتیجه SMS صحیح باقی بماند.
 
 ---
 
-## کارت SMS-09 — پیام دعوت و پاداش Referral
+# کارت 09 — تنظیم و اتصال ساختار SMS دعوت دوستان
 
-**لیبل:** `P1 - ضروری لانچ`, `Backend`, `Security`
+**لیبل:** `P1 - فیچر لانچ`, `Loyalty`, `Compliance`
 
-**توضیحات کارت:**
+## توضیحات
 
-لینک دعوت امن و Seller-Scoped ارسال شود و پاداش فقط بعد از Qualification معتبر و یک‌بار ثبت شود.
+ارسال دعوت Referral، لینک امن، Qualification و پیام پاداش به‌صورت یک فیچر کامل متصل شوند. کنترل سوءاستفاده و Tenant Isolation بخشی از همان کارت است.
 
-**مستند مرجع:** `docs/12-referral-messages.md`
+**مستند:** `docs/12-referral-messages.md`
 
-**چک‌لیست:**
+## چک‌لیست
 
-- [ ] مدل Referral، Invite و Reward ایجاد شود.
-- [ ] Token/Link تصادفی، Signed و Expiring باشد.
-- [ ] API ارسال دعوت ایجاد شود.
+- [ ] UI دعوت دوست به API واقعی متصل شود.
+- [ ] Referral Token تصادفی، Expiring و Seller-Scoped باشد.
+- [ ] شماره دعوت‌شونده نرمال و Opt-out بررسی شود.
 - [ ] Self-Referral رد شود.
-- [ ] Rate Limit روزانه Inviter/Destination/IP اعمال شود.
-- [ ] Token فقط در Seller خودش Resolve شود.
+- [ ] محدودیت روزانه Inviter/Destination/IP اعمال شود.
+- [ ] لینک دعوت در قالب Seller Render شود.
 - [ ] Qualification ثبت‌نام/اولین خرید معتبر بررسی شود.
-- [ ] Reward Ledgerها اتمیک و Unique باشند.
+- [ ] پاداش Inviter/Invitee حداکثر یک‌بار و اتمیک ثبت شود.
 - [ ] Reward Outbox در همان Transaction ساخته شود.
-- [ ] متن فقط Reward واقعاً تنظیم‌شده را وعده دهد.
-- [ ] Failure پیامک Reward را تکرار/برگشت ندهد.
-- [ ] تست Abuse و Cross-Seller نوشته شود.
+- [ ] پیام فقط Reward واقعاً تنظیم‌شده را اعلام کند.
+- [ ] Failure پیامک پاداش را تکرار یا حذف نکند.
+- [ ] Funnel و History واقعی در UI نمایش داده شوند.
+- [ ] تست Abuse، Replay، Cross-Seller و Reward Uniqueness سبز باشد.
 
-**معیار Done:** Replay Qualification یا Token نتواند پاداش دوباره یا Cross-Tenant ایجاد کند.
+## معیار Done
+
+دعوت از UI تا پیام و Qualification کامل باشد و هیچ مسیر تکرار یا سوءاستفاده برای پاداش وجود نداشته باشد.
 
 ---
 
-## کارت SMS-10 — پیام دعوت گردونه و اعلام برنده
+# کارت 10 — تنظیم و اتصال ساختار SMS گردونه شانس
 
-**لیبل:** `P1 - ضروری لانچ`, `Backend`, `Security`, `Database`
+**لیبل:** `P1 - فیچر لانچ`, `Loyalty`
 
-**توضیحات کارت:**
+## توضیحات
 
-دعوت با لینک امن ارسال شود و پیام برنده فقط بعد از Spin قطعی Server-Side ساخته شود. نتیجه JavaScript Prototype معتبر نیست.
+پیام دعوت به گردونه و پیام اعلام برنده به Spin قطعی Server-Side متصل شوند. تنظیمات گردونه، لینک، نتیجه، جایزه، Code، پیام و History در یک کارت تکمیل شوند.
 
-**مستند مرجع:** `docs/13-wheel-messages.md`
+**مستند:** `docs/13-wheel-messages.md`
 
-**چک‌لیست:**
+## چک‌لیست
 
-- [ ] Ownership/Active Period گردونه بررسی شود.
-- [ ] تعداد جایزه ۲ تا ۸ و مجموع Chance دقیقاً ۱۰۰٪ باشد.
-- [ ] Invitation Link Seller/Wheel/Customer Scoped باشد.
-- [ ] Daily Spin Cap Server-Side اعمال شود.
-- [ ] Entry Cost و Participation Reward جدا باشند.
+- [ ] تنظیمات گردونه و جوایز از UI در Backend ذخیره شوند.
+- [ ] تعداد Prize بین ۲ تا ۸ و مجموع Chance دقیقاً ۱۰۰٪ باشد.
+- [ ] دعوت با لینک Seller/Wheel/Customer Scoped ساخته شود.
+- [ ] پیام دعوت با لینک شخصی از سرخط Seller ارسال شود.
+- [ ] Daily Spin Cap و Entry Cost Server-Side اعمال شوند.
 - [ ] Spin با Secure Randomness Server-Side انجام شود.
 - [ ] Points/Prize/Code/Outbox در یک Transaction ثبت شوند.
-- [ ] Spin Command Idempotent باشد.
-- [ ] Winner Message از Prize Snapshot ساخته شود.
-- [ ] SMS Failure باعث Reroll/Reaward نشود.
-- [ ] Resend همان Code را استفاده کند.
-- [ ] گزارش Invitation/Winner با Provider Reference ساخته شود.
+- [ ] Duplicate Spin فقط یک Outcome داشته باشد.
+- [ ] پیام Winner از Prize Snapshot قطعی ساخته شود.
+- [ ] Failure پیامک باعث Reroll/Reaward نشود.
+- [ ] Resend همان Code و Prize را استفاده کند.
+- [ ] Winners و Delivery History واقعی در UI نمایش داده شوند.
+- [ ] تست Concurrency، Chance، Duplicate و Cross-Seller سبز باشد.
 
-**معیار Done:** Duplicate Spin دقیقاً یک Outcome و یک Message Intent داشته باشد.
+## معیار Done
+
+از دعوت تا Spin و پیام برنده، کل جریان Server-Authoritative، Idempotent و قابل گزارش باشد.
 
 ---
 
-## کارت SMS-11 — دعوت و یادآوری نظرسنجی
+# کارت 11 — تنظیم و اتصال ساختار SMS نظرسنجی
 
-**لیبل:** `P1 - ضروری لانچ`, `Backend`, `Security`, `Queue/Scheduler`
+**لیبل:** `P1 - فیچر لانچ`, `Campaign`, `Loyalty`
 
-**توضیحات کارت:**
+## توضیحات
 
-برای هر گیرنده لینک امن اختصاصی ارسال شود، پاسخ و پاداش حداکثر یک‌بار ثبت شوند و Reminder فقط برای Non-Respondentهای Run اولیه ارسال شود.
+دعوت نظرسنجی، لینک اختصاصی، ثبت پاسخ، پاداش و Reminder افراد بی‌پاسخ به‌صورت یک فیچر کامل متصل شوند.
 
-**مستند مرجع:** `docs/14-survey-messages.md`
+**مستند:** `docs/14-survey-messages.md`
 
-**چک‌لیست:**
+## چک‌لیست
 
-- [ ] Survey دارای ۲ تا ۶ Option معتبر باشد.
-- [ ] Run/Audience/Template Snapshot شود.
-- [ ] Token اختصاصی Seller/Survey/Run/Customer ساخته شود.
-- [ ] Invitation با Many-to-Many و لینک‌های هم‌تراز ارسال شود.
-- [ ] Public GET/POST Token Endpoint ساخته شود.
-- [ ] Token Signature/Expiry/Scope بررسی شود.
-- [ ] Option متعلق به Snapshot Survey باشد.
-- [ ] یک Response و یک Reward حداکثر ثبت شود.
-- [ ] Response/Reward اتمیک باشند.
-- [ ] Reminder فقط Recipientهای دعوت‌شده و بدون پاسخ را بگیرد.
+- [ ] فرم ساخت Survey و ۲ تا ۶ Option به API متصل شود.
+- [ ] Audience، Template و Schedule ذخیره و Snapshot شوند.
+- [ ] برای هر گیرنده Token امن و اختصاصی ساخته شود.
+- [ ] Invitation با لینک‌های شخصی Many-to-Many ارسال شود.
+- [ ] صفحه عمومی مشاهده/ثبت پاسخ با Token متصل شود.
+- [ ] Token Scope، Expiry و Option Ownership بررسی شوند.
+- [ ] یک Response و Reward حداکثر یک‌بار ثبت شوند.
+- [ ] Response و Reward در یک Transaction ثبت شوند.
+- [ ] Reminder فقط برای Inviteeهای بدون پاسخ ارسال شود.
 - [ ] Survey پایان‌یافته رفتار مشخص داشته باشد.
-- [ ] Funnel Invite/Delivery/Response واقعی گزارش شود.
+- [ ] Results، Invite Delivery و Response Funnel در UI واقعی شوند.
+- [ ] Failure پیامک Survey State یا Reward را خراب نکند.
+- [ ] تست Token، Duplicate Response، Reward و Reminder سبز باشد.
 
-**معیار Done:** یک Customer نتواند دوبار پاسخ/پاداش بگیرد و Respondent Reminder دریافت نکند.
+## معیار Done
+
+Seller بتواند Survey را از UI اجرا کند و Funnel دعوت، تحویل و پاسخ واقعی را مشاهده کند.
 
 ---
 
-## کارت SMS-12 — تأیید پیامکی خرید از Club
+# کارت 12 — تنظیم و اتصال ساختار SMS تأیید خرید کلاب
 
-**لیبل:** `P1 - ضروری لانچ`, `Backend`, `Database`, `Security`
+**لیبل:** `P1 - فیچر لانچ`, `Loyalty`
 
-**توضیحات کارت:**
+## توضیحات
 
-کسر امتیاز، کاهش موجودی، ساخت Redemption و Code و Outbox در یک Transaction انجام شوند. پیام شکست‌خورده نباید Redemption را ناقص کند.
+خرید آیتم کلاب، کسر امتیاز، کاهش موجودی، ساخت Code، ارسال تأیید و نمایش History به‌صورت یک جریان کامل و اتمیک پیاده‌سازی شوند.
 
-**مستند مرجع:** `docs/15-club-redemption.md`
+**مستند:** `docs/15-club-redemption.md`
 
-**چک‌لیست:**
+## چک‌لیست
 
-- [ ] API Redemption و Resend ساخته شود.
+- [ ] صفحه خرید Customer به Redemption API واقعی متصل شود.
 - [ ] Seller/Customer/Item Ownership بررسی شود.
-- [ ] Stock و Point Balance Lock/Version شوند.
+- [ ] Stock و Points Balance Lock/Version شوند.
 - [ ] Active/Stock/Balance/Daily Cap بررسی شوند.
-- [ ] Client Command ID یکتا باشد.
-- [ ] Points Ledger و Stock Update اتمیک باشند.
-- [ ] Redemption Code امن و یکتا ساخته شود.
-- [ ] Outbox در همان Transaction ساخته شود.
-- [ ] UI بلافاصله Code قطعی را نمایش دهد.
-- [ ] Message از Snapshot Item/Cost/Balance ساخته شود.
-- [ ] Resend همان Redemption/Code را استفاده کند.
-- [ ] تست Concurrent Redemption نوشته شود.
+- [ ] Client Command ID از Double Click جلوگیری کند.
+- [ ] Points Ledger، Stock و Redemption در یک Transaction ثبت شوند.
+- [ ] Redemption Code امن و یکتا ایجاد شود.
+- [ ] Confirmation Outbox در همان Transaction ساخته شود.
+- [ ] Code قطعی بلافاصله در UI نمایش داده شود.
+- [ ] Message از Item/Cost/Balance Snapshot ساخته شود.
+- [ ] Failure پیامک Redemption را ناقص یا برگشت ندهد.
+- [ ] Resend همان Redemption و Code را استفاده کند.
+- [ ] Purchase/Delivery History واقعی نمایش داده شود.
+- [ ] تست Concurrent Stock/Points، Duplicate و Cross-Seller سبز باشد.
 
-**معیار Done:** Double Click و همزمانی Stock/Points باعث خرید یا پیام تکراری نشوند.
+## معیار Done
+
+خرید کلاب در هر شرایط فقط یک‌بار ثبت شود و پیام تأیید و History آن با همان Code قطعی متصل باشند.
 
 ---
 
-## کارت SMS-13 — Polling وضعیت و گزارش تحویل
+# کارت 13 — تنظیم و اتصال ساختار گزارش وضعیت SMS
 
-**لیبل:** `P1 - ضروری لانچ`, `Backend`, `Reports`, `Queue/Scheduler`
+**لیبل:** `P1 - فیچر لانچ`, `Reports`
 
-**توضیحات کارت:**
+## توضیحات
 
-Referenceهای Armaghan ذخیره و با `getMessageState` Poll شوند. درصدها و Countهای Fixture Prototype با داده واقعی جایگزین شوند.
+Referenceهای Provider، Polling وضعیت و گزارش‌های Dashboard، Campaign، Tool و Message Detail به‌صورت کامل متصل شوند و تمام Fixtureها حذف شوند.
 
-**مستند مرجع:** `docs/16-delivery-reports.md`
+**مستند:** `docs/16-delivery-reports.md`
 
-**چک‌لیست:**
+## چک‌لیست
 
-- [ ] Referenceها به‌صورت string ذخیره شوند.
-- [ ] تعداد Reference و Destination برابر بودنشان Validate شود.
-- [ ] Reference Index به Recipient درست Map شود.
-- [ ] Poll Worker برای Stateهای Non-Terminal ساخته شود.
+- [ ] Referenceها به‌صورت string و به Recipient درست Map شوند.
+- [ ] تعداد Reference و Destination Validate شود.
+- [ ] Worker مربوط به `getMessageState` ساخته شود.
 - [ ] Stateهای ۰ تا ۶ و `-100` Map شوند.
-- [ ] State Terminal با پاسخ قدیمی Regression نکند.
-- [ ] Poll Interval و Max Age قابل تنظیم باشند.
-- [ ] Unknown/Reference Not Found قابل مشاهده باشند.
-- [ ] API Summary/Run/Message Detail ساخته شود.
-- [ ] Denominator نرخ تحویل مشخص و Label شود.
-- [ ] Report Query همیشه Seller-Scoped باشد.
+- [ ] State Terminal Regression نکند.
+- [ ] Poll Backoff و Max Age قابل تنظیم باشند.
+- [ ] Accepted/Sent/Delivered/Not Delivered/Unknown تفکیک شوند.
+- [ ] API Summary، Run Report و Message Detail ساخته شود.
+- [ ] Denominator نرخ تحویل مشخص باشد.
+- [ ] Dashboard، Sheets و History به API واقعی متصل شوند.
+- [ ] Unknown/Reference Missing در UI قابل مشاهده باشند.
+- [ ] گزارش Seller-Scoped باشد.
 - [ ] Totals با Recipient Rowها Reconcile شوند.
+- [ ] تست Mapping، Out-of-Order State و Cross-Seller سبز باشد.
 
-**معیار Done:** Run آزمایشی از Accepted تا Delivered/Not Delivered قابل ردیابی و گزارش باشد.
+## معیار Done
 
----
-
-## کارت SMS-14 — دریافت پیام و Opt-out با پاسخ ۵
-
-**لیبل:** `P1 - ضروری لانچ`, `Backend`, `Security`, `Queue/Scheduler`
-
-**توضیحات کارت:**
-
-پیام‌های دریافتی با `getReceivedMessages` Poll شوند، براساس Destination Line به Seller درست Route شوند و پاسخ ۵ بازاریابی همان Seller را غیرفعال کند.
-
-**مستند مرجع:** `docs/17-inbound-opt-out.md`
-
-**چک‌لیست:**
-
-- [ ] Checkpoint جدا برای هر Provider Account ایجاد شود.
-- [ ] Inbox Provider ID یکتا ذخیره شود.
-- [ ] Page کامل قبل از Advance Checkpoint Durable شود.
-- [ ] Destination به `seller_sender_lines` Resolve شود.
-- [ ] Destination ناشناخته وارد Dead-Letter شود.
-- [ ] اعداد `5`, `۵`, `٥` یکسان Normalize شوند.
-- [ ] Stop Words دقیق و Review شده باشند.
-- [ ] از Substring Match وسیع جلوگیری شود.
-- [ ] Preference Marketing Opt-out Seller-Scoped Upsert شود.
-- [ ] پیام‌های Marketing ارسال‌نشده Cancel شوند.
-- [ ] Dispatch آخرین‌لحظه Preference را دوباره بررسی کند.
-- [ ] Raw Inbound Content دسترسی و Retention محدود داشته باشد.
-- [ ] تست Opt-out Seller A و عدم اثر روی Seller B نوشته شود.
-
-**معیار Done:** Reply 5 فقط Marketing همان Seller را متوقف کند و Race با Queue قابل دورزدن نباشد.
+تمام گزارش‌های SMS از داده واقعی Provider ساخته شوند و هیچ درصد یا Count ثابت Prototype باقی نماند.
 
 ---
 
-## کارت REL-01 — QA نهایی، امنیت و آماده‌سازی لانچ
+# کارت 14 — تنظیم و اتصال ساختار دریافت SMS و لغو پیام تبلیغاتی
 
-**لیبل:** `P0 - زیرساخت`, `QA`, `Security`, `Reports`
+**لیبل:** `P1 - فیچر لانچ`, `Compliance`
 
-**توضیحات کارت:**
+## توضیحات
 
-تمام موارد Launch Checklist در Staging با سرخط تأییدشده و شماره‌های تست مجاز اجرا و Evidence ثبت شود.
+پیام ورودی Provider دریافت، با سرخط مقصد به Seller صحیح Route و پاسخ ۵ به Opt-out بازاریابی همان Seller تبدیل شود. وضعیت Opt-out در UI مشتری و تمام مسیرهای ارسال اعمال شود.
 
-**مستند مرجع:** `docs/18-launch-checklist.md`
+**مستند:** `docs/17-inbound-opt-out.md`
 
-**چک‌لیست:**
+## چک‌لیست
 
-- [ ] Credential قبلی Rotate و Secret Manager فعال شود.
-- [ ] هیچ Secret یا شماره واقعی در Repo/Log/Test نباشد.
-- [ ] Migrationها و Rollback آنها تست شوند.
-- [ ] One-to-Many واقعی در Staging تست شود.
-- [ ] Many-to-Many شخصی‌سازی‌شده تست شود.
-- [ ] Reference Mapping و Delivery Poll تست شوند.
-- [ ] Ambiguous Timeout سناریو تست شود.
-- [ ] Opt-out با پاسخ ۵ End-to-End تست شود.
-- [ ] Tenant Isolation برای Line/Template/Customer/Report تست شود.
-- [ ] App Credit Reserve/Release/Reconcile تست شود.
-- [ ] Schedulerها با timezone تهران تست شوند.
-- [ ] Dashboard/Sheets از Fixture به API واقعی منتقل شوند.
-- [ ] Alert برای Auth/Credit/IP/Service/Unknown فعال شود.
-- [ ] تمام چک‌لیست‌های Feature Cardها بسته شوند.
-- [ ] Sign-off فنی، QA، امنیت و محصول ثبت شود.
+- [ ] Polling `getReceivedMessages` و Checkpoint ایجاد شود.
+- [ ] Inbox Provider ID به‌صورت Unique ذخیره شود.
+- [ ] Destination به سرخط Seller Resolve شود.
+- [ ] Destination ناشناخته وارد Review Queue شود.
+- [ ] `5`، `۵` و `٥` یکسان نرمال شوند.
+- [ ] Stop Wordهای دقیق و تأییدشده تعریف شوند.
+- [ ] Opt-out فقط برای همان Seller ثبت شود.
+- [ ] Marketing Messageهای ارسال‌نشده Cancel شوند.
+- [ ] Eligibility قبل از Dispatch Opt-out را دوباره بررسی کند.
+- [ ] وضعیت Opt-out در پروفایل Customer نمایش داده شود.
+- [ ] امکان Audit منبع و زمان Opt-out وجود داشته باشد.
+- [ ] Raw Message و Mobile طبق Retention/Privacy محافظت شوند.
+- [ ] تست Replay Inbound، Unknown Line، Race و Cross-Seller سبز باشد.
 
-**معیار Done:** همه موارد مرتبط `docs/18-launch-checklist.md` Evidence و تأیید داشته باشند و هیچ Fixture یا Mutation سمت Frontend منبع حقیقت نباشد.
+## معیار Done
+
+پاسخ ۵ به سرخط Seller A فقط پیام‌های بازاریابی Seller A را متوقف کند و در UI و Dispatch قابل مشاهده و غیرقابل دورزدن باشد.
+
+---
+
+# کارت 15 — نهایی‌سازی و لانچ کل ساختار SMS
+
+**لیبل:** `P0 - هسته مشترک`, `P1 - فیچر لانچ`
+
+## توضیحات
+
+پس از تکمیل کارت‌های Feature-Based، کل سیستم با سناریوهای واقعی Staging، امنیت، Tenant Isolation، Provider Errors، Opt-out و گزارش‌ها بررسی و برای Production نهایی شود.
+
+**مستند:** `docs/18-launch-checklist.md`
+
+## چک‌لیست
+
+- [ ] Credential افشاشده Rotate و Secret Manager فعال شود.
+- [ ] سرخط واقعی و شماره تست مجاز برای هر Seller آماده باشد.
+- [ ] One-to-Many واقعی از UI تا Delivery Report تست شود.
+- [ ] Many-to-Many شخصی‌سازی‌شده از UI تا Report تست شود.
+- [ ] Ambiguous Timeout بدون Duplicate تست شود.
+- [ ] App Credit Reserve/Commit/Release تست شود.
+- [ ] Schedule و Business Hours با timezone تهران تست شوند.
+- [ ] Reply 5 و Opt-out End-to-End تست شوند.
+- [ ] Cross-Seller Line/Template/Customer/Report تست شود.
+- [ ] هیچ Credential، شماره کامل یا متن کامل در Log نباشد.
+- [ ] تمام Fixtureها و Mutationهای Authoritative سمت Frontend حذف شوند.
+- [ ] Alertهای Auth/Credit/IP/Service/Unknown فعال شوند.
+- [ ] تمام Acceptance Testهای ۱۴ فیچر سبز باشند.
+- [ ] Sign-off محصول، فنی، QA و امنیت ثبت شود.
+
+## معیار Done
+
+تمام کارت‌های فیچری Done باشند، Launch Checklist Evidence داشته باشد و سیستم بدون داده Fixture آماده Production باشد.
